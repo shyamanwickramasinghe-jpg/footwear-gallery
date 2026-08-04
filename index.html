@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Trending Footwear Operations Gallery</title>
+    <!-- Load YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <style>
+        body {
+            background: linear-gradient(rgba(15, 15, 15, 0.85), rgba(15, 15, 15, 0.85)) fixed;
+            background-size: cover;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        /* Trending Sneaker Watermark */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw;
+            height: 100vh;
+            background: url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80') no-repeat center center;
+            background-size: 50%; 
+            opacity: 0.05; 
+            z-index: -1; 
+            pointer-events: none;
+            filter: grayscale(100%);
+        }
+
+        .container {
+            max-width: 1000px; 
+            margin: 0 auto;
+            background: rgba(30, 30, 30, 0.85);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        /* Header Layout with Embedded SVG Logo */
+        .header-flex {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #444;
+            padding-bottom: 15px;
+        }
+        .header-logo {
+            width: 55px;
+            height: 55px;
+            flex-shrink: 0;
+        }
+        .header-flex h2 {
+            margin: 0;
+            font-size: 1.4em;
+        }
+
+        /* Tab Navigation */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #444; padding-bottom: 10px; }
+        .tab-btn { background: #333; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 6px; transition: background 0.3s; }
+        .tab-btn:hover { background: #555; }
+        .tab-btn.active { background: #007bff; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Form Controls */
+        select, input[type="text"], input[type="number"], button, textarea {
+            padding: 10px; margin: 5px 0 15px 0; border-radius: 6px; border: 1px solid #555;
+            background: #222; color: white; box-sizing: border-box; font-family: inherit;
+        }
+        .input-group { display: flex; gap: 15px; }
+        .input-group > div { flex: 1; }
+        button { background: #28a745; cursor: pointer; border: none; font-weight: bold; }
+        button:hover { background: #218838; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-warning { background: #ffc107; color: black; margin-top: 20px; width: 100%;}
+        .btn-warning:hover { background: #e0a800; }
+        
+        /* Slider Styling */
+        input[type=range] { -webkit-appearance: none; background: #444; height: 6px; border-radius: 3px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #007bff; cursor: pointer; }
+        
+        /* SMV Data Banner */
+        .info-card { background: rgba(0, 0, 0, 0.5); border-left: 4px solid #007bff; padding: 15px; margin: 15px 0; border-radius: 6px; display: flex; flex-direction: column; align-items: center; }
+        .info-item { text-align: center; }
+        .info-label { font-size: 0.9em; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+        .info-value { font-size: 1.5em; font-weight: bold; color: #007bff; margin-top: 5px; }
+
+        /* Video Layouts */
+        .video-layout { display: flex; gap: 15px; margin-top: 15px; }
+        .main-video-container, .slomo-video-container { flex: 1; display: flex; flex-direction: column; }
+        video, iframe, .player-frame { border: 2px solid #444; border-radius: 8px; width: 100%; height: 350px; object-fit: contain; background: #000; }
+        
+        /* ALIGNMENT FIX */
+        .video-title { font-size: 0.9em; color: #aaa; margin-bottom: 5px; text-transform: uppercase; text-align: center; display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 40px; }
+        
+        .speed-select { padding: 5px 12px; margin: 0; font-size: 1.1em; width: auto; background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .speed-select:hover { background: #0056b3; }
+
+        #exportArea { width: 100%; height: 150px; background: #111; color: #0f0; font-family: monospace; padding: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header with Embedded Logo and Title -->
+    <div class="header-flex">
+        <svg class="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+            <circle cx="250" cy="250" r="250" fill="#151515" />
+            <circle cx="250" cy="250" r="225" stroke="#007bff" stroke-width="10" fill="none" stroke-dasharray="40 20" />
+            <text x="250" y="260" font-family="'Segoe UI', Tahoma, Arial, sans-serif" font-size="160" font-weight="900" fill="#ffffff" text-anchor="middle">
+                F<tspan fill="#007bff">T</tspan>
+            </text>
+            <text x="250" y="330" font-family="'Segoe UI', Tahoma, Arial, sans-serif" font-size="35" font-weight="bold" fill="#dddddd" text-anchor="middle" letter-spacing="8">
+                FOOTTECH
+            </text>
+            <path d="M 160 380 Q 250 410 340 380" stroke="#007bff" stroke-width="12" stroke-linecap="round" fill="none" />
+        </svg>
+        <h2>Social Media Trending Footwear Operations Gallery</h2>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('viewer', event)">Video Viewer</button>
+        <button class="tab-btn" onclick="openTab('manage', event)">Manage Operations</button>
+    </div>
+
+    <!-- Tab 1: Video Viewer -->
+    <div id="viewer" class="tab-content active">
+        <label>Search Operation:</label><br>
+        <input type="text" id="searchInput" onkeyup="filterOperations()" placeholder="Type to filter operations..." style="width: 100%;"><br>
+
+        <label>Select Operation:</label><br>
+        <div style="display: flex; gap: 10px;">
+            <select id="videoSelect" onchange="playVideo()" style="flex: 1;">
+                <option value="">-- Choose Operation --</option>
+            </select>
+            <button class="btn-danger" onclick="deleteOperation()" style="height: 42px; margin-top: 5px;">Delete</button>
+        </div>
+
+        <!-- SMV Banner with Dual Sliders -->
+        <div class="info-card" id="smvCard" style="display: none;">
+            <div style="display: flex; justify-content: space-around; width: 100%;">
+                <div class="info-item">
+                    <div class="info-label">Revised SMV</div>
+                    <div class="info-value" id="smvValue">--</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Hourly Target</div>
+                    <div class="info-value" id="targetValue">--</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; width: 85%; text-align: center; border-top: 1px solid #444; padding-top: 15px;">
+                <!-- Performance Slider -->
+                <label style="color: #aaa; font-size: 0.9em; text-transform: uppercase;">
+                    Simulate Performance Rating: <span id="perfLabel" style="color: #007bff; font-weight: bold; font-size: 1.2em;">100%</span>
+                </label><br>
+                <input type="range" id="perfSlider" min="50" max="150" value="100" style="width: 100%; margin-top: 10px; margin-bottom: 20px;" oninput="updateSMV()">
+                
+                <!-- Allowance Slider -->
+                <label style="color: #aaa; font-size: 0.9em; text-transform: uppercase;">
+                    Simulate Allowance: <span id="allowLabel" style="color: #007bff; font-weight: bold; font-size: 1.2em;">15%</span>
+                </label><br>
+                <input type="range" id="allowSlider" min="1" max="25" value="15" style="width: 100%; margin-top: 10px;" oninput="updateSMV()">
+            </div>
+        </div>
+
+        <!-- DYNAMIC PLAYER LAYOUT -->
+        <div id="unifiedPlayerContainer" class="video-layout" style="display: none;">
+            
+            <!-- Normal Speed Container -->
+            <div class="main-video-container">
+                <div class="video-title">Normal Speed</div>
+                <video id="videoPlayer" class="player-frame" controls loop style="display: none;">
+                    <source id="videoSource" src="" type="video/mp4">
+                </video>
+                <div id="ytPlayerNormal" class="player-frame" style="display: none;"></div>
+            </div>
+
+            <!-- Slow Motion Container -->
+            <div class="slomo-video-container">
+                <div class="video-title" style="color: #007bff; font-weight: bold;">
+                    Motion Analysis 
+                    <select id="unifiedSlomoSpeed" class="speed-select" onchange="changeUnifiedSlomoSpeed()">
+                        <option value="0.75">0.75x</option>
+                        <option value="0.5">0.5x</option>
+                        <option value="0.25" selected>0.25x</option>
+                    </select>
+                </div>
+                <video id="slomoPlayer" class="player-frame" controls muted loop style="display: none;">
+                    <source id="slomoSource" src="" type="video/mp4">
+                </video>
+                <div id="ytPlayerSlomo" class="player-frame" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Manage Operations -->
+    <div id="manage" class="tab-content">
+        <h3>Add New Operation</h3>
+        <label>Operation Name:</label><br>
+        <input type="text" id="newOpName" placeholder="e.g. Heel Stitching" style="width: 100%;"><br>
+        
+        <label style="color: #007bff; font-weight:bold;">Local MP4 File OR YouTube Link:</label><br>
+        <input type="text" id="newFileName" placeholder="e.g. https://www.youtube.com/watch?v=... or https://youtube.com/shorts/..." style="width: 100%; border: 1px solid #007bff;"><br>
+
+        <div class="input-group">
+            <div><label>Observed Time (sec):</label><br><input type="number" step="0.1" id="obsTime" placeholder="e.g. 41.4" style="width: 100%;" required></div>
+            <div><label>Perf. Rating (%):</label><br><input type="number" id="perfRating" value="100" style="width: 100%;"></div>
+            <div><label>Allowances (%):</label><br><input type="number" id="allowance" value="15" style="width: 100%;"></div>
+        </div>
+        
+        <button onclick="addOperation()" style="margin-top: 15px;">+ Add Operation to List</button>
+
+        <hr style="border-color: #444; margin: 30px 0;">
+        <button class="btn-warning" onclick="generateCode()">Generate Code for Netlify</button>
+        <textarea id="exportArea" readonly></textarea>
+    </div>
+</div>
+
+<script>
+    // --- PASTE YOUR VIDEOS HERE ---
+    let defaultOperations = [
+        { name: "Toe Cap Attaching", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1512409466993771_hd.mp4?tr=orig-true", smvPair: 0.6900 },
+        { name: "Insole Mounting", file: "snapsave-app_1279161734388912_hd.mp4", smvPair: 0.1530 },
+        { name: "Toe Back Jointing - Square Shape - SN", file: "snapsave-app_1FyVRqo6ad_hd.mp4", smvPair: 0.5750 },
+        { name: "Overlap Trimming - Dual Density Sole", file: "snapsave-app_100_hd.mp4", smvPair: 0.5750 },
+        { name: "Toe Cap Attaching - Court shoe - Large", file: "snapsave-app_949015277891840_hd.mp4", smvPair: 0.6900 },
+        { name: "Edge Folding - Machine - Complete Sandle", file: "snapsave-app_967491046144817_hd (1).mp4", smvPair: 0.6130 },
+        { name: "Toe Back Jointing - Safety shoe - Pattern Sew", file: "https://youtube.com/shorts/9EV1aWht31M", smvPair: 1.2270 }
+    ];
+    // ---------------------------------
+
+    let savedData = localStorage.getItem("footwearOperations");
+    let operations = savedData ? JSON.parse(savedData) : defaultOperations;
+    let currentBaseSMV = 0; 
+    
+    let ytPlayerAPI_Normal;
+    let ytPlayerAPI_Slomo;
+
+    function saveToMemory() { localStorage.setItem("footwearOperations", JSON.stringify(operations)); }
+
+    function populateDropdown(list) {
+        const select = document.getElementById("videoSelect");
+        select.innerHTML = '<option value="">-- Choose Operation --</option>';
+        list.forEach((op) => {
+            const option = document.createElement("option");
+            option.value = op.file;
+            option.text = op.name;
+            option.dataset.index = operations.indexOf(op); 
+            select.add(option);
+        });
+    }
+
+    populateDropdown(operations);
+
+    function openTab(tabId, evt) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        evt.target.classList.add('active');
+    }
+
+    function filterOperations() {
+        const query = document.getElementById("searchInput").value.toLowerCase();
+        const filtered = operations.filter(op => op.name.toLowerCase().includes(query));
+        populateDropdown(filtered);
+        const select = document.getElementById("videoSelect");
+        select.size = query.length > 0 ? (filtered.length > 0 ? Math.min(filtered.length + 1, 6) : 2) : 1;
+    }
+
+    function changeUnifiedSlomoSpeed() {
+        const selectedSpeed = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
+        document.getElementById("slomoPlayer").playbackRate = selectedSpeed;
+        if (ytPlayerAPI_Slomo && typeof ytPlayerAPI_Slomo.setPlaybackRate === 'function') {
+            ytPlayerAPI_Slomo.setPlaybackRate(selectedSpeed);
+        }
+    }
+
+    function getYouTubeID(url) {
+        let video_id = url.split('v=')[1];
+        if (!video_id) video_id = url.split('youtu.be/')[1];
+        if (!video_id) video_id = url.split('shorts/')[1]; 
+        
+        if (video_id) {
+            let ampersandPosition = video_id.indexOf('&');
+            if(ampersandPosition !== -1) video_id = video_id.substring(0, ampersandPosition);
+            
+            let questionPosition = video_id.indexOf('?');
+            if(questionPosition !== -1) video_id = video_id.substring(0, questionPosition);
+            
+            return video_id.trim();
+        }
+        return url;
+    }
+
+    function initYouTubePlayers(videoId) {
+        if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); }
+        if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); }
+
+        ytPlayerAPI_Normal = new YT.Player('ytPlayerNormal', {
+            height: '350', width: '100%', videoId: videoId,
+            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
+            events: {
+                'onReady': function(event) { event.target.playVideo(); },
+                'onStateChange': function(event) { if (event.data === YT.PlayerState.ENDED) { event.target.playVideo(); } }
+            }
+        });
+
+        ytPlayerAPI_Slomo = new YT.Player('ytPlayerSlomo', {
+            height: '350', width: '100%', videoId: videoId,
+            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'mute': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
+            events: {
+                'onReady': function(event) {
+                    event.target.mute(); 
+                    const selectedSpeed = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
+                    event.target.setPlaybackRate(selectedSpeed);
+                    event.target.playVideo(); 
+                },
+                'onStateChange': function(event) {
+                    if(event.data === YT.PlayerState.PLAYING) {
+                        const selectedSpeed = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
+                        event.target.setPlaybackRate(selectedSpeed);
+                    }
+                    if (event.data === YT.PlayerState.ENDED) { event.target.playVideo(); }
+                }
+            }
+        });
+    }
+
+    function playVideo() {
+        const select = document.getElementById("videoSelect");
+        select.size = 1; document.getElementById("searchInput").value = ""; 
+
+        const smvCard = document.getElementById("smvCard");
+        const unifiedPlayerContainer = document.getElementById("unifiedPlayerContainer");
+
+        if (select.selectedIndex > 0) {
+            const op = operations[select.options[select.selectedIndex].dataset.index];
+            currentBaseSMV = op.smvPair || 0;
+            unifiedPlayerContainer.style.display = "flex";
+
+            if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
+                const ytId = getYouTubeID(op.file);
+                
+                document.getElementById("videoPlayer").style.display = "none";
+                document.getElementById("slomoPlayer").style.display = "none";
+                document.getElementById("ytPlayerNormal").style.display = "block";
+                document.getElementById("ytPlayerSlomo").style.display = "block";
+
+                document.getElementById("videoPlayer").pause();
+                document.getElementById("slomoPlayer").pause();
+
+                initYouTubePlayers(ytId);
+
+            } else {
+                document.getElementById("ytPlayerNormal").style.display = "none";
+                document.getElementById("ytPlayerSlomo").style.display = "none";
+                document.getElementById("videoPlayer").style.display = "block";
+                document.getElementById("slomoPlayer").style.display = "block";
+                
+                if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
+                if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+                
+                document.getElementById("videoSource").src = op.file;
+                document.getElementById("videoPlayer").load();
+                document.getElementById("videoPlayer").play();
+                
+                document.getElementById("slomoSource").src = op.file;
+                document.getElementById("slomoPlayer").load();
+                
+                document.getElementById("slomoPlayer").playbackRate = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
+                document.getElementById("slomoPlayer").play();
+            }
+
+            document.getElementById("perfSlider").value = 100;
+            document.getElementById("allowSlider").value = 15;
+            updateSMV();
+            
+            smvCard.style.display = "flex";
+        } else {
+            smvCard.style.display = "none";
+            unifiedPlayerContainer.style.display = "none";
+            
+            document.getElementById("videoPlayer").pause(); document.getElementById("slomoSource").src = "";
+            document.getElementById("slomoPlayer").pause(); 
+            
+            if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
+            if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+        }
+    }
+
+    function updateSMV() {
+        if (!currentBaseSMV) return;
+        
+        const perf = parseInt(document.getElementById("perfSlider").value);
+        const allow = parseInt(document.getElementById("allowSlider").value);
+        
+        const baseTimeWithoutAllowance = currentBaseSMV / 1.15;
+        
+        const rawSMV = (baseTimeWithoutAllowance * (perf / 100) * (1 + (allow / 100)));
+        const revisedSMV = rawSMV.toFixed(4); 
+        const target = rawSMV > 0 ? Math.floor(60 / rawSMV) : 0;
+        
+        document.getElementById("perfLabel").innerText = perf + "%";
+        document.getElementById("allowLabel").innerText = allow + "%";
+        document.getElementById("smvValue").innerText = revisedSMV + " min";
+        document.getElementById("targetValue").innerText = target + " pairs";
+    }
+
+    function addOperation() {
+        const nameInput = document.getElementById("newOpName").value.trim();
+        const fileInput = document.getElementById("newFileName").value.trim();
+        const obsTime = parseFloat(document.getElementById("obsTime").value);
+        
+        if (!nameInput || !fileInput || isNaN(obsTime) || obsTime <= 0) return alert("Fill Name, File Name/Link, and Observed Time correctly.");
+
+        const rawCalcSMV = ((obsTime * (parseFloat(document.getElementById("perfRating").value) || 100) / 100) * (1 + ((parseFloat(document.getElementById("allowance").value) || 15) / 100))) / 60;
+        const calculatedSMV = parseFloat(rawCalcSMV.toFixed(4));
+
+        operations.push({ name: nameInput, file: fileInput, smvPair: calculatedSMV });
+        saveToMemory(); populateDropdown(operations);
+
+        document.getElementById("newOpName").value = ""; document.getElementById("newFileName").value = ""; 
+        document.getElementById("obsTime").value = "";
+        
+        const btn = document.querySelector("#manage button");
+        btn.innerText = "Added Successfully!"; btn.style.background = "#218838";
+        setTimeout(() => { btn.innerText = "+ Add Operation to List"; btn.style.background = "#28a745"; }, 1500);
+    }
+
+    function deleteOperation() {
+        const select = document.getElementById("videoSelect");
+        if (select.selectedIndex <= 0) return alert("Please select an operation to delete.");
+        if (confirm("Are you sure you want to delete this operation?")) {
+            operations.splice(parseInt(select.options[select.selectedIndex].dataset.index), 1);
+            saveToMemory(); document.getElementById("searchInput").value = ""; select.size = 1; populateDropdown(operations);
+            document.getElementById("smvCard").style.display = "none";
+            document.getElementById("unifiedPlayerContainer").style.display = "none";
+            
+            document.getElementById("videoPlayer").pause(); document.getElementById("slomoPlayer").pause(); 
+            if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
+            if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+        }
+    }
+
+    function generateCode() {
+        let codeOutput = `    let defaultOperations = [\n`;
+        operations.forEach((op, index) => {
+            codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)} }`;
+            if (index < operations.length - 1) codeOutput += `,`;
+            codeOutput += `\n`;
+        });
+        codeOutput += `    ];`;
+
+        const exportArea = document.getElementById("exportArea");
+        exportArea.value = codeOutput; exportArea.style.display = "block"; exportArea.select(); document.execCommand("copy");
+        alert("Success! The code is generated and copied to your clipboard.");
+    }
+</script>
+</body>
+</html>
