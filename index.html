@@ -43,7 +43,7 @@
             backdrop-filter: blur(5px);
         }
 
-        /* Header Layout with Embedded SVG Logo */
+        /* Header Layout */
         .header-flex {
             display: flex;
             align-items: center;
@@ -97,7 +97,10 @@
         /* Video Layouts */
         .video-layout { display: flex; gap: 15px; margin-top: 15px; }
         .main-video-container, .slomo-video-container { flex: 1; display: flex; flex-direction: column; }
-        video, iframe, .player-frame { border: 2px solid #444; border-radius: 8px; width: 100%; height: 350px; object-fit: contain; background: #000; }
+        video, .player-frame { border: 2px solid #444; border-radius: 8px; width: 100%; height: 350px; object-fit: contain; background: #000; box-sizing: border-box; }
+        
+        /* Ensures the injected YouTube iframe perfectly fits inside its new wrapper */
+        .player-frame iframe { width: 100% !important; height: 100% !important; border: none !important; border-radius: 6px; }
         
         /* ALIGNMENT FIX */
         .video-title { font-size: 0.9em; color: #aaa; margin-bottom: 5px; text-transform: uppercase; text-align: center; display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 40px; }
@@ -111,7 +114,6 @@
 <body>
 
 <div class="container">
-    <!-- Header with Embedded Logo and Title -->
     <div class="header-flex">
         <svg class="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
             <circle cx="250" cy="250" r="250" fill="#151515" />
@@ -180,10 +182,16 @@
             <!-- Normal Speed Container -->
             <div class="main-video-container">
                 <div class="video-title">Normal Speed</div>
+                
+                <!-- MP4 Player -->
                 <video id="videoPlayer" class="player-frame" controls loop style="display: none;">
                     <source id="videoSource" src="" type="video/mp4">
                 </video>
-                <div id="ytPlayerNormal" class="player-frame" style="display: none;"></div>
+                
+                <!-- YouTube Player Wrapper -->
+                <div id="ytWrapperNormal" class="player-frame" style="display: none;">
+                    <div id="ytPlayerNormal"></div>
+                </div>
             </div>
 
             <!-- Slow Motion Container -->
@@ -196,10 +204,16 @@
                         <option value="0.25" selected>0.25x</option>
                     </select>
                 </div>
+                
+                <!-- MP4 Player -->
                 <video id="slomoPlayer" class="player-frame" controls muted loop style="display: none;">
                     <source id="slomoSource" src="" type="video/mp4">
                 </video>
-                <div id="ytPlayerSlomo" class="player-frame" style="display: none;"></div>
+                
+                <!-- YouTube Player Wrapper -->
+                <div id="ytWrapperSlomo" class="player-frame" style="display: none;">
+                    <div id="ytPlayerSlomo"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -228,7 +242,6 @@
 </div>
 
 <script>
-    // --- PASTE YOUR VIDEOS HERE ---
     let defaultOperations = [
         { name: "Toe Cap Attaching", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1512409466993771_hd.mp4?tr=orig-true", smvPair: 0.6900 },
         { name: "Insole Mounting", file: "snapsave-app_1279161734388912_hd.mp4", smvPair: 0.1530 },
@@ -238,7 +251,6 @@
         { name: "Edge Folding - Machine - Complete Sandle", file: "snapsave-app_967491046144817_hd (1).mp4", smvPair: 0.6130 },
         { name: "Toe Back Jointing - Safety shoe - Pattern Sew", file: "https://youtube.com/shorts/9EV1aWht31M", smvPair: 1.2270 }
     ];
-    // ---------------------------------
 
     let savedData = localStorage.getItem("footwearOperations");
     let operations = savedData ? JSON.parse(savedData) : defaultOperations;
@@ -304,11 +316,8 @@
     }
 
     function initYouTubePlayers(videoId) {
-        if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); }
-        if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); }
-
         ytPlayerAPI_Normal = new YT.Player('ytPlayerNormal', {
-            height: '350', width: '100%', videoId: videoId,
+            videoId: videoId,
             playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
             events: {
                 'onReady': function(event) { event.target.playVideo(); },
@@ -317,7 +326,7 @@
         });
 
         ytPlayerAPI_Slomo = new YT.Player('ytPlayerSlomo', {
-            height: '350', width: '100%', videoId: videoId,
+            videoId: videoId,
             playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'mute': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
             events: {
                 'onReady': function(event) {
@@ -352,25 +361,36 @@
             if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
                 const ytId = getYouTubeID(op.file);
                 
+                // Hide and pause MP4 players
                 document.getElementById("videoPlayer").style.display = "none";
                 document.getElementById("slomoPlayer").style.display = "none";
-                document.getElementById("ytPlayerNormal").style.display = "block";
-                document.getElementById("ytPlayerSlomo").style.display = "block";
-
                 document.getElementById("videoPlayer").pause();
                 document.getElementById("slomoPlayer").pause();
+
+                // Show YouTube Wrappers
+                document.getElementById("ytWrapperNormal").style.display = "block";
+                document.getElementById("ytWrapperSlomo").style.display = "block";
+
+                // Re-inject fresh placeholder divs in case they were destroyed
+                document.getElementById("ytWrapperNormal").innerHTML = '<div id="ytPlayerNormal"></div>';
+                document.getElementById("ytWrapperSlomo").innerHTML = '<div id="ytPlayerSlomo"></div>';
 
                 initYouTubePlayers(ytId);
 
             } else {
-                document.getElementById("ytPlayerNormal").style.display = "none";
-                document.getElementById("ytPlayerSlomo").style.display = "none";
+                // Hide YouTube Wrappers entirely (Removes the black boxes!)
+                document.getElementById("ytWrapperNormal").style.display = "none";
+                document.getElementById("ytWrapperSlomo").style.display = "none";
+                
+                // Show MP4 players
                 document.getElementById("videoPlayer").style.display = "block";
                 document.getElementById("slomoPlayer").style.display = "block";
                 
+                // Cleanly destroy YouTube players
                 if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
                 if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
                 
+                // Play MP4s
                 document.getElementById("videoSource").src = op.file;
                 document.getElementById("videoPlayer").load();
                 document.getElementById("videoPlayer").play();
