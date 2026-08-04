@@ -159,7 +159,7 @@
 <div class="container">
     <!-- Corporate Header -->
     <div class="dsi-header">
-        <img src="YOUR_IMAGEKIT_LOGO_LINK_HERE" alt="DSI Logo" class="dsi-image-logo">
+        <img src="https://ik.imagekit.io/qegfiwkq6/4544545.jpg?updatedAt=1785824235651" alt="DSI Logo" class="dsi-image-logo">
         <h3>D. Samson Industries (Pvt) Ltd</h3>
     </div>
 
@@ -192,7 +192,6 @@
         <input type="text" id="searchInput" onkeyup="filterOperations()" placeholder="Type to filter operations..." style="width: 100%;"><br>
 
         <label>Select Operation:</label><br>
-        <!-- DELETE BUTTON REMOVED FROM HERE -->
         <select id="videoSelect" onchange="playVideo()" style="width: 100%;">
             <option value="">-- Choose Operation --</option>
         </select>
@@ -318,7 +317,6 @@
 
         <hr style="border-color: #444; margin: 30px 0;">
 
-        <!-- DELETE BUTTON MOVED TO HERE -->
         <h3>Delete Operation</h3>
         <div style="display: flex; gap: 10px;">
             <select id="deleteSelect" style="flex: 1;">
@@ -370,7 +368,7 @@
 
     function populateDropdown(list) {
         const videoSelect = document.getElementById("videoSelect");
-        const deleteSelect = document.getElementById("deleteSelect"); // Added to sync admin delete list
+        const deleteSelect = document.getElementById("deleteSelect"); 
         
         videoSelect.innerHTML = '<option value="">-- Choose Operation --</option>';
         if(deleteSelect) deleteSelect.innerHTML = '<option value="">-- Select to Delete --</option>';
@@ -531,7 +529,6 @@
     }
 
     function deleteOperation() {
-        // Changed target to specifically pull from the admin's delete dropdown
         const select = document.getElementById("deleteSelect"); 
         if (select.selectedIndex <= 0) return alert("Please select an operation to delete.");
         
@@ -542,7 +539,6 @@
             document.getElementById("searchInput").value = ""; 
             populateDropdown(operations);
             
-            // Shut off player if deleted video was active
             document.getElementById("smvCard").style.display = "none"; 
             document.getElementById("unifiedPlayerContainer").style.display = "none";
             document.getElementById("videoPlayer").pause(); 
