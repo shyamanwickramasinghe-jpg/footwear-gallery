@@ -188,7 +188,6 @@
         </div>
 
         <div id="unifiedPlayerContainer" class="video-layout" style="display: none;">
-            <!-- Normal Speed -->
             <div class="main-video-container">
                 <div class="video-title">Normal Speed</div>
                 <video id="videoPlayer" class="player-frame" controls loop style="display: none;">
@@ -199,7 +198,6 @@
                 </div>
             </div>
 
-            <!-- Slow Motion -->
             <div class="slomo-video-container">
                 <div class="video-title" style="color: #007bff; font-weight: bold;">
                     Motion Analysis 
@@ -225,8 +223,8 @@
         <label>Operation Name:</label><br>
         <input type="text" id="newOpName" placeholder="e.g. Heel Stitching" style="width: 100%;"><br>
         
-        <label style="color: #007bff; font-weight:bold;">Local MP4 File OR YouTube Link:</label><br>
-        <input type="text" id="newFileName" placeholder="e.g. https://www.youtube.com/watch?v=... or https://youtube.com/shorts/..." style="width: 100%; border: 1px solid #007bff;"><br>
+        <label style="color: #007bff; font-weight:bold;">Video Link (ImageKit or YouTube):</label><br>
+        <input type="text" id="newFileName" placeholder="e.g. https://ik.imagekit.io/... or https://youtube.com/..." style="width: 100%; border: 1px solid #007bff;"><br>
 
         <div class="input-group">
             <div><label>Observed Time (sec):</label><br><input type="number" step="0.1" id="obsTime" placeholder="e.g. 41.4" style="width: 100%;" required></div>
@@ -295,7 +293,7 @@
 </div>
 
 <script>
-let defaultOperations = [
+    let defaultOperations = [
         { name: "Toe Cap Attaching", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1512409466993771_hd.mp4?tr=orig-true", smvPair: 0.6900 },
         { name: "Insole Mounting", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1279161734388912_hd.mp4?tr=orig-true", smvPair: 0.1530 },
         { name: "Toe Back Jointing - Square Shape - SN", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1FyVRqo6ad_hd.mp4?tr=orig-true", smvPair: 0.5750 },
@@ -440,13 +438,29 @@ let defaultOperations = [
 
     function addOperation() {
         const n = document.getElementById("newOpName").value.trim();
-        const f = document.getElementById("newFileName").value.trim();
+        let f = document.getElementById("newFileName").value.trim();
         const t = parseFloat(document.getElementById("obsTime").value);
+        
         if (!n || !f || isNaN(t) || t <= 0) return alert("Fill Name, File Name/Link, and Time correctly.");
+        
+        // --- AUTO-IMAGEKIT FIXER ---
+        // If it's an ImageKit link, remove bad tags and strictly attach ?tr=orig-true
+        if (f.includes("ik.imagekit.io")) {
+            if (f.includes("?")) {
+                f = f.split("?")[0]; // Cuts off ?updatedAt=... or anything else
+            }
+            f = f + "?tr=orig-true";
+        }
+        // ---------------------------
+
         const calc = ((t * (parseFloat(document.getElementById("perfRating").value)||100)/100) * (1 + ((parseFloat(document.getElementById("allowance").value)||15)/100))) / 60;
         operations.push({ name: n, file: f, smvPair: parseFloat(calc.toFixed(4)) });
         saveToMemory(); populateDropdown(operations); renderBulletinList();
-        document.getElementById("newOpName").value = ""; document.getElementById("newFileName").value = ""; document.getElementById("obsTime").value = "";
+        
+        document.getElementById("newOpName").value = ""; 
+        document.getElementById("newFileName").value = ""; 
+        document.getElementById("obsTime").value = "";
+        
         alert("Added Successfully!");
     }
 
@@ -554,6 +568,23 @@ let defaultOperations = [
         
         document.getElementById("bulletinResultArea").style.display = "block";
         document.getElementById("bulletinResultArea").dataset.sharedIds = selectedIndices.join(",");
+    }
+
+    function generateCode() {
+        let codeOutput = `    let defaultOperations = [\n`;
+        operations.forEach((op, index) => {
+            codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)} }`;
+            if (index < operations.length - 1) codeOutput += `,`;
+            codeOutput += `\n`;
+        });
+        codeOutput += `    ];`;
+
+        const exportArea = document.getElementById("exportArea");
+        exportArea.value = codeOutput; 
+        exportArea.style.display = "block"; 
+        exportArea.select(); 
+        document.execCommand("copy");
+        alert("Success! The raw code is generated and copied to your clipboard. You can paste it straight into your index.html file.");
     }
 
     function getShareableURL() {
