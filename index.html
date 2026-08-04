@@ -53,9 +53,8 @@
             padding-bottom: 15px;
         }
         
-        /* Permanent Logo Styling */
         .dsi-image-logo {
-            height: 38px; /* Perfectly sizes the DSI letters */
+            height: 38px; 
             width: auto;
             object-fit: contain;
         }
@@ -97,7 +96,7 @@
         .input-group > div { flex: 1; }
         button { background: #28a745; cursor: pointer; border: none; font-weight: bold; }
         button:hover { background: #218838; }
-        .btn-danger { background: #dc3545; }
+        .btn-danger { background: #dc3545; color: white; }
         .btn-danger:hover { background: #c82333; }
         .btn-warning { background: #ffc107; color: black; margin-top: 20px; width: 100%;}
         .btn-warning:hover { background: #e0a800; }
@@ -160,9 +159,7 @@
 <div class="container">
     <!-- Corporate Header -->
     <div class="dsi-header">
-        <!-- REPLACE THE LINK BELOW WITH YOUR IMAGEKIT LOGO LINK -->
-        <img src="https://ik.imagekit.io/qegfiwkq6/4544545.jpg" alt="DSI Logo" class="dsi-image-logo">
-        
+        <img src="YOUR_IMAGEKIT_LOGO_LINK_HERE" alt="DSI Logo" class="dsi-image-logo">
         <h3>D. Samson Industries (Pvt) Ltd</h3>
     </div>
 
@@ -195,12 +192,10 @@
         <input type="text" id="searchInput" onkeyup="filterOperations()" placeholder="Type to filter operations..." style="width: 100%;"><br>
 
         <label>Select Operation:</label><br>
-        <div style="display: flex; gap: 10px;">
-            <select id="videoSelect" onchange="playVideo()" style="flex: 1;">
-                <option value="">-- Choose Operation --</option>
-            </select>
-            <button class="btn-danger" onclick="deleteOperation()" style="height: 42px; margin-top: 5px;">Delete</button>
-        </div>
+        <!-- DELETE BUTTON REMOVED FROM HERE -->
+        <select id="videoSelect" onchange="playVideo()" style="width: 100%;">
+            <option value="">-- Choose Operation --</option>
+        </select>
 
         <div class="info-card" id="smvCard" style="display: none;">
             <div style="display: flex; justify-content: space-around; width: 100%;">
@@ -304,7 +299,7 @@
         
         <div class="admin-banner">
             <h3>⚠️ Admin Access Only</h3>
-            <p>IE Team members should not use this tab. Use this tool to auto-format ImageKit links and calculate SMVs. <strong>Operations added here will not be saved permanently.</strong> You must click "Generate Code for GitHub" below and paste the result into your master index.html file to save your changes.</p>
+            <p>IE Team members should not use this tab. Use this tool to auto-format ImageKit links, calculate SMVs, and remove outdated operations. <strong>Changes made here will not be saved permanently.</strong> You must click "Generate Code for GitHub" below and paste the result into your master index.html file to save your changes.</p>
         </div>
 
         <h3>Add New Operation</h3>
@@ -319,8 +314,19 @@
             <div><label>Perf. Rating (%):</label><br><input type="number" id="perfRating" value="100" style="width: 100%;"></div>
             <div><label>Allowances (%):</label><br><input type="number" id="allowance" value="15" style="width: 100%;"></div>
         </div>
-        
         <button onclick="addOperation()" style="margin-top: 15px; width: 100%; padding: 12px; font-size: 1.1em;">+ Add Operation to Local List</button>
+
+        <hr style="border-color: #444; margin: 30px 0;">
+
+        <!-- DELETE BUTTON MOVED TO HERE -->
+        <h3>Delete Operation</h3>
+        <div style="display: flex; gap: 10px;">
+            <select id="deleteSelect" style="flex: 1;">
+                <option value="">-- Select to Delete --</option>
+            </select>
+            <button class="btn-danger" onclick="deleteOperation()" style="height: 42px; margin-top: 5px; padding: 0 20px;">Delete</button>
+        </div>
+
         <hr style="border-color: #444; margin: 30px 0;">
         <button class="btn-warning" onclick="generateCode()" style="font-size: 1.1em; padding: 12px; font-weight: bold;">Generate Code for GitHub</button>
         <textarea id="exportArea" readonly></textarea>
@@ -363,14 +369,24 @@
     function saveToMemory() { localStorage.setItem("footwearOperations", JSON.stringify(operations)); }
 
     function populateDropdown(list) {
-        const select = document.getElementById("videoSelect");
-        select.innerHTML = '<option value="">-- Choose Operation --</option>';
+        const videoSelect = document.getElementById("videoSelect");
+        const deleteSelect = document.getElementById("deleteSelect"); // Added to sync admin delete list
+        
+        videoSelect.innerHTML = '<option value="">-- Choose Operation --</option>';
+        if(deleteSelect) deleteSelect.innerHTML = '<option value="">-- Select to Delete --</option>';
+        
         list.forEach((op, index) => {
             const option = document.createElement("option");
             option.value = op.file;
             option.text = op.name;
             option.dataset.index = operations.indexOf(op); 
-            select.add(option);
+            videoSelect.add(option);
+            
+            if(deleteSelect) {
+                const delOption = option.cloneNode(true);
+                delOption.dataset.index = operations.indexOf(op);
+                deleteSelect.add(delOption);
+            }
         });
     }
 
@@ -495,14 +511,12 @@
         
         if (!n || !f || isNaN(t) || t <= 0) return alert("Fill Name, File Name/Link, and Time correctly.");
         
-        // --- AUTO-IMAGEKIT FIXER ---
         if (f.includes("ik.imagekit.io")) {
             if (f.includes("?")) {
                 f = f.split("?")[0]; 
             }
             f = f + "?tr=orig-true";
         }
-        // ---------------------------
 
         const calc = ((t * (parseFloat(document.getElementById("perfRating").value)||100)/100) * (1 + ((parseFloat(document.getElementById("allowance").value)||15)/100))) / 60;
         operations.push({ name: n, file: f, smvPair: parseFloat(calc.toFixed(4)) });
@@ -517,16 +531,27 @@
     }
 
     function deleteOperation() {
-        const select = document.getElementById("videoSelect");
+        // Changed target to specifically pull from the admin's delete dropdown
+        const select = document.getElementById("deleteSelect"); 
         if (select.selectedIndex <= 0) return alert("Please select an operation to delete.");
-        if (confirm("Are you sure?")) {
+        
+        if (confirm("Are you sure you want to delete this operation?")) {
             operations.splice(parseInt(select.options[select.selectedIndex].dataset.index), 1);
-            saveToMemory(); document.getElementById("searchInput").value = ""; select.size = 1; populateDropdown(operations);
-            document.getElementById("smvCard").style.display = "none"; document.getElementById("unifiedPlayerContainer").style.display = "none";
-            document.getElementById("videoPlayer").pause(); document.getElementById("slomoPlayer").pause(); 
+            saveToMemory(); 
+            
+            document.getElementById("searchInput").value = ""; 
+            populateDropdown(operations);
+            
+            // Shut off player if deleted video was active
+            document.getElementById("smvCard").style.display = "none"; 
+            document.getElementById("unifiedPlayerContainer").style.display = "none";
+            document.getElementById("videoPlayer").pause(); 
+            document.getElementById("slomoPlayer").pause(); 
             if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
             if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+            
             renderBulletinList();
+            alert("Deleted Locally! Remember to click 'Generate Code' to save this change for GitHub.");
         }
     }
 
