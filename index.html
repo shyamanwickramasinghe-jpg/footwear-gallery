@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social Media Trending Footwear Operations Gallery</title>
+    <title>Social Media Trending Footwear Operations</title>
     <!-- Load YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
@@ -16,7 +16,6 @@
             padding: 20px;
         }
         
-        /* Trending Sneaker Watermark */
         body::before {
             content: "";
             position: fixed;
@@ -52,19 +51,12 @@
             border-bottom: 2px solid #444;
             padding-bottom: 15px;
         }
-        .header-logo {
-            width: 55px;
-            height: 55px;
-            flex-shrink: 0;
-        }
-        .header-flex h2 {
-            margin: 0;
-            font-size: 1.4em;
-        }
+        .header-logo { width: 55px; height: 55px; flex-shrink: 0; }
+        .header-flex h2 { margin: 0; font-size: 1.4em; }
 
         /* Tab Navigation */
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #444; padding-bottom: 10px; }
-        .tab-btn { background: #333; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 6px; transition: background 0.3s; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #444; padding-bottom: 10px; flex-wrap: wrap; }
+        .tab-btn { background: #333; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 6px; transition: background 0.3s; flex-grow: 1; text-align: center; font-weight: bold; }
         .tab-btn:hover { background: #555; }
         .tab-btn.active { background: #007bff; font-weight: bold; }
         .tab-content { display: none; }
@@ -83,32 +75,53 @@
         .btn-danger:hover { background: #c82333; }
         .btn-warning { background: #ffc107; color: black; margin-top: 20px; width: 100%;}
         .btn-warning:hover { background: #e0a800; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0056b3; }
         
-        /* Slider Styling */
         input[type=range] { -webkit-appearance: none; background: #444; height: 6px; border-radius: 3px; outline: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #007bff; cursor: pointer; }
         
-        /* SMV Data Banner */
         .info-card { background: rgba(0, 0, 0, 0.5); border-left: 4px solid #007bff; padding: 15px; margin: 15px 0; border-radius: 6px; display: flex; flex-direction: column; align-items: center; }
         .info-item { text-align: center; }
         .info-label { font-size: 0.9em; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
         .info-value { font-size: 1.5em; font-weight: bold; color: #007bff; margin-top: 5px; }
 
-        /* Video Layouts */
-        .video-layout { display: flex; gap: 15px; margin-top: 15px; }
-        .main-video-container, .slomo-video-container { flex: 1; display: flex; flex-direction: column; }
+        .video-layout { display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
+        .main-video-container, .slomo-video-container { flex: 1; display: flex; flex-direction: column; min-width: 300px; }
         video, .player-frame { border: 2px solid #444; border-radius: 8px; width: 100%; height: 350px; object-fit: contain; background: #000; box-sizing: border-box; }
-        
-        /* Ensures the injected YouTube iframe perfectly fits inside its new wrapper */
         .player-frame iframe { width: 100% !important; height: 100% !important; border: none !important; border-radius: 6px; }
-        
-        /* ALIGNMENT FIX */
         .video-title { font-size: 0.9em; color: #aaa; margin-bottom: 5px; text-transform: uppercase; text-align: center; display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 40px; }
-        
         .speed-select { padding: 5px 12px; margin: 0; font-size: 1.1em; width: auto; background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         .speed-select:hover { background: #0056b3; }
 
         #exportArea { width: 100%; height: 150px; background: #111; color: #0f0; font-family: monospace; padding: 10px; display: none; }
+
+        /* --- NEW STYLES FOR BULLETIN AND MODAL --- */
+        .bulletin-list { max-height: 400px; overflow-y: auto; background: #1a1a1a; border-radius: 8px; border: 1px solid #444; padding: 10px; margin-bottom: 15px; }
+        .bulletin-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; gap: 10px; }
+        .bulletin-item:last-child { border-bottom: none; }
+        .bulletin-checkbox { width: 20px; height: 20px; cursor: pointer; }
+        .bulletin-details { flex: 1; display: flex; flex-direction: column; }
+        .bulletin-name { font-weight: bold; font-size: 1.1em; color: #fff; }
+        .bulletin-smv { font-size: 0.9em; color: #007bff; }
+        
+        .bulletin-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #222; border-radius: 8px; overflow: hidden; }
+        .bulletin-table th, .bulletin-table td { padding: 12px; text-align: left; border-bottom: 1px solid #444; }
+        .bulletin-table th { background: #007bff; color: white; text-transform: uppercase; font-size: 0.9em; }
+        .bulletin-table tr:hover { background: #333; }
+        .bulletin-table tfoot td { border-top: 2px solid #007bff; font-weight: bold; font-size: 1.1em; background: #1a1a1a; }
+        
+        /* Modal Video Preview */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; }
+        .modal-content { width: 90%; max-width: 800px; background: #111; padding: 20px; border-radius: 12px; border: 2px solid #007bff; }
+        .modal-close { background: #dc3545; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 6px; font-weight: bold; margin-top: 15px; width: 100%; }
+        
+        /* Shared Read-Only Mode */
+        .shared-mode-active .tabs, .shared-mode-active #viewer, .shared-mode-active #manage, .shared-mode-active .bulletin-creation-tools { display: none !important; }
+        .shared-mode-active .container { max-width: 800px; padding: 15px; }
+        .shared-mode-active #bulletin { display: block !important; }
+        .shared-header { background: #007bff; padding: 15px; text-align: center; border-radius: 8px; margin-bottom: 20px; font-weight: bold; font-size: 1.2em; display: none; }
+        .shared-mode-active .shared-header { display: block; }
     </style>
 </head>
 <body>
@@ -126,13 +139,14 @@
             </text>
             <path d="M 160 380 Q 250 410 340 380" stroke="#007bff" stroke-width="12" stroke-linecap="round" fill="none" />
         </svg>
-        <h2>Social Media Trending Footwear Operations Gallery</h2>
+        <h2>Social Media Trending Footwear Operations</h2>
     </div>
 
     <!-- Navigation Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab('viewer', event)">Video Viewer</button>
         <button class="tab-btn" onclick="openTab('manage', event)">Manage Operations</button>
+        <button class="tab-btn" onclick="openTab('bulletin', event)">Operation Bulletin</button>
     </div>
 
     <!-- Tab 1: Video Viewer -->
@@ -148,7 +162,6 @@
             <button class="btn-danger" onclick="deleteOperation()" style="height: 42px; margin-top: 5px;">Delete</button>
         </div>
 
-        <!-- SMV Banner with Dual Sliders -->
         <div class="info-card" id="smvCard" style="display: none;">
             <div style="display: flex; justify-content: space-around; width: 100%;">
                 <div class="info-item">
@@ -162,13 +175,11 @@
             </div>
             
             <div style="margin-top: 20px; width: 85%; text-align: center; border-top: 1px solid #444; padding-top: 15px;">
-                <!-- Performance Slider -->
                 <label style="color: #aaa; font-size: 0.9em; text-transform: uppercase;">
                     Simulate Performance Rating: <span id="perfLabel" style="color: #007bff; font-weight: bold; font-size: 1.2em;">100%</span>
                 </label><br>
                 <input type="range" id="perfSlider" min="50" max="150" value="100" style="width: 100%; margin-top: 10px; margin-bottom: 20px;" oninput="updateSMV()">
                 
-                <!-- Allowance Slider -->
                 <label style="color: #aaa; font-size: 0.9em; text-transform: uppercase;">
                     Simulate Allowance: <span id="allowLabel" style="color: #007bff; font-weight: bold; font-size: 1.2em;">15%</span>
                 </label><br>
@@ -176,25 +187,19 @@
             </div>
         </div>
 
-        <!-- DYNAMIC PLAYER LAYOUT -->
         <div id="unifiedPlayerContainer" class="video-layout" style="display: none;">
-            
-            <!-- Normal Speed Container -->
+            <!-- Normal Speed -->
             <div class="main-video-container">
                 <div class="video-title">Normal Speed</div>
-                
-                <!-- MP4 Player -->
                 <video id="videoPlayer" class="player-frame" controls loop style="display: none;">
                     <source id="videoSource" src="" type="video/mp4">
                 </video>
-                
-                <!-- YouTube Player Wrapper -->
                 <div id="ytWrapperNormal" class="player-frame" style="display: none;">
                     <div id="ytPlayerNormal"></div>
                 </div>
             </div>
 
-            <!-- Slow Motion Container -->
+            <!-- Slow Motion -->
             <div class="slomo-video-container">
                 <div class="video-title" style="color: #007bff; font-weight: bold;">
                     Motion Analysis 
@@ -204,13 +209,9 @@
                         <option value="0.25" selected>0.25x</option>
                     </select>
                 </div>
-                
-                <!-- MP4 Player -->
                 <video id="slomoPlayer" class="player-frame" controls muted loop style="display: none;">
                     <source id="slomoSource" src="" type="video/mp4">
                 </video>
-                
-                <!-- YouTube Player Wrapper -->
                 <div id="ytWrapperSlomo" class="player-frame" style="display: none;">
                     <div id="ytPlayerSlomo"></div>
                 </div>
@@ -234,30 +235,80 @@
         </div>
         
         <button onclick="addOperation()" style="margin-top: 15px;">+ Add Operation to List</button>
-
         <hr style="border-color: #444; margin: 30px 0;">
-        <button class="btn-warning" onclick="generateCode()">Generate Code for Netlify</button>
+        <button class="btn-warning" onclick="generateCode()">Generate Code for Backup</button>
         <textarea id="exportArea" readonly></textarea>
+    </div>
+
+    <!-- Tab 3: Operation Bulletin -->
+    <div id="bulletin" class="tab-content">
+        <div class="shared-header">👟 IE Team - Assigned Operations Bulletin</div>
+        
+        <div class="bulletin-creation-tools">
+            <h3 style="margin-top: 0;">Step 1: Select Operations</h3>
+            <input type="text" id="bulletinSearch" onkeyup="renderBulletinList()" placeholder="Search to filter..." style="width: 100%; margin-bottom: 15px;">
+            
+            <div class="bulletin-list" id="bulletinSelectionList">
+                <!-- Dynamically filled with checkboxes -->
+            </div>
+            
+            <button class="btn-primary" onclick="generateBulletinTable()" style="width: 100%; font-size: 1.1em; padding: 12px;">Create Bulletin List</button>
+        </div>
+
+        <div id="bulletinResultArea" style="display: none; margin-top: 30px;">
+            <h3 class="bulletin-creation-tools">Step 2: Share with IE Team</h3>
+            
+            <table class="bulletin-table" id="bulletinTable">
+                <thead>
+                    <tr>
+                        <th>Operation Name</th>
+                        <th>SMV (min)</th>
+                        <th style="text-align: center;">Video</th>
+                    </tr>
+                </thead>
+                <tbody id="bulletinTableBody">
+                    <!-- Populated by JS -->
+                </tbody>
+                <tfoot id="bulletinTableFooter">
+                    <!-- Populated by JS -->
+                </tfoot>
+            </table>
+
+            <div class="bulletin-creation-tools" style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="copyShareLink()" style="flex: 1; background: #17a2b8;">Copy Link (WhatsApp)</button>
+                <button onclick="sendIEEmail()" style="flex: 1; background: #6f42c1;">Send via Email</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Global Modal for Video Preview -->
+<div class="modal-overlay" id="previewModal">
+    <div class="modal-content">
+        <h3 id="modalTitle" style="margin-top: 0; color: #fff;">Preview</h3>
+        <video id="modalVideo" controls style="width: 100%; max-height: 50vh; border-radius: 8px; display: none;"></video>
+        <div id="modalYtWrapper" style="width: 100%; height: 50vh; border-radius: 8px; display: none;">
+            <div id="modalYtPlayer"></div>
+        </div>
+        <button class="modal-close" onclick="closePreviewModal()">Close Preview</button>
     </div>
 </div>
 
 <script>
-    let defaultOperations = [
+let defaultOperations = [
         { name: "Toe Cap Attaching", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1512409466993771_hd.mp4?tr=orig-true", smvPair: 0.6900 },
-        { name: "Insole Mounting", file: "snapsave-app_1279161734388912_hd.mp4", smvPair: 0.1530 },
-        { name: "Toe Back Jointing - Square Shape - SN", file: "snapsave-app_1FyVRqo6ad_hd.mp4", smvPair: 0.5750 },
-        { name: "Overlap Trimming - Dual Density Sole", file: "snapsave-app_100_hd.mp4", smvPair: 0.5750 },
-        { name: "Toe Cap Attaching - Court shoe - Large", file: "snapsave-app_949015277891840_hd.mp4", smvPair: 0.6900 },
-        { name: "Edge Folding - Machine - Complete Sandle", file: "snapsave-app_967491046144817_hd (1).mp4", smvPair: 0.6130 },
+        { name: "Insole Mounting", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1279161734388912_hd.mp4?tr=orig-true", smvPair: 0.1530 },
+        { name: "Toe Back Jointing - Square Shape - SN", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1FyVRqo6ad_hd.mp4?tr=orig-true", smvPair: 0.5750 },
+        { name: "Overlap Trimming - Dual Density Sole", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_100_hd.mp4?tr=orig-true", smvPair: 0.5750 },
+        { name: "Toe Cap Attaching - Court shoe - Large", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_949015277891840_hd.mp4?tr=orig-true", smvPair: 0.6900 },
+        { name: "Edge Folding - Machine - Complete Sandle", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_967491046144817_hd%20(1).mp4?tr=orig-true", smvPair: 0.6130 },
         { name: "Toe Back Jointing - Safety shoe - Pattern Sew", file: "https://youtube.com/shorts/9EV1aWht31M", smvPair: 1.2270 }
     ];
 
     let savedData = localStorage.getItem("footwearOperations");
     let operations = savedData ? JSON.parse(savedData) : defaultOperations;
     let currentBaseSMV = 0; 
-    
-    let ytPlayerAPI_Normal;
-    let ytPlayerAPI_Slomo;
+    let ytPlayerAPI_Normal, ytPlayerAPI_Slomo, modalYtAPI;
 
     function saveToMemory() { localStorage.setItem("footwearOperations", JSON.stringify(operations)); }
 
@@ -273,13 +324,13 @@
         });
     }
 
-    populateDropdown(operations);
-
     function openTab(tabId, evt) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
-        evt.target.classList.add('active');
+        if(evt) evt.target.classList.add('active');
+        
+        if (tabId === 'bulletin') renderBulletinList();
     }
 
     function filterOperations() {
@@ -302,14 +353,11 @@
         let video_id = url.split('v=')[1];
         if (!video_id) video_id = url.split('youtu.be/')[1];
         if (!video_id) video_id = url.split('shorts/')[1]; 
-        
         if (video_id) {
             let ampersandPosition = video_id.indexOf('&');
             if(ampersandPosition !== -1) video_id = video_id.substring(0, ampersandPosition);
-            
             let questionPosition = video_id.indexOf('?');
             if(questionPosition !== -1) video_id = video_id.substring(0, questionPosition);
-            
             return video_id.trim();
         }
         return url;
@@ -319,29 +367,14 @@
         ytPlayerAPI_Normal = new YT.Player('ytPlayerNormal', {
             videoId: videoId,
             playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
-            events: {
-                'onReady': function(event) { event.target.playVideo(); },
-                'onStateChange': function(event) { if (event.data === YT.PlayerState.ENDED) { event.target.playVideo(); } }
-            }
+            events: { 'onReady': e => e.target.playVideo(), 'onStateChange': e => { if(e.data===0) e.target.playVideo(); } }
         });
-
         ytPlayerAPI_Slomo = new YT.Player('ytPlayerSlomo', {
             videoId: videoId,
             playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'mute': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
             events: {
-                'onReady': function(event) {
-                    event.target.mute(); 
-                    const selectedSpeed = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
-                    event.target.setPlaybackRate(selectedSpeed);
-                    event.target.playVideo(); 
-                },
-                'onStateChange': function(event) {
-                    if(event.data === YT.PlayerState.PLAYING) {
-                        const selectedSpeed = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
-                        event.target.setPlaybackRate(selectedSpeed);
-                    }
-                    if (event.data === YT.PlayerState.ENDED) { event.target.playVideo(); }
-                }
+                'onReady': e => { e.target.mute(); e.target.setPlaybackRate(parseFloat(document.getElementById("unifiedSlomoSpeed").value)); e.target.playVideo(); },
+                'onStateChange': e => { if(e.data===1) e.target.setPlaybackRate(parseFloat(document.getElementById("unifiedSlomoSpeed").value)); if(e.data===0) e.target.playVideo(); }
             }
         });
     }
@@ -349,7 +382,6 @@
     function playVideo() {
         const select = document.getElementById("videoSelect");
         select.size = 1; document.getElementById("searchInput").value = ""; 
-
         const smvCard = document.getElementById("smvCard");
         const unifiedPlayerContainer = document.getElementById("unifiedPlayerContainer");
 
@@ -360,60 +392,35 @@
 
             if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
                 const ytId = getYouTubeID(op.file);
-                
-                // Hide and pause MP4 players
                 document.getElementById("videoPlayer").style.display = "none";
                 document.getElementById("slomoPlayer").style.display = "none";
                 document.getElementById("videoPlayer").pause();
                 document.getElementById("slomoPlayer").pause();
-
-                // Show YouTube Wrappers
                 document.getElementById("ytWrapperNormal").style.display = "block";
                 document.getElementById("ytWrapperSlomo").style.display = "block";
-
-                // Re-inject fresh placeholder divs in case they were destroyed
                 document.getElementById("ytWrapperNormal").innerHTML = '<div id="ytPlayerNormal"></div>';
                 document.getElementById("ytWrapperSlomo").innerHTML = '<div id="ytPlayerSlomo"></div>';
-
                 initYouTubePlayers(ytId);
-
             } else {
-                // Hide YouTube Wrappers entirely (Removes the black boxes!)
                 document.getElementById("ytWrapperNormal").style.display = "none";
                 document.getElementById("ytWrapperSlomo").style.display = "none";
-                
-                // Show MP4 players
                 document.getElementById("videoPlayer").style.display = "block";
                 document.getElementById("slomoPlayer").style.display = "block";
-                
-                // Cleanly destroy YouTube players
                 if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
                 if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
-                
-                // Play MP4s
                 document.getElementById("videoSource").src = op.file;
                 document.getElementById("videoPlayer").load();
                 document.getElementById("videoPlayer").play();
-                
                 document.getElementById("slomoSource").src = op.file;
                 document.getElementById("slomoPlayer").load();
-                
                 document.getElementById("slomoPlayer").playbackRate = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
                 document.getElementById("slomoPlayer").play();
             }
-
-            document.getElementById("perfSlider").value = 100;
-            document.getElementById("allowSlider").value = 15;
-            updateSMV();
-            
-            smvCard.style.display = "flex";
+            document.getElementById("perfSlider").value = 100; document.getElementById("allowSlider").value = 15;
+            updateSMV(); smvCard.style.display = "flex";
         } else {
-            smvCard.style.display = "none";
-            unifiedPlayerContainer.style.display = "none";
-            
-            document.getElementById("videoPlayer").pause(); document.getElementById("slomoSource").src = "";
-            document.getElementById("slomoPlayer").pause(); 
-            
+            smvCard.style.display = "none"; unifiedPlayerContainer.style.display = "none";
+            document.getElementById("videoPlayer").pause(); document.getElementById("slomoPlayer").pause(); 
             if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
             if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
         }
@@ -421,71 +428,178 @@
 
     function updateSMV() {
         if (!currentBaseSMV) return;
-        
         const perf = parseInt(document.getElementById("perfSlider").value);
         const allow = parseInt(document.getElementById("allowSlider").value);
-        
         const baseTimeWithoutAllowance = currentBaseSMV / 1.15;
-        
         const rawSMV = (baseTimeWithoutAllowance * (perf / 100) * (1 + (allow / 100)));
-        const revisedSMV = rawSMV.toFixed(4); 
-        const target = rawSMV > 0 ? Math.floor(60 / rawSMV) : 0;
-        
         document.getElementById("perfLabel").innerText = perf + "%";
         document.getElementById("allowLabel").innerText = allow + "%";
-        document.getElementById("smvValue").innerText = revisedSMV + " min";
-        document.getElementById("targetValue").innerText = target + " pairs";
+        document.getElementById("smvValue").innerText = rawSMV.toFixed(4) + " min";
+        document.getElementById("targetValue").innerText = rawSMV > 0 ? Math.floor(60 / rawSMV) : 0 + " pairs";
     }
 
     function addOperation() {
-        const nameInput = document.getElementById("newOpName").value.trim();
-        const fileInput = document.getElementById("newFileName").value.trim();
-        const obsTime = parseFloat(document.getElementById("obsTime").value);
-        
-        if (!nameInput || !fileInput || isNaN(obsTime) || obsTime <= 0) return alert("Fill Name, File Name/Link, and Observed Time correctly.");
-
-        const rawCalcSMV = ((obsTime * (parseFloat(document.getElementById("perfRating").value) || 100) / 100) * (1 + ((parseFloat(document.getElementById("allowance").value) || 15) / 100))) / 60;
-        const calculatedSMV = parseFloat(rawCalcSMV.toFixed(4));
-
-        operations.push({ name: nameInput, file: fileInput, smvPair: calculatedSMV });
-        saveToMemory(); populateDropdown(operations);
-
-        document.getElementById("newOpName").value = ""; document.getElementById("newFileName").value = ""; 
-        document.getElementById("obsTime").value = "";
-        
-        const btn = document.querySelector("#manage button");
-        btn.innerText = "Added Successfully!"; btn.style.background = "#218838";
-        setTimeout(() => { btn.innerText = "+ Add Operation to List"; btn.style.background = "#28a745"; }, 1500);
+        const n = document.getElementById("newOpName").value.trim();
+        const f = document.getElementById("newFileName").value.trim();
+        const t = parseFloat(document.getElementById("obsTime").value);
+        if (!n || !f || isNaN(t) || t <= 0) return alert("Fill Name, File Name/Link, and Time correctly.");
+        const calc = ((t * (parseFloat(document.getElementById("perfRating").value)||100)/100) * (1 + ((parseFloat(document.getElementById("allowance").value)||15)/100))) / 60;
+        operations.push({ name: n, file: f, smvPair: parseFloat(calc.toFixed(4)) });
+        saveToMemory(); populateDropdown(operations); renderBulletinList();
+        document.getElementById("newOpName").value = ""; document.getElementById("newFileName").value = ""; document.getElementById("obsTime").value = "";
+        alert("Added Successfully!");
     }
 
     function deleteOperation() {
         const select = document.getElementById("videoSelect");
         if (select.selectedIndex <= 0) return alert("Please select an operation to delete.");
-        if (confirm("Are you sure you want to delete this operation?")) {
+        if (confirm("Are you sure?")) {
             operations.splice(parseInt(select.options[select.selectedIndex].dataset.index), 1);
             saveToMemory(); document.getElementById("searchInput").value = ""; select.size = 1; populateDropdown(operations);
-            document.getElementById("smvCard").style.display = "none";
-            document.getElementById("unifiedPlayerContainer").style.display = "none";
-            
+            document.getElementById("smvCard").style.display = "none"; document.getElementById("unifiedPlayerContainer").style.display = "none";
             document.getElementById("videoPlayer").pause(); document.getElementById("slomoPlayer").pause(); 
             if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
             if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+            renderBulletinList();
         }
     }
 
-    function generateCode() {
-        let codeOutput = `    let defaultOperations = [\n`;
+    function renderBulletinList() {
+        const query = document.getElementById("bulletinSearch").value.toLowerCase();
+        const listDiv = document.getElementById("bulletinSelectionList");
+        listDiv.innerHTML = "";
+        
         operations.forEach((op, index) => {
-            codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)} }`;
-            if (index < operations.length - 1) codeOutput += `,`;
-            codeOutput += `\n`;
+            if (!op.name.toLowerCase().includes(query)) return;
+            
+            const item = document.createElement("div");
+            item.className = "bulletin-item";
+            item.innerHTML = `
+                <input type="checkbox" class="bulletin-checkbox" value="${index}" id="chk_${index}">
+                <label class="bulletin-details" for="chk_${index}">
+                    <span class="bulletin-name">${op.name}</span>
+                    <span class="bulletin-smv">SMV: ${op.smvPair.toFixed(4)} min</span>
+                </label>
+                <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 6px 12px; margin:0;">▶ Preview</button>
+            `;
+            listDiv.appendChild(item);
         });
-        codeOutput += `    ];`;
-
-        const exportArea = document.getElementById("exportArea");
-        exportArea.value = codeOutput; exportArea.style.display = "block"; exportArea.select(); document.execCommand("copy");
-        alert("Success! The code is generated and copied to your clipboard.");
     }
+
+    function openPreviewModal(index) {
+        const op = operations[index];
+        document.getElementById("modalTitle").innerText = op.name;
+        document.getElementById("previewModal").style.display = "flex";
+        
+        if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
+            document.getElementById("modalVideo").style.display = "none";
+            document.getElementById("modalYtWrapper").style.display = "block";
+            document.getElementById("modalYtWrapper").innerHTML = '<div id="modalYtPlayer"></div>';
+            modalYtAPI = new YT.Player('modalYtPlayer', {
+                videoId: getYouTubeID(op.file),
+                playerVars: { 'autoplay': 1, 'playsinline': 1 },
+                events: { 'onReady': e => e.target.playVideo() }
+            });
+        } else {
+            document.getElementById("modalYtWrapper").style.display = "none";
+            const video = document.getElementById("modalVideo");
+            video.style.display = "block";
+            video.src = op.file;
+            video.play();
+        }
+    }
+
+    function closePreviewModal() {
+        document.getElementById("previewModal").style.display = "none";
+        document.getElementById("modalVideo").pause();
+        document.getElementById("modalVideo").src = "";
+        if (modalYtAPI) { modalYtAPI.destroy(); modalYtAPI = null; }
+    }
+
+    function generateBulletinTable() {
+        const checkboxes = document.querySelectorAll(".bulletin-checkbox:checked");
+        if (checkboxes.length === 0) return alert("Please select at least one operation.");
+        
+        const tbody = document.getElementById("bulletinTableBody");
+        const tfoot = document.getElementById("bulletinTableFooter");
+        
+        tbody.innerHTML = "";
+        tfoot.innerHTML = "";
+        
+        let selectedIndices = [];
+        let totalSMV = 0;
+        
+        checkboxes.forEach(chk => {
+            const index = parseInt(chk.value);
+            selectedIndices.push(index);
+            const op = operations[index];
+            totalSMV += op.smvPair;
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td style="font-weight: bold;">${op.name}</td>
+                    <td style="color: #007bff; font-weight:bold;">${op.smvPair.toFixed(4)}</td>
+                    <td style="text-align: center;"><button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 5px 15px; margin:0;">▶ Play</button></td>
+                </tr>
+            `;
+        });
+        
+        tfoot.innerHTML = `
+            <tr>
+                <td style="text-align: right; text-transform: uppercase;">Total SMV:</td>
+                <td style="color: #007bff;">${totalSMV.toFixed(4)}</td>
+                <td></td>
+            </tr>
+        `;
+        
+        document.getElementById("bulletinResultArea").style.display = "block";
+        document.getElementById("bulletinResultArea").dataset.sharedIds = selectedIndices.join(",");
+    }
+
+    function getShareableURL() {
+        const ids = document.getElementById("bulletinResultArea").dataset.sharedIds;
+        return window.location.origin + window.location.pathname + "?b=" + ids;
+    }
+
+    function copyShareLink() {
+        const link = getShareableURL();
+        navigator.clipboard.writeText(link).then(() => {
+            alert("Share Link Copied! You can paste this in WhatsApp.");
+        });
+    }
+
+    function sendIEEmail() {
+        const link = getShareableURL();
+        const subject = encodeURIComponent("IE Team: New Operations Bulletin");
+        const body = encodeURIComponent("Hello IE Team,\n\nPlease review the selected operations and SMV times by clicking the link below:\n\n" + link + "\n\nRegards.");
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    }
+
+    window.onload = function() {
+        populateDropdown(operations);
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const sharedIds = urlParams.get('b');
+        
+        if (sharedIds) {
+            document.body.classList.add("shared-mode-active");
+            openTab('bulletin');
+            
+            const indices = sharedIds.split(",");
+            let foundAny = false;
+            indices.forEach(idx => {
+                const chk = document.getElementById("chk_" + idx);
+                if (chk) { chk.checked = true; foundAny = true; }
+            });
+            
+            if(foundAny) {
+                generateBulletinTable();
+                document.getElementById("bulletinResultArea").style.marginTop = "0";
+            } else {
+                document.getElementById("bulletin").innerHTML = "<h3 style='text-align:center;'>Bulletin link is invalid or expired.</h3>";
+            }
+        }
+    };
 </script>
 </body>
 </html>
