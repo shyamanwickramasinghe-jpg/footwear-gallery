@@ -96,7 +96,7 @@
 
         #exportArea { width: 100%; height: 150px; background: #111; color: #0f0; font-family: monospace; padding: 10px; display: none; }
 
-        /* --- NEW STYLES FOR BULLETIN AND MODAL --- */
+        /* --- STYLES FOR BULLETIN AND MODAL --- */
         .bulletin-list { max-height: 400px; overflow-y: auto; background: #1a1a1a; border-radius: 8px; border: 1px solid #444; padding: 10px; margin-bottom: 15px; }
         .bulletin-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; gap: 10px; }
         .bulletin-item:last-child { border-bottom: none; }
@@ -122,6 +122,11 @@
         .shared-mode-active #bulletin { display: block !important; }
         .shared-header { background: #007bff; padding: 15px; text-align: center; border-radius: 8px; margin-bottom: 20px; font-weight: bold; font-size: 1.2em; display: none; }
         .shared-mode-active .shared-header { display: block; }
+        
+        /* Admin Warning Banner */
+        .admin-banner { background: rgba(220, 53, 69, 0.15); border: 2px solid #dc3545; color: #ffcccc; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; }
+        .admin-banner h3 { margin: 0 0 5px 0; color: #ff4d4d; font-size: 1.2em; }
+        .admin-banner p { margin: 0; font-size: 0.9em; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -145,7 +150,7 @@
     <!-- Navigation Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab('viewer', event)">Video Viewer</button>
-        <button class="tab-btn" onclick="openTab('manage', event)">Manage Operations</button>
+        <button class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d;">Manage (Admin)</button>
         <button class="tab-btn" onclick="openTab('bulletin', event)">Operation Bulletin</button>
     </div>
 
@@ -217,8 +222,14 @@
         </div>
     </div>
 
-    <!-- Tab 2: Manage Operations -->
+    <!-- Tab 2: Manage Operations (ADMIN ONLY) -->
     <div id="manage" class="tab-content">
+        
+        <div class="admin-banner">
+            <h3>⚠️ Admin Access Only</h3>
+            <p>IE Team members should not use this tab. Use this tool to auto-format ImageKit links and calculate SMVs. <strong>Operations added here will not be saved permanently.</strong> You must click "Generate Code for GitHub" below and paste the result into your master index.html file to save your changes.</p>
+        </div>
+
         <h3>Add New Operation</h3>
         <label>Operation Name:</label><br>
         <input type="text" id="newOpName" placeholder="e.g. Heel Stitching" style="width: 100%;"><br>
@@ -232,9 +243,9 @@
             <div><label>Allowances (%):</label><br><input type="number" id="allowance" value="15" style="width: 100%;"></div>
         </div>
         
-        <button onclick="addOperation()" style="margin-top: 15px;">+ Add Operation to List</button>
+        <button onclick="addOperation()" style="margin-top: 15px; width: 100%; padding: 12px; font-size: 1.1em;">+ Add Operation to Local List</button>
         <hr style="border-color: #444; margin: 30px 0;">
-        <button class="btn-warning" onclick="generateCode()">Generate Code for Backup</button>
+        <button class="btn-warning" onclick="generateCode()" style="font-size: 1.1em; padding: 12px; font-weight: bold;">Generate Code for GitHub</button>
         <textarea id="exportArea" readonly></textarea>
     </div>
 
@@ -293,6 +304,7 @@
 </div>
 
 <script>
+    // --- THIS IS YOUR MASTER LIST. ONLY YOU EDIT THIS IN GITHUB! ---
     let defaultOperations = [
         { name: "Toe Cap Attaching", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1512409466993771_hd.mp4?tr=orig-true", smvPair: 0.6900 },
         { name: "Insole Mounting", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1279161734388912_hd.mp4?tr=orig-true", smvPair: 0.1530 },
@@ -302,6 +314,7 @@
         { name: "Edge Folding - Machine - Complete Sandle", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_967491046144817_hd%20(1).mp4?tr=orig-true", smvPair: 0.6130 },
         { name: "Toe Back Jointing - Safety shoe - Pattern Sew", file: "https://youtube.com/shorts/9EV1aWht31M", smvPair: 1.2270 }
     ];
+    // ---------------------------------------------------------------
 
     let savedData = localStorage.getItem("footwearOperations");
     let operations = savedData ? JSON.parse(savedData) : defaultOperations;
@@ -313,7 +326,7 @@
     function populateDropdown(list) {
         const select = document.getElementById("videoSelect");
         select.innerHTML = '<option value="">-- Choose Operation --</option>';
-        list.forEach((op) => {
+        list.forEach((op, index) => {
             const option = document.createElement("option");
             option.value = op.file;
             option.text = op.name;
@@ -444,10 +457,9 @@
         if (!n || !f || isNaN(t) || t <= 0) return alert("Fill Name, File Name/Link, and Time correctly.");
         
         // --- AUTO-IMAGEKIT FIXER ---
-        // If it's an ImageKit link, remove bad tags and strictly attach ?tr=orig-true
         if (f.includes("ik.imagekit.io")) {
             if (f.includes("?")) {
-                f = f.split("?")[0]; // Cuts off ?updatedAt=... or anything else
+                f = f.split("?")[0]; 
             }
             f = f + "?tr=orig-true";
         }
@@ -455,13 +467,14 @@
 
         const calc = ((t * (parseFloat(document.getElementById("perfRating").value)||100)/100) * (1 + ((parseFloat(document.getElementById("allowance").value)||15)/100))) / 60;
         operations.push({ name: n, file: f, smvPair: parseFloat(calc.toFixed(4)) });
+        
         saveToMemory(); populateDropdown(operations); renderBulletinList();
         
         document.getElementById("newOpName").value = ""; 
         document.getElementById("newFileName").value = ""; 
         document.getElementById("obsTime").value = "";
         
-        alert("Added Successfully!");
+        alert("Added Locally! Remember to click 'Generate Code' when you are done to get the master list for GitHub.");
     }
 
     function deleteOperation() {
@@ -476,6 +489,23 @@
             if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
             renderBulletinList();
         }
+    }
+
+    function generateCode() {
+        let codeOutput = `    let defaultOperations = [\n`;
+        operations.forEach((op, index) => {
+            codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)} }`;
+            if (index < operations.length - 1) codeOutput += `,`;
+            codeOutput += `\n`;
+        });
+        codeOutput += `    ];`;
+
+        const exportArea = document.getElementById("exportArea");
+        exportArea.value = codeOutput; 
+        exportArea.style.display = "block"; 
+        exportArea.select(); 
+        document.execCommand("copy");
+        alert("Success! The code is copied to your clipboard. Paste this block directly into your index.html file on GitHub to save these changes permanently.");
     }
 
     function renderBulletinList() {
@@ -570,23 +600,6 @@
         document.getElementById("bulletinResultArea").dataset.sharedIds = selectedIndices.join(",");
     }
 
-    function generateCode() {
-        let codeOutput = `    let defaultOperations = [\n`;
-        operations.forEach((op, index) => {
-            codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)} }`;
-            if (index < operations.length - 1) codeOutput += `,`;
-            codeOutput += `\n`;
-        });
-        codeOutput += `    ];`;
-
-        const exportArea = document.getElementById("exportArea");
-        exportArea.value = codeOutput; 
-        exportArea.style.display = "block"; 
-        exportArea.select(); 
-        document.execCommand("copy");
-        alert("Success! The raw code is generated and copied to your clipboard. You can paste it straight into your index.html file.");
-    }
-
     function getShareableURL() {
         const ids = document.getElementById("bulletinResultArea").dataset.sharedIds;
         return window.location.origin + window.location.pathname + "?b=" + ids;
@@ -609,7 +622,7 @@
     window.onload = function() {
         populateDropdown(operations);
         
-        const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = newSearchParams(window.location.search);
         const sharedIds = urlParams.get('b');
         
         if (sharedIds) {
