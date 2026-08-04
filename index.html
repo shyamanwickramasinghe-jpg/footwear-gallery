@@ -42,30 +42,26 @@
             backdrop-filter: blur(5px);
         }
 
-        /* --- DSI Corporate Header (Top Left, One Line) --- */
+        /* --- DSI Corporate Header (Top Left, One Line with Image) --- */
         .dsi-header {
             display: flex;
-            align-items: center; /* Vertically aligns the logo and text */
-            justify-content: flex-start; /* Aligns everything to the left */
-            gap: 15px; /* Space between DSI and the company name */
+            align-items: center; 
+            justify-content: flex-start; 
+            gap: 15px; 
             margin-bottom: 20px;
             border-bottom: 1px solid #444;
             padding-bottom: 15px;
         }
         
-        .dsi-standard-logo {
-            margin: 0;
-            font-size: 3em; /* Scaled down */
-            font-family: "Georgia", "Times New Roman", serif; 
-            font-weight: 900; 
-            color: #e30613; /* DSI Corporate Red */
-            letter-spacing: 1px;
-            line-height: 1;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        /* Styles the uploaded DSI image */
+        .dsi-image-logo {
+            height: 35px; /* Keeps the exact image but makes it nice and small */
+            width: auto;
+            object-fit: contain;
         }
 
         .dsi-header h3 {
-            margin: 0; /* Removed top margin so it sits inline */
+            margin: 0; 
             color: #cccccc;
             font-weight: 600;
             letter-spacing: 1.5px;
@@ -162,9 +158,9 @@
 <body>
 
 <div class="container">
-    <!-- Corporate Header -->
+    <!-- Corporate Header with Uploaded Image -->
     <div class="dsi-header">
-        <h1 class="dsi-standard-logo">DSI</h1>
+        <img src="4544545.jpg" alt="DSI Logo" class="dsi-image-logo">
         <h3>D. Samson Industries (Pvt) Ltd</h3>
     </div>
 
