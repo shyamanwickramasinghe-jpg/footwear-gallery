@@ -122,9 +122,16 @@
         #exportArea { width: 100%; height: 150px; background: #111; color: #0f0; font-family: monospace; padding: 10px; display: none; }
 
         /* --- STYLES FOR BULLETIN LIST & TABLE --- */
-        .bulletin-list { max-height: 550px; overflow-y: auto; background: #222; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; position: relative; }
+        .bulletin-list { 
+            max-height: 550px; 
+            overflow-y: auto; 
+            background: #1a1a1a; 
+            border-radius: 8px; 
+            border: 1px solid #444; 
+            margin-bottom: 15px; 
+        }
         
-        /* Auto-Zoom Static Thumbnail Styling */
+        /* Auto-Zoom + Hover-Play Thumbnail Styling */
         .bulletin-thumb { 
             width: 120px; 
             height: 68px; 
@@ -136,26 +143,26 @@
             cursor: zoom-in;
             position: relative;
             z-index: 1;
-            transform-origin: center; 
+            transform-origin: center right; 
         }
         
         .bulletin-thumb:hover {
-            transform: scale(3.5); /* Massive clear zoom */
+            transform: scale(3.5); 
             z-index: 9999; 
-            box-shadow: 0px 10px 30px rgba(0,0,0,0.9);
+            box-shadow: -10px 10px 30px rgba(0,0,0,0.9);
             border: 2px solid #007bff;
             border-radius: 3px;
         }
 
-        /* --- BULLETPROOF STICKY TABLE FIX --- */
+        /* BULLETPROOF STICKY TABLE SETTINGS */
         .bulletin-table { 
             width: 100%; 
-            border-collapse: separate; /* Required for sticky headers to work perfectly in all browsers */
+            border-collapse: separate; /* CRITICAL: Allows sticky header to work */
             border-spacing: 0;
             background: #222; 
-            border-radius: 8px; 
             margin: 0; 
         }
+        
         .bulletin-table th, .bulletin-table td { 
             padding: 12px; 
             text-align: left; 
@@ -163,7 +170,7 @@
             vertical-align: middle; 
         }
         
-        /* Flawless Sticky Headers for the Selection Table */
+        /* Flawless Sticky Header */
         .bulletin-table th { 
             background: #007bff; 
             color: white; 
@@ -171,8 +178,8 @@
             font-size: 0.9em; 
             position: sticky; 
             top: 0; 
-            z-index: 50; /* This forces the header above the thumbnails when scrolling */
-            box-shadow: 0 4px 8px rgba(0,0,0,0.6); 
+            z-index: 100; /* CRITICAL: Forces header above images */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5); 
         }
         
         .bulletin-table tr:hover { background: #333; }
