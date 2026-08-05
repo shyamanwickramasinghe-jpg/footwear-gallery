@@ -132,27 +132,28 @@
         
         .bulletin-actions { display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
         
-        /* Auto-Zoom Thumbnail Styling (High Zoom) */
+        /* Auto-Zoom + Hover-Play Thumbnail Styling */
         .bulletin-thumb { 
-            width: 100px; 
-            height: 56px; 
+            width: 120px; /* Made slightly wider to look exactly like screenshot */
+            height: 68px; 
             object-fit: cover; 
-            border-radius: 4px; 
+            border-radius: 6px; 
             border: 1px solid #555; 
             background: #111; 
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
             cursor: zoom-in;
             position: relative;
             z-index: 1;
-            /* Makes it zoom outward to the left, preventing it from going off the right edge */
-            transform-origin: right center; 
+            /* Zoom slightly inward so it doesn't overlap the Preview button too much */
+            transform-origin: center right; 
         }
         
         .bulletin-thumb:hover {
-            transform: scale(5); /* Huge 5x zoom for visibility */
-            z-index: 9999; /* Forces image to float above everything else */
+            transform: scale(3.5); /* 3.5x provides massive clear zoom without pixelation */
+            z-index: 9999; 
             box-shadow: -10px 10px 30px rgba(0,0,0,0.9);
-            border: 1px solid #007bff;
+            border: 2px solid #007bff;
+            border-radius: 3px;
         }
 
         .bulletin-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #222; border-radius: 8px; overflow: hidden; }
@@ -407,18 +408,18 @@
         return url;
     }
 
-    // --- ENHANCED THUMBNAIL EXTRACTOR ---
-    function getThumbnailUrl(url) {
+    // --- HTML5 HOVER-TO-PLAY THUMBNAIL EXTRACTOR ---
+    function getThumbnailHtml(url) {
         if (!url) return "";
+        
         if (url.includes("youtube.com") || url.includes("youtu.be")) {
-            // hqdefault guarantees a high-resolution YouTube thumbnail perfect for zooming
-            return `https://img.youtube.com/vi/${getYouTubeID(url)}/hqdefault.jpg`;
-        } else if (url.includes("ik.imagekit.io")) {
-            let baseUrl = url.split("?")[0]; 
-            // Gets a 600px wide image, jumping 4 seconds in (so-4) to avoid black intro screens
-            return baseUrl + "/ik-thumbnail.jpg?tr=w-600,so-4";
+            // YouTube uses a static image
+            return `<img src="https://img.youtube.com/vi/${getYouTubeID(url)}/hqdefault.jpg" class="bulletin-thumb" alt="YouTube Thumbnail">`;
+        } else {
+            // ImageKit/MP4 files use a mini HTML5 video player locked to 3 seconds into the video.
+            // When hovered, it will automatically play a tiny preview, making identification incredibly easy!
+            return `<video class="bulletin-thumb" src="${url}#t=3" preload="metadata" muted playsinline onmouseover="this.play()" onmouseout="this.pause(); this.currentTime=3;"></video>`;
         }
-        return ""; 
     }
 
     function populateDropdown(list) {
@@ -617,8 +618,7 @@
         operations.forEach((op, index) => {
             if (!op.name.toLowerCase().includes(query)) return;
             
-            const thumbUrl = getThumbnailUrl(op.file);
-            const thumbHtml = thumbUrl ? `<img src="${thumbUrl}" class="bulletin-thumb" alt="Thumbnail" onerror="this.style.display='none'">` : ``;
+            const thumbHtml = getThumbnailHtml(op.file);
             
             const item = document.createElement("div");
             item.className = "bulletin-item";
@@ -686,8 +686,7 @@
             const op = operations[index];
             totalSMV += op.smvPair;
             
-            const thumbUrl = getThumbnailUrl(op.file);
-            const thumbHtml = thumbUrl ? `<img src="${thumbUrl}" class="bulletin-thumb" alt="Thumbnail" onerror="this.style.display='none'">` : ``;
+            const thumbHtml = getThumbnailHtml(op.file);
 
             tbody.innerHTML += `
                 <tr>
