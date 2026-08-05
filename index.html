@@ -485,8 +485,8 @@
 </div>
 
 <script>
-    // --- 1. PASTE YOUR API KEY HERE ONCE TO MAKE IT AUTOMATIC FOR ALL USERS ---
-    let masterApiKey = "AQ.Ab8RN6LaMQMIgy4Dz5w0IsUobq3uRqNONHbEra56iRcbkIQ1mw"; 
+    // --- 1. PASTE YOUR AQ. KEY HERE ONCE TO MAKE IT AUTOMATIC FOR ALL USERS ---
+    let masterApiKey = "AQ.Ab8RN6JQgXytTH37twbuXuDHoopshC9_BMhb3ne5_3FQWOjraQ"; 
     // -----------------------------------------------------------------------
 
     // --- THIS IS YOUR MASTER LIST. ONLY YOU EDIT THIS IN GITHUB! ---
@@ -581,21 +581,13 @@
         };
 
         try {
-            // FIX: Identify if it is an AQ. (OAuth Token) or AIza (API Key) and format the request correctly.
-            let fetchUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
-            let headers = { 'Content-Type': 'application/json' };
-
-            if (apiKey.startsWith("AQ.")) {
-                // If it is an AQ key, pass it as a Bearer OAuth Token
-                headers['Authorization'] = `Bearer ${apiKey}`;
-            } else {
-                // If it is an AIza key, pass it in the URL
-                fetchUrl += `?key=${apiKey}`;
-            }
-
-            const response = await fetch(fetchUrl, {
+            // Updated to use the correct Bearer Token header layout for AQ. tokens
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, {
                 method: 'POST',
-                headers: headers,
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
                 body: JSON.stringify(requestBody)
             });
             
