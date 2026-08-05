@@ -486,6 +486,7 @@
 
 <script>
     // --- 1. PASTE YOUR API KEY HERE ONCE TO MAKE IT AUTOMATIC FOR ALL USERS ---
+    // Ensure you keep the quotation marks. Example: "AIzaSyDa..."
     let masterApiKey = "AQ.Ab8RN6JOttLeLgubrBjSshh-T9HOUgvrB5OdnKw5zNayYC_YeA"; 
     // -----------------------------------------------------------------------
 
@@ -523,27 +524,27 @@
     // --- AI API KEY FUNCTIONS ---
     function saveApiKey() {
         const key = document.getElementById("geminiApiKeyInput").value.trim();
-        if (key) {
+        if (key && key.startsWith("AIza")) {
             localStorage.setItem("geminiApiKey", key);
             alert("API Key saved securely to your browser!");
         } else {
-            alert("Please enter a valid API key.");
+            alert("⚠️ Invalid API key format. A real Google API Key always starts with 'AIza'. Please copy the full key from Google AI Studio.");
         }
     }
 
     function getActiveApiKey() {
-        // Priority 1: Master Key rules them all
-        if (masterApiKey && masterApiKey !== "YOUR_API_KEY_GOES_HERE" && masterApiKey.trim() !== "") {
+        // Priority 1: Master Key (If valid and starts with AIza)
+        if (masterApiKey && masterApiKey.trim().startsWith("AIza")) {
             return masterApiKey.trim();
         }
         
-        // Priority 2: Fallback to local storage only if master key is missing
+        // Priority 2: Local Storage (If valid and starts with AIza)
         const localKey = localStorage.getItem("geminiApiKey");
-        if (localKey && localKey.trim() !== "") {
+        if (localKey && localKey.trim().startsWith("AIza")) {
             return localKey.trim();
         }
         
-        return null;
+        return null; // Return null if neither is a valid AIza key
     }
 
     // --- AI VISUAL SCANNING FUNCTIONS ---
@@ -553,7 +554,11 @@
         
         const apiKey = getActiveApiKey();
         if (!apiKey) {
-            alert("⚠️ No API Key found. Please add your Gemini API key in the 'Manage (Admin)' tab or hardcode it in index.html.");
+            // If the user got here, they don't have a valid AIza key. Wipe local storage just in case it had bad data.
+            localStorage.removeItem("geminiApiKey");
+            document.getElementById("geminiApiKeyInput").value = "";
+            alert("⚠️ Invalid or missing API Key! Your key MUST start with 'AIza'.\n\nPlease clear your old key in the 'Manage (Admin)' tab and paste a valid Google Gemini API Key.");
+            document.getElementById("aiImageInput").value = ""; 
             return;
         }
 
