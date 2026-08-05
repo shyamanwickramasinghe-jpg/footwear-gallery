@@ -121,20 +121,12 @@
 
         #exportArea { width: 100%; height: 150px; background: #111; color: #0f0; font-family: monospace; padding: 10px; display: none; }
 
-        /* --- STYLES FOR BULLETIN AND MODAL --- */
-        .bulletin-list { max-height: 450px; overflow-y: auto; background: #1a1a1a; border-radius: 8px; border: 1px solid #444; padding: 10px; margin-bottom: 15px; }
-        .bulletin-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; gap: 15px; }
-        .bulletin-item:last-child { border-bottom: none; }
-        .bulletin-checkbox { width: 20px; height: 20px; cursor: pointer; flex-shrink: 0; }
-        .bulletin-details { flex: 1; display: flex; flex-direction: column; cursor: pointer; }
-        .bulletin-name { font-weight: bold; font-size: 1.1em; color: #fff; }
-        .bulletin-smv { font-size: 0.9em; color: #007bff; margin-top: 3px; }
-        
-        .bulletin-actions { display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
+        /* --- STYLES FOR BULLETIN LIST & TABLE --- */
+        .bulletin-list { max-height: 500px; overflow-y: auto; background: #1a1a1a; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; }
         
         /* Auto-Zoom + Hover-Play Thumbnail Styling */
         .bulletin-thumb { 
-            width: 120px; /* Made slightly wider to look exactly like screenshot */
+            width: 120px; 
             height: 68px; 
             object-fit: cover; 
             border-radius: 6px; 
@@ -144,21 +136,32 @@
             cursor: zoom-in;
             position: relative;
             z-index: 1;
-            /* Zoom slightly inward so it doesn't overlap the Preview button too much */
-            transform-origin: center right; 
+            transform-origin: center; 
         }
         
         .bulletin-thumb:hover {
             transform: scale(3.5); /* 3.5x provides massive clear zoom without pixelation */
             z-index: 9999; 
-            box-shadow: -10px 10px 30px rgba(0,0,0,0.9);
+            box-shadow: 0px 10px 30px rgba(0,0,0,0.9);
             border: 2px solid #007bff;
             border-radius: 3px;
         }
 
-        .bulletin-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #222; border-radius: 8px; overflow: hidden; }
+        .bulletin-table { width: 100%; border-collapse: collapse; background: #222; border-radius: 8px; overflow: hidden; }
         .bulletin-table th, .bulletin-table td { padding: 12px; text-align: left; border-bottom: 1px solid #444; vertical-align: middle; }
-        .bulletin-table th { background: #007bff; color: white; text-transform: uppercase; font-size: 0.9em; }
+        
+        /* Sticky Headers for the Selection Table */
+        .bulletin-table th { 
+            background: #007bff; 
+            color: white; 
+            text-transform: uppercase; 
+            font-size: 0.9em; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
+        }
+        
         .bulletin-table tr:hover { background: #333; }
         .bulletin-table tfoot td { border-top: 2px solid #007bff; font-weight: bold; font-size: 1.1em; background: #1a1a1a; }
         
@@ -282,14 +285,27 @@
         <div class="shared-header">👟 IE Operations Video Guide</div>
         
         <div class="bulletin-creation-tools">
-            <h3 style="margin-top: 0;">Step 1: Select Operations</h3>
+            <h3 style="margin-top: 0;">Step 1: Operation Master List Selection</h3>
             <input type="text" id="bulletinSearch" onkeyup="renderBulletinList()" placeholder="Search to filter..." style="width: 100%; margin-bottom: 15px;">
             
-            <div class="bulletin-list" id="bulletinSelectionList">
-                <!-- Dynamically filled with checkboxes -->
+            <div class="bulletin-list" style="padding: 0;">
+                <table class="bulletin-table" style="margin-top: 0;">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align: center;">☑</th>
+                            <th>Operation</th>
+                            <th>SMV (min)</th>
+                            <th style="text-align: center;">Zoom Preview</th>
+                            <th style="text-align: center;">Normal Preview</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bulletinSelectionListBody">
+                        <!-- Dynamically filled with javascript -->
+                    </tbody>
+                </table>
             </div>
             
-            <button class="btn-primary" onclick="generateBulletinTable()" style="width: 100%; font-size: 1.1em; padding: 12px;">Create Bulletin List</button>
+            <button class="btn-primary" onclick="generateBulletinTable()" style="width: 100%; font-size: 1.1em; padding: 12px; margin-top: 15px;">Create Bulletin List</button>
             <button class="btn-danger" onclick="clearBulletin()" style="width: 100%; margin-top: 10px; padding: 12px; font-size: 1.1em;">Clear Selection & Reset</button>
         </div>
 
@@ -414,7 +430,7 @@
         
         if (url.includes("youtube.com") || url.includes("youtu.be")) {
             // YouTube uses a static image
-            return `<img src="https://img.youtube.com/vi/${getYouTubeID(url)}/hqdefault.jpg" class="bulletin-thumb" alt="YouTube Thumbnail">`;
+            return `<img src="https://img.youtube.com/vi/${getYouTubeID(url)}/mqdefault.jpg" class="bulletin-thumb" alt="YouTube Thumbnail">`;
         } else {
             // ImageKit/MP4 files use a mini HTML5 video player locked to 3 seconds into the video.
             // When hovered, it will automatically play a tiny preview, making identification incredibly easy!
@@ -612,28 +628,33 @@
 
     function renderBulletinList() {
         const query = document.getElementById("bulletinSearch").value.toLowerCase();
-        const listDiv = document.getElementById("bulletinSelectionList");
-        listDiv.innerHTML = "";
+        const tbody = document.getElementById("bulletinSelectionListBody");
+        tbody.innerHTML = "";
         
         operations.forEach((op, index) => {
             if (!op.name.toLowerCase().includes(query)) return;
             
             const thumbHtml = getThumbnailHtml(op.file);
             
-            const item = document.createElement("div");
-            item.className = "bulletin-item";
-            item.innerHTML = `
-                <input type="checkbox" class="bulletin-checkbox" value="${index}" id="chk_${index}">
-                <label class="bulletin-details" for="chk_${index}">
-                    <span class="bulletin-name">${op.name}</span>
-                    <span class="bulletin-smv">SMV: ${op.smvPair.toFixed(4)} min</span>
-                </label>
-                <div class="bulletin-actions">
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td style="text-align: center; vertical-align: middle;">
+                    <input type="checkbox" class="bulletin-checkbox" value="${index}" id="chk_${index}" style="width: 18px; height: 18px; cursor: pointer;">
+                </td>
+                <td style="vertical-align: middle;">
+                    <label for="chk_${index}" style="font-weight: bold; font-size: 1.1em; color: #fff; cursor: pointer; display: block; margin: 0;">${op.name}</label>
+                </td>
+                <td style="color: #007bff; font-weight: bold; font-size: 1.05em; vertical-align: middle;">
+                    ${op.smvPair.toFixed(4)}
+                </td>
+                <td style="text-align: center; vertical-align: middle;">
                     ${thumbHtml}
-                    <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 6px 12px; margin:0;">▶ Preview</button>
-                </div>
+                </td>
+                <td style="text-align: center; vertical-align: middle;">
+                    <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 8px 15px; margin:0;">▶ Preview</button>
+                </td>
             `;
-            listDiv.appendChild(item);
+            tbody.appendChild(tr);
         });
     }
 
