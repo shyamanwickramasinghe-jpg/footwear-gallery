@@ -131,7 +131,28 @@
         .bulletin-smv { font-size: 0.9em; color: #007bff; margin-top: 3px; }
         
         .bulletin-actions { display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
-        .bulletin-thumb { width: 90px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #444; background: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        
+        /* Auto-Zoom Thumbnail Styling */
+        .bulletin-thumb { 
+            width: 90px; 
+            height: 50px; 
+            object-fit: cover; 
+            border-radius: 6px; 
+            border: 1px solid #444; 
+            background: #000; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+            cursor: zoom-in;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .bulletin-thumb:hover {
+            transform: scale(2.5);
+            z-index: 999; /* Pops out above everything else */
+            box-shadow: 0 8px 25px rgba(0,0,0,0.8);
+            border: 2px solid #007bff;
+        }
 
         .bulletin-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #222; border-radius: 8px; overflow: hidden; }
         .bulletin-table th, .bulletin-table td { padding: 12px; text-align: left; border-bottom: 1px solid #444; vertical-align: middle; }
@@ -278,7 +299,7 @@
                     <tr>
                         <th>Operation Name</th>
                         <th>SMV (min)</th>
-                        <th style="text-align: center;">Video</th>
+                        <th style="text-align: right;">Video</th>
                     </tr>
                 </thead>
                 <tbody id="bulletinTableBody">
@@ -385,15 +406,15 @@
         return url;
     }
 
-    // --- NEW THUMBNAIL EXTRACTOR FUNCTION ---
+    // --- ENHANCED THUMBNAIL EXTRACTOR ---
     function getThumbnailUrl(url) {
         if (!url) return "";
         if (url.includes("youtube.com") || url.includes("youtu.be")) {
             return `https://img.youtube.com/vi/${getYouTubeID(url)}/mqdefault.jpg`;
         } else if (url.includes("ik.imagekit.io")) {
-            // ImageKit allows extracting a thumbnail by appending /ik-thumbnail.jpg to the exact video URL
             let baseUrl = url.split("?")[0]; 
-            return baseUrl + "/ik-thumbnail.jpg?tr=w-160,h-100";
+            // Extracts frame 2 seconds into video (so-2) at a higher resolution (w-250) for crisp zooming
+            return baseUrl + "/ik-thumbnail.jpg?tr=w-250,h-150,so-2";
         }
         return ""; 
     }
@@ -594,14 +615,11 @@
         operations.forEach((op, index) => {
             if (!op.name.toLowerCase().includes(query)) return;
             
-            // Generate Thumbnail HTML based on the URL type
             const thumbUrl = getThumbnailUrl(op.file);
             const thumbHtml = thumbUrl ? `<img src="${thumbUrl}" class="bulletin-thumb" alt="Thumbnail" onerror="this.style.display='none'">` : ``;
             
             const item = document.createElement("div");
             item.className = "bulletin-item";
-            
-            // Re-arranged inner HTML to match the screenshot layout
             item.innerHTML = `
                 <input type="checkbox" class="bulletin-checkbox" value="${index}" id="chk_${index}">
                 <label class="bulletin-details" for="chk_${index}">
@@ -666,7 +684,6 @@
             const op = operations[index];
             totalSMV += op.smvPair;
             
-            // Pull the exact same thumbnail for the generated table
             const thumbUrl = getThumbnailUrl(op.file);
             const thumbHtml = thumbUrl ? `<img src="${thumbUrl}" class="bulletin-thumb" alt="Thumbnail" onerror="this.style.display='none'">` : ``;
 
@@ -675,7 +692,7 @@
                     <td style="font-weight: bold; vertical-align: middle;">${op.name}</td>
                     <td style="color: #007bff; font-weight:bold; vertical-align: middle;">${op.smvPair.toFixed(4)}</td>
                     <td style="text-align: right;">
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 15px;">
                             ${thumbHtml}
                             <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 5px 15px; margin:0;">▶ Play</button>
                         </div>
