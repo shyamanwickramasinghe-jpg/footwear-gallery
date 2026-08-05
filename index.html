@@ -132,26 +132,27 @@
         
         .bulletin-actions { display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
         
-        /* Auto-Zoom Thumbnail Styling */
+        /* Auto-Zoom Thumbnail Styling (High Zoom) */
         .bulletin-thumb { 
-            width: 90px; 
-            height: 50px; 
+            width: 100px; 
+            height: 56px; 
             object-fit: cover; 
-            border-radius: 6px; 
-            border: 1px solid #444; 
-            background: #000; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
+            border-radius: 4px; 
+            border: 1px solid #555; 
+            background: #111; 
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
             cursor: zoom-in;
             position: relative;
             z-index: 1;
+            /* Makes it zoom outward to the left, preventing it from going off the right edge */
+            transform-origin: right center; 
         }
         
         .bulletin-thumb:hover {
-            transform: scale(2.5);
-            z-index: 999; /* Pops out above everything else */
-            box-shadow: 0 8px 25px rgba(0,0,0,0.8);
-            border: 2px solid #007bff;
+            transform: scale(5); /* Huge 5x zoom for visibility */
+            z-index: 9999; /* Forces image to float above everything else */
+            box-shadow: -10px 10px 30px rgba(0,0,0,0.9);
+            border: 1px solid #007bff;
         }
 
         .bulletin-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #222; border-radius: 8px; overflow: hidden; }
@@ -410,11 +411,12 @@
     function getThumbnailUrl(url) {
         if (!url) return "";
         if (url.includes("youtube.com") || url.includes("youtu.be")) {
-            return `https://img.youtube.com/vi/${getYouTubeID(url)}/mqdefault.jpg`;
+            // hqdefault guarantees a high-resolution YouTube thumbnail perfect for zooming
+            return `https://img.youtube.com/vi/${getYouTubeID(url)}/hqdefault.jpg`;
         } else if (url.includes("ik.imagekit.io")) {
             let baseUrl = url.split("?")[0]; 
-            // Extracts frame 2 seconds into video (so-2) at a higher resolution (w-250) for crisp zooming
-            return baseUrl + "/ik-thumbnail.jpg?tr=w-250,h-150,so-2";
+            // Gets a 600px wide image, jumping 4 seconds in (so-4) to avoid black intro screens
+            return baseUrl + "/ik-thumbnail.jpg?tr=w-600,so-4";
         }
         return ""; 
     }
