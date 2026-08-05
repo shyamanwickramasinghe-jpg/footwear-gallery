@@ -122,16 +122,19 @@
         #exportArea { width: 100%; height: 150px; background: #111; color: #0f0; font-family: monospace; padding: 10px; display: none; }
 
         /* --- STYLES FOR BULLETIN AND MODAL --- */
-        .bulletin-list { max-height: 400px; overflow-y: auto; background: #1a1a1a; border-radius: 8px; border: 1px solid #444; padding: 10px; margin-bottom: 15px; }
-        .bulletin-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; gap: 10px; }
+        .bulletin-list { max-height: 450px; overflow-y: auto; background: #1a1a1a; border-radius: 8px; border: 1px solid #444; padding: 10px; margin-bottom: 15px; }
+        .bulletin-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; gap: 15px; }
         .bulletin-item:last-child { border-bottom: none; }
-        .bulletin-checkbox { width: 20px; height: 20px; cursor: pointer; }
-        .bulletin-details { flex: 1; display: flex; flex-direction: column; }
+        .bulletin-checkbox { width: 20px; height: 20px; cursor: pointer; flex-shrink: 0; }
+        .bulletin-details { flex: 1; display: flex; flex-direction: column; cursor: pointer; }
         .bulletin-name { font-weight: bold; font-size: 1.1em; color: #fff; }
-        .bulletin-smv { font-size: 0.9em; color: #007bff; }
+        .bulletin-smv { font-size: 0.9em; color: #007bff; margin-top: 3px; }
         
+        .bulletin-actions { display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
+        .bulletin-thumb { width: 90px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #444; background: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+
         .bulletin-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #222; border-radius: 8px; overflow: hidden; }
-        .bulletin-table th, .bulletin-table td { padding: 12px; text-align: left; border-bottom: 1px solid #444; }
+        .bulletin-table th, .bulletin-table td { padding: 12px; text-align: left; border-bottom: 1px solid #444; vertical-align: middle; }
         .bulletin-table th { background: #007bff; color: white; text-transform: uppercase; font-size: 0.9em; }
         .bulletin-table tr:hover { background: #333; }
         .bulletin-table tfoot td { border-top: 2px solid #007bff; font-weight: bold; font-size: 1.1em; background: #1a1a1a; }
@@ -355,7 +358,9 @@
         { name: "Edge Folding - Machine - Complete Sandle", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_967491046144817_hd%20(1).mp4?tr=orig-true", smvPair: 0.6130 },
         { name: "Toe Back Jointing - Safety shoe - Pattern Sew", file: "https://youtube.com/shorts/9EV1aWht31M", smvPair: 1.2270 },
         { name: "Upper Insole Attaching - Stroble", file: "https://ik.imagekit.io/qegfiwkq6/Upper%20Insole%20Attaching%20-%20Stroble.mp4?tr=orig-true", smvPair: 0.5558 },
-        { name: "Punching & Eyeleting - Auto", file: "https://ik.imagekit.io/qegfiwkq6/Punching%20&%20Eyeleting%20-%20Auto.mp4?tr=orig-true", smvPair: 0.2683 }
+        { name: "Punching & Eyeleting - Auto", file: "https://ik.imagekit.io/qegfiwkq6/Punching%20&%20Eyeleting%20-%20Auto.mp4?tr=orig-true", smvPair: 0.2683 },
+        { name: "Eyelet Piece Attaching - Mesh + PVC - Large decorative - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Eyelet%20Piece%20Attaching%20-%20Mesh%20+%20PVC%20-%20Large%20decorative%20-%20SNPB.mp4?tr=orig-true", smvPair: 2.1083 },
+        { name: "Ornament Attaching - Heart Shape - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Ornament%20Attaching%20-%20Heart%20Shape%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.6133 }
     ];
     // ---------------------------------------------------------------
 
@@ -365,6 +370,33 @@
     let ytPlayerAPI_Normal, ytPlayerAPI_Slomo, modalYtAPI;
 
     function saveToMemory() { localStorage.setItem("footwearOperations", JSON.stringify(operations)); }
+
+    function getYouTubeID(url) {
+        let video_id = url.split('v=')[1];
+        if (!video_id) video_id = url.split('youtu.be/')[1];
+        if (!video_id) video_id = url.split('shorts/')[1]; 
+        if (video_id) {
+            let ampersandPosition = video_id.indexOf('&');
+            if(ampersandPosition !== -1) video_id = video_id.substring(0, ampersandPosition);
+            let questionPosition = video_id.indexOf('?');
+            if(questionPosition !== -1) video_id = video_id.substring(0, questionPosition);
+            return video_id.trim();
+        }
+        return url;
+    }
+
+    // --- NEW THUMBNAIL EXTRACTOR FUNCTION ---
+    function getThumbnailUrl(url) {
+        if (!url) return "";
+        if (url.includes("youtube.com") || url.includes("youtu.be")) {
+            return `https://img.youtube.com/vi/${getYouTubeID(url)}/mqdefault.jpg`;
+        } else if (url.includes("ik.imagekit.io")) {
+            // ImageKit allows extracting a thumbnail by appending /ik-thumbnail.jpg to the exact video URL
+            let baseUrl = url.split("?")[0]; 
+            return baseUrl + "/ik-thumbnail.jpg?tr=w-160,h-100";
+        }
+        return ""; 
+    }
 
     function populateDropdown(list) {
         const videoSelect = document.getElementById("videoSelect");
@@ -411,20 +443,6 @@
         if (ytPlayerAPI_Slomo && typeof ytPlayerAPI_Slomo.setPlaybackRate === 'function') {
             ytPlayerAPI_Slomo.setPlaybackRate(selectedSpeed);
         }
-    }
-
-    function getYouTubeID(url) {
-        let video_id = url.split('v=')[1];
-        if (!video_id) video_id = url.split('youtu.be/')[1];
-        if (!video_id) video_id = url.split('shorts/')[1]; 
-        if (video_id) {
-            let ampersandPosition = video_id.indexOf('&');
-            if(ampersandPosition !== -1) video_id = video_id.substring(0, ampersandPosition);
-            let questionPosition = video_id.indexOf('?');
-            if(questionPosition !== -1) video_id = video_id.substring(0, questionPosition);
-            return video_id.trim();
-        }
-        return url;
     }
 
     function initYouTubePlayers(videoId) {
@@ -576,15 +594,24 @@
         operations.forEach((op, index) => {
             if (!op.name.toLowerCase().includes(query)) return;
             
+            // Generate Thumbnail HTML based on the URL type
+            const thumbUrl = getThumbnailUrl(op.file);
+            const thumbHtml = thumbUrl ? `<img src="${thumbUrl}" class="bulletin-thumb" alt="Thumbnail" onerror="this.style.display='none'">` : ``;
+            
             const item = document.createElement("div");
             item.className = "bulletin-item";
+            
+            // Re-arranged inner HTML to match the screenshot layout
             item.innerHTML = `
                 <input type="checkbox" class="bulletin-checkbox" value="${index}" id="chk_${index}">
                 <label class="bulletin-details" for="chk_${index}">
                     <span class="bulletin-name">${op.name}</span>
                     <span class="bulletin-smv">SMV: ${op.smvPair.toFixed(4)} min</span>
                 </label>
-                <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 6px 12px; margin:0;">▶ Preview</button>
+                <div class="bulletin-actions">
+                    ${thumbHtml}
+                    <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 6px 12px; margin:0;">▶ Preview</button>
+                </div>
             `;
             listDiv.appendChild(item);
         });
@@ -639,11 +666,20 @@
             const op = operations[index];
             totalSMV += op.smvPair;
             
+            // Pull the exact same thumbnail for the generated table
+            const thumbUrl = getThumbnailUrl(op.file);
+            const thumbHtml = thumbUrl ? `<img src="${thumbUrl}" class="bulletin-thumb" alt="Thumbnail" onerror="this.style.display='none'">` : ``;
+
             tbody.innerHTML += `
                 <tr>
-                    <td style="font-weight: bold;">${op.name}</td>
-                    <td style="color: #007bff; font-weight:bold;">${op.smvPair.toFixed(4)}</td>
-                    <td style="text-align: center;"><button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 5px 15px; margin:0;">▶ Play</button></td>
+                    <td style="font-weight: bold; vertical-align: middle;">${op.name}</td>
+                    <td style="color: #007bff; font-weight:bold; vertical-align: middle;">${op.smvPair.toFixed(4)}</td>
+                    <td style="text-align: right;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                            ${thumbHtml}
+                            <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 5px 15px; margin:0;">▶ Play</button>
+                        </div>
+                    </td>
                 </tr>
             `;
         });
