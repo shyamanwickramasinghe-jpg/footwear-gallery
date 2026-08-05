@@ -72,12 +72,18 @@
         .header-flex {
             display: flex;
             align-items: center;
-            gap: 15px;
+            justify-content: space-between;
             margin-bottom: 25px;
             padding-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
+        .header-left { display: flex; align-items: center; gap: 15px; }
         .header-logo { width: 45px; height: 45px; flex-shrink: 0; }
-        .header-flex h2 { margin: 0; font-size: 1.3em; color: #ddd; }
+        .header-left h2 { margin: 0; font-size: 1.3em; color: #ddd; }
+        
+        .help-btn { background: #ffc107; color: #000; border: none; padding: 8px 16px; font-weight: bold; border-radius: 20px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: background 0.3s; }
+        .help-btn:hover { background: #e0a800; }
 
         /* Tab Navigation */
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #444; padding-bottom: 10px; flex-wrap: wrap; }
@@ -131,7 +137,6 @@
             margin-bottom: 15px; 
         }
         
-        /* Auto-Zoom + Hover-Play Thumbnail Styling */
         .bulletin-thumb { 
             width: 120px; 
             height: 68px; 
@@ -154,10 +159,9 @@
             border-radius: 3px;
         }
 
-        /* BULLETPROOF STICKY TABLE SETTINGS */
         .bulletin-table { 
             width: 100%; 
-            border-collapse: separate; /* CRITICAL: Allows sticky header to work */
+            border-collapse: separate; 
             border-spacing: 0;
             background: #222; 
             margin: 0; 
@@ -170,7 +174,6 @@
             vertical-align: middle; 
         }
         
-        /* Flawless Sticky Header */
         .bulletin-table th { 
             background: #007bff; 
             color: white; 
@@ -178,20 +181,26 @@
             font-size: 0.9em; 
             position: sticky; 
             top: 0; 
-            z-index: 100; /* CRITICAL: Forces header above images */
+            z-index: 100; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.5); 
         }
         
         .bulletin-table tr:hover { background: #333; }
         .bulletin-table tfoot td { border-top: 2px solid #007bff; font-weight: bold; font-size: 1.1em; background: #1a1a1a; }
         
-        /* Modal Video Preview */
+        /* Modal General Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; }
-        .modal-content { width: 90%; max-width: 800px; background: #111; padding: 20px; border-radius: 12px; border: 2px solid #007bff; }
+        .modal-content { width: 90%; max-width: 800px; background: #111; padding: 20px; border-radius: 12px; border: 2px solid #007bff; max-height: 90vh; overflow-y: auto; }
         .modal-close { background: #dc3545; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 6px; font-weight: bold; margin-top: 15px; width: 100%; }
         
+        /* Help Guide Styles */
+        .help-guide-section { background: #222; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 15px; border-radius: 6px; }
+        .help-guide-section h4 { margin-top: 0; color: #ffc107; }
+        .help-guide-section ul { margin-bottom: 0; padding-left: 20px; color: #ddd; }
+        .help-guide-section li { margin-bottom: 8px; }
+
         /* Shared Read-Only Mode */
-        .shared-mode-active .tabs, .shared-mode-active #viewer, .shared-mode-active #manage, .shared-mode-active .bulletin-creation-tools { display: none !important; }
+        .shared-mode-active .tabs, .shared-mode-active #viewer, .shared-mode-active #manage, .shared-mode-active .bulletin-creation-tools, .shared-mode-active .help-btn { display: none !important; }
         .shared-mode-active .container { max-width: 800px; padding: 15px; }
         .shared-mode-active #bulletin { display: block !important; }
         .shared-header { background: #e30613; padding: 15px; text-align: center; border-radius: 8px; margin-bottom: 20px; font-weight: bold; font-size: 1.2em; display: none; }
@@ -212,20 +221,23 @@
         <h3>D. Samson Industries (Pvt) Ltd</h3>
     </div>
 
-    <!-- App Subtitle -->
+    <!-- App Subtitle & Help Button -->
     <div class="header-flex">
-        <svg class="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
-            <circle cx="250" cy="250" r="250" fill="#151515" />
-            <circle cx="250" cy="250" r="225" stroke="#e30613" stroke-width="10" fill="none" stroke-dasharray="40 20" />
-            <text x="250" y="260" font-family="'Segoe UI', Tahoma, Arial, sans-serif" font-size="160" font-weight="900" fill="#ffffff" text-anchor="middle">
-                F<tspan fill="#e30613">T</tspan>
-            </text>
-            <text x="250" y="330" font-family="'Segoe UI', Tahoma, Arial, sans-serif" font-size="35" font-weight="bold" fill="#dddddd" text-anchor="middle" letter-spacing="8">
-                FOOTTECH
-            </text>
-            <path d="M 160 380 Q 250 410 340 380" stroke="#e30613" stroke-width="12" stroke-linecap="round" fill="none" />
-        </svg>
-        <h2>Social Media Trending Footwear Operations</h2>
+        <div class="header-left">
+            <svg class="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+                <circle cx="250" cy="250" r="250" fill="#151515" />
+                <circle cx="250" cy="250" r="225" stroke="#e30613" stroke-width="10" fill="none" stroke-dasharray="40 20" />
+                <text x="250" y="260" font-family="'Segoe UI', Tahoma, Arial, sans-serif" font-size="160" font-weight="900" fill="#ffffff" text-anchor="middle">
+                    F<tspan fill="#e30613">T</tspan>
+                </text>
+                <text x="250" y="330" font-family="'Segoe UI', Tahoma, Arial, sans-serif" font-size="35" font-weight="bold" fill="#dddddd" text-anchor="middle" letter-spacing="8">
+                    FOOTTECH
+                </text>
+                <path d="M 160 380 Q 250 410 340 380" stroke="#e30613" stroke-width="12" stroke-linecap="round" fill="none" />
+            </svg>
+            <h2>Social Media Trending Footwear Operations</h2>
+        </div>
+        <button class="help-btn" onclick="openHelpModal()">📖 How to Use</button>
     </div>
 
     <!-- Navigation Tabs -->
@@ -406,6 +418,44 @@
     </div>
 </div>
 
+<!-- IN-APP HELP GUIDE MODAL -->
+<div class="modal-overlay" id="helpModal">
+    <div class="modal-content" style="border-color: #ffc107;">
+        <h2 style="margin-top: 0; color: #ffc107; display: flex; align-items: center; gap: 10px;">
+            📖 System Demo & User Guide
+        </h2>
+        <p style="color: #ccc;">Welcome to the DSI Footwear Operations portal. Use the tabs at the top to navigate. Here is how to use each section:</p>
+        
+        <div class="help-guide-section">
+            <h4>▶️ 1. Video Viewer (Motion Analysis)</h4>
+            <ul>
+                <li><strong>Search & Select:</strong> Type an operation name to find it, then click to load the data.</li>
+                <li><strong>Simulate Targets:</strong> Move the <em>Performance</em> and <em>Allowance</em> sliders. The Revised SMV and Hourly Target boxes will recalculate instantly.</li>
+                <li><strong>Motion Study:</strong> Use the right-side video player to slow down the footage (0.25x to 0.75x) to analyze micro-movements.</li>
+            </ul>
+        </div>
+
+        <div class="help-guide-section">
+            <h4>📋 2. Operation Bulletin (Sharing)</h4>
+            <ul>
+                <li><strong>Preview:</strong> Hover your mouse over any image in the list to automatically zoom in and confirm the operation.</li>
+                <li><strong>Select:</strong> Check the boxes (☑) next to the operations you want to share with the line supervisors.</li>
+                <li><strong>Generate & Share:</strong> Click <em>Create Bulletin List</em>, then click <em>Copy Link (WhatsApp)</em>. Paste this link into a message. When they click it, they will see a clean, Read-Only version of your selected targets!</li>
+            </ul>
+        </div>
+
+        <div class="help-guide-section">
+            <h4>⚙️ 3. Manage (Admin Database)</h4>
+            <ul>
+                <li><strong>Add New:</strong> Enter the operation name, the ImageKit/YouTube video link, and the raw seconds. The system automatically converts it to SMV.</li>
+                <li><strong>Save Permanently:</strong> Once you add or delete operations, click the yellow <em>Generate Code for GitHub</em> button. Paste that code into your master file to save it for everyone.</li>
+            </ul>
+        </div>
+        
+        <button class="modal-close" style="background: #333; border: 1px solid #ffc107; color: #ffc107;" onclick="closeHelpModal()">Got it, let's start!</button>
+    </div>
+</div>
+
 <script>
     // --- THIS IS YOUR MASTER LIST. ONLY YOU EDIT THIS IN GITHUB! ---
     let defaultOperations = [
@@ -429,6 +479,10 @@
     let ytPlayerAPI_Normal, ytPlayerAPI_Slomo, modalYtAPI;
 
     function saveToMemory() { localStorage.setItem("footwearOperations", JSON.stringify(operations)); }
+
+    // --- HELP MODAL FUNCTIONS ---
+    function openHelpModal() { document.getElementById("helpModal").style.display = "flex"; }
+    function closeHelpModal() { document.getElementById("helpModal").style.display = "none"; }
 
     function getYouTubeID(url) {
         let video_id = url.split('v=')[1];
