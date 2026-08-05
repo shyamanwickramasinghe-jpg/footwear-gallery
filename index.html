@@ -328,11 +328,16 @@
             <div id="aiLoadingMsg" style="display:none; color: #ffc107; font-weight: bold; margin-bottom: 15px; text-align: center; background: #333; padding: 10px; border-radius: 6px; border: 1px solid #ffc107;">
                 🤖 AI is visually scanning your shoe sample... Please wait...
             </div>
+
+            <div id="aiResultContainer" style="display:none; color: #fff; background: #198754; font-weight: bold; margin-bottom: 15px; text-align: center; padding: 10px; border-radius: 6px; border: 1px solid #218838;">
+                <!-- AI Success Message Populated via JS -->
+            </div>
             
             <div class="bulletin-list" style="padding: 0;">
                 <table class="bulletin-table" style="margin-top: 0;">
                     <thead>
                         <tr>
+                            <th style="width: 40px; text-align: center;">No.</th>
                             <th style="width: 40px; text-align: center;">☑</th>
                             <th>Operation Name</th>
                             <th>SMV (min)</th>
@@ -356,6 +361,7 @@
             <table class="bulletin-table" id="bulletinTable">
                 <thead>
                     <tr>
+                        <th style="width: 40px; text-align: center;">No.</th>
                         <th>Operation Name</th>
                         <th>SMV (min)</th>
                         <th style="text-align: right;">Video</th>
@@ -442,7 +448,7 @@
 <div class="modal-overlay" id="helpModal">
     <div class="modal-content" style="border-color: #ffc107;">
         <h2 style="margin-top: 0; color: #ffc107; display: flex; align-items: center; gap: 10px;">
-            📖 System Demo & User Guide
+            📖 User Guide
         </h2>
         <p style="color: #ccc;">Welcome to the DSI Footwear Operations portal. Use the tabs at the top to navigate. Here is how to use each section:</p>
         
@@ -458,7 +464,7 @@
         <div class="help-guide-section">
             <h4>📋 2. Operation Bulletin (Sharing)</h4>
             <ul>
-                <li><strong>AI Visual Scan:</strong> Upload a photo of a shoe, and our AI will automatically tell you the required operations from the list!</li>
+                <li><strong>AI Visual Scan:</strong> Upload a photo of a shoe, and our AI will automatically scan and filter the master list below to show you the best matching operations!</li>
                 <li><strong>Preview:</strong> Hover your mouse over any image in the list to automatically zoom in and confirm the operation.</li>
                 <li><strong>Select:</strong> Check the boxes (☑) next to the operations you want to share with the line supervisors.</li>
                 <li><strong>Generate & Share:</strong> Click <em>Create Bulletin List</em>, then click <em>Copy Link (WhatsApp)</em>. Paste this link into a message. When they click it, they will see a clean, Read-Only version of your selected targets!</li>
@@ -499,6 +505,7 @@
     let operations = savedData ? JSON.parse(savedData) : defaultOperations;
     let currentBaseSMV = 0; 
     let ytPlayerAPI_Normal, ytPlayerAPI_Slomo, modalYtAPI;
+    let currentAiFilter = null; // Stores AI filtered indices
 
     function saveToMemory() { localStorage.setItem("footwearOperations", JSON.stringify(operations)); }
 
@@ -540,9 +547,10 @@
     async function runVisualCosting(base64Image, mimeType) {
         const apiKey = localStorage.getItem("geminiApiKey");
         document.getElementById("aiLoadingMsg").style.display = "block";
+        document.getElementById("aiResultContainer").style.display = "none";
 
         const operationNames = operations.map(op => op.name).join(", ");
-        const promptText = `Look at this shoe sample. Based on the visible construction and stitching, which 3 operations from this exact list are most likely required? Master List: ${operationNames}. Reply with ONLY a clean bulleted list of the 3 operation names. Do not invent operations not on the list.`;
+        const promptText = `Look at this shoe sample. Based on the visible construction and stitching, which operations from this exact list are required? Master List: ${operationNames}. Reply with the exact names from the list.`;
 
         const requestBody = {
             contents: [{
@@ -564,8 +572,23 @@
             if (data.error) {
                 alert("API Error: " + data.error.message);
             } else {
-                const aiResponse = data.candidates[0].content.parts[0].text;
-                alert("🤖 AI Suggestions Based on Your Photo:\n\n" + aiResponse + "\n\nSearch for these names in the list below to add them to your bulletin.");
+                const aiResponseText = data.candidates[0].content.parts[0].text.toLowerCase();
+                
+                const matchedIndices = [];
+                operations.forEach((op, idx) => {
+                    if (aiResponseText.includes(op.name.toLowerCase())) {
+                        matchedIndices.push(idx);
+                    }
+                });
+
+                if (matchedIndices.length > 0) {
+                    currentAiFilter = matchedIndices;
+                    document.getElementById("aiResultContainer").style.display = "block";
+                    document.getElementById("aiResultContainer").innerHTML = `✅ AI Scan Complete! Filtered list below to show ${matchedIndices.length} suggested operations. (Click 'Clear Selection & Reset' to view all)`;
+                    renderBulletinList();
+                } else {
+                    alert("AI Scan finished, but no exact matching operations were found in your current Master List.");
+                }
             }
         } catch (error) {
             alert("AI Scan failed. Check your internet connection or make sure your API key is correct.");
@@ -792,12 +815,14 @@
         tbody.innerHTML = "";
         
         operations.forEach((op, index) => {
+            if (currentAiFilter !== null && !currentAiFilter.includes(index)) return;
             if (!op.name.toLowerCase().includes(query)) return;
             
             const thumbHtml = getThumbnailHtml(op.file);
             
             const tr = document.createElement("tr");
             tr.innerHTML = `
+                <td style="text-align: center; font-weight: bold; color: #888; vertical-align: middle;">${index + 1}</td>
                 <td style="text-align: center; vertical-align: middle;">
                     <input type="checkbox" class="bulletin-checkbox" value="${index}" id="chk_${index}" style="width: 18px; height: 18px; cursor: pointer;">
                 </td>
@@ -871,6 +896,7 @@
 
             tbody.innerHTML += `
                 <tr>
+                    <td style="text-align: center; font-weight: bold; color: #888; vertical-align: middle;">${index + 1}</td>
                     <td style="font-weight: bold; vertical-align: middle;">${op.name}</td>
                     <td style="color: #007bff; font-weight:bold; vertical-align: middle;">${op.smvPair.toFixed(4)}</td>
                     <td style="text-align: right;">
@@ -885,7 +911,7 @@
         
         tfoot.innerHTML = `
             <tr>
-                <td style="text-align: right; text-transform: uppercase;">Total SMV:</td>
+                <td colspan="2" style="text-align: right; text-transform: uppercase;">Total SMV:</td>
                 <td style="color: #007bff;">${totalSMV.toFixed(4)}</td>
                 <td></td>
             </tr>
@@ -896,11 +922,15 @@
     }
 
     function clearBulletin() {
+        currentAiFilter = null; // Clear the AI filter
         document.querySelectorAll(".bulletin-checkbox").forEach(chk => chk.checked = false);
         document.getElementById("bulletinResultArea").style.display = "none";
         document.getElementById("bulletinResultArea").dataset.sharedIds = "";
         document.getElementById("bulletinTableBody").innerHTML = "";
         document.getElementById("bulletinTableFooter").innerHTML = "";
+        document.getElementById("aiResultContainer").style.display = "none";
+        document.getElementById("bulletinSearch").value = "";
+        renderBulletinList(); // Restore full list
     }
 
     function getShareableURL() {
