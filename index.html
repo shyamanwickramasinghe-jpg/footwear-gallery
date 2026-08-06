@@ -628,19 +628,10 @@
     }
 
     async function runAIAnalysis(mediaParts, apiKey) {
-        const listText = operations.map((op, i) => `[${i}] ${op.name}`).join("\n");
+        const listText = operations.map((op, i) => `${i} - ${op.name}`).join("\n");
         
-        // The Tri-Mode Prompt: Automatically handles 360-shoes, single active operations, and close-up images.
-        const promptText = `You are an expert footwear industrial engineer. Analyze the provided visual media. Identify the scenario and respond accordingly:
-        
-        Scenario A (Finished/Full Shoe): If the media shows a completed shoe (e.g., a 360 tour), identify ALL operations from the Master List required to build its visible features.
-        Scenario B (Active Operation): If the media shows a worker or machine actively performing a task, identify the SINGLE closest matching operation.
-        Scenario C (Close-up Part): If the media shows a close-up photo/video of a specific shoe part (like a heel seam, toe cap, or strap), identify the specific operation(s) responsible for that exact detail.
-
-        Master List:
-        ${listText}
-
-        Respond ONLY with the matching index number(s) in brackets (e.g., [1] or [0][3][8]). Do not include any other text or explanation.`;
+        // Bulletproof Prompt: Forces a guess and simplifies the required output
+        const promptText = `Analyze this footwear manufacturing media. You MUST pick the closest matching operations from this exact list, even if it is just a best guess:\n\n${listText}\n\nReply ONLY with the numbers of the operations (e.g. 2, 5, 7). Do not type any words.`;
 
         try {
             const requestBody = {
@@ -649,6 +640,7 @@
                 }]
             };
             
+            // Using gemini-3.6-flash which is the active API endpoint!
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent`, {
                 method: 'POST',
                 headers: { 
@@ -661,8 +653,7 @@
             const data = await response.json();
 
             if (!response.ok) {
-                const errorDetails = data.error ? data.error.message : response.statusText;
-                alert(`⚠️ Gemini API Error (${response.status}): ${errorDetails}`);
+                alert(`⚠️ API Error: ${data.error ? data.error.message : 'Unknown error'}`);
                 return;
             }
 
@@ -670,17 +661,16 @@
             if (data.candidates && data.candidates[0]) {
                 const aiResponseText = data.candidates[0].content.parts[0].text;
                 
-                // Match via Bracketed Index (e.g., [1] or [11])
-                const matchedIDs = aiResponseText.match(/\[(\d+)\]/g) || [];
-                matchedIDs.forEach(match => {
-                    // Extract just the number from the brackets
-                    const idx = parseInt(match.replace(/\[|\]/g, ''));
+                // BULLETPROOF PARSING: This extracts ANY number the AI outputs, completely ignoring words or brackets
+                const numbers = aiResponseText.match(/\d+/g) || [];
+                numbers.forEach(num => {
+                    const idx = parseInt(num);
                     if (operations[idx]) matchedIndices.push(idx);
                 });
             }
 
             if (matchedIndices.length === 0) {
-                alert("The AI could not confidently match the media to your Master List. Try taking a clearer photo or video.");
+                alert("The AI could not find any visible details in the media that match your list. Please try a clearer video or photo.");
                 return; 
             }
 
