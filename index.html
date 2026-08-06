@@ -326,7 +326,7 @@
             </div>
             
             <div id="aiLoadingMsg" style="display:none; color: #ffc107; font-weight: bold; margin-bottom: 15px; text-align: center; background: #333; padding: 10px; border-radius: 6px; border: 1px solid #ffc107;">
-                🤖 AI is visually scanning your shoe sample... Please wait...
+                🤖 AI is visually scanning your media... Please wait...
             </div>
 
             <div id="aiResultContainer" style="display:none; color: #fff; background: #198754; font-weight: bold; margin-bottom: 15px; padding: 10px; border-radius: 6px; border: 1px solid #218838; display: flex; justify-content: space-between; align-items: center;">
@@ -568,7 +568,7 @@
             loadingMsg.innerText = "🤖 Extracting lightweight frames from video... Please wait...";
             processVideoFile(file, apiKey);
         } else {
-            loadingMsg.innerText = "🤖 AI is visually scanning your shoe sample... Please wait...";
+            loadingMsg.innerText = "🤖 AI is visually scanning your media... Please wait...";
             const reader = new FileReader();
             reader.onload = function(e) {
                 const base64String = e.target.result.split(',')[1];
@@ -628,9 +628,19 @@
     }
 
     async function runAIAnalysis(mediaParts, apiKey) {
-        // Bulletproof Prompt: Requests BOTH Index number and exact Name
         const listText = operations.map((op, i) => `[${i}] ${op.name}`).join("\n");
-        const promptText = `You are a professional footwear industrial engineer. Analyze these visual frame samples from a factory operation.\nMatch the action to the exact item from this master list:\n\n${listText}\n\nRespond ONLY with the matching index number in brackets and exact operation name (e.g. [1] Insole Mounting).`;
+        
+        // The Tri-Mode Prompt: Automatically handles 360-shoes, single active operations, and close-up images.
+        const promptText = `You are an expert footwear industrial engineer. Analyze the provided visual media. Identify the scenario and respond accordingly:
+        
+        Scenario A (Finished/Full Shoe): If the media shows a completed shoe (e.g., a 360 tour), identify ALL operations from the Master List required to build its visible features.
+        Scenario B (Active Operation): If the media shows a worker or machine actively performing a task, identify the SINGLE closest matching operation.
+        Scenario C (Close-up Part): If the media shows a close-up photo/video of a specific shoe part (like a heel seam, toe cap, or strap), identify the specific operation(s) responsible for that exact detail.
+
+        Master List:
+        ${listText}
+
+        Respond ONLY with the matching index number(s) in brackets (e.g., [1] or [0][3][8]). Do not include any other text or explanation.`;
 
         try {
             const requestBody = {
@@ -660,18 +670,17 @@
             if (data.candidates && data.candidates[0]) {
                 const aiResponseText = data.candidates[0].content.parts[0].text;
                 
-                // Match via Bracketed Index (e.g., [1]) or direct String inclusion
-                operations.forEach((op, idx) => {
-                    const hasIndexMatch = aiResponseText.includes(`[${idx}]`);
-                    const hasNameMatch = aiResponseText.toLowerCase().includes(op.name.toLowerCase());
-                    if (hasIndexMatch || hasNameMatch) {
-                        matchedIndices.push(idx);
-                    }
+                // Match via Bracketed Index (e.g., [1] or [11])
+                const matchedIDs = aiResponseText.match(/\[(\d+)\]/g) || [];
+                matchedIDs.forEach(match => {
+                    // Extract just the number from the brackets
+                    const idx = parseInt(match.replace(/\[|\]/g, ''));
+                    if (operations[idx]) matchedIndices.push(idx);
                 });
             }
 
             if (matchedIndices.length === 0) {
-                alert("The AI could not confidently match the video frames to your Master List. Try taking a photo instead.");
+                alert("The AI could not confidently match the media to your Master List. Try taking a clearer photo or video.");
                 return; 
             }
 
