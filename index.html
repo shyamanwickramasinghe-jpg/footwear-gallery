@@ -484,9 +484,6 @@
     </div>
 </div>
 
-<!-- Hidden Video Element for AI Frame Extraction -->
-<video id="aiHiddenVideo" style="display: none;" muted playsinline></video>
-<canvas id="aiHiddenCanvas" style="display: none;"></canvas>
 
 <script>
     // --- 1. MASTER API KEY ---
@@ -567,64 +564,25 @@
         document.getElementById("aiLoadingMsg").style.display = "block";
         document.getElementById("aiResultContainer").style.display = "none";
 
-        if (file.type.startsWith('video/')) {
-            document.getElementById("aiLoadingMsg").innerText = "🤖 AI is extracting frames from your video... Please wait...";
-            extractFramesFromVideo(file, apiKey);
-        } else {
-            document.getElementById("aiLoadingMsg").innerText = "🤖 AI is visually scanning your shoe sample... Please wait...";
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64String = e.target.result.split(',')[1];
-                runAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function extractFramesFromVideo(file, apiKey) {
-        const video = document.getElementById('aiHiddenVideo');
-        const canvas = document.getElementById('aiHiddenCanvas');
-        const ctx = canvas.getContext('2d');
-        const frames = [];
+        // Native Video Support: We send the entire video directly to Gemini without chopping it!
+        document.getElementById("aiLoadingMsg").innerText = "🤖 AI is analyzing your media natively... Please wait...";
         
-        const fileURL = URL.createObjectURL(file);
-        video.src = fileURL;
-        
-        video.onloadeddata = async () => {
-            canvas.width = video.videoWidth; 
-            canvas.height = video.videoHeight;
-            
-            const duration = video.duration;
-            // Take up to 5 evenly spaced frames from the video
-            const frameCount = Math.min(5, Math.floor(duration)); 
-            const interval = duration / (frameCount + 1);
-
-            for (let i = 1; i <= frameCount; i++) {
-                video.currentTime = interval * i;
-                await new Promise(resolve => {
-                    video.onseeked = () => {
-                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        const base64Frame = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
-                        frames.push({ inline_data: { mime_type: 'image/jpeg', data: base64Frame } });
-                        resolve();
-                    };
-                });
-            }
-            
-            URL.revokeObjectURL(fileURL);
-            document.getElementById("aiLoadingMsg").innerText = "🤖 AI is analyzing the motion sequence... Please wait...";
-            runAIAnalysis(frames, apiKey);
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64String = e.target.result.split(',')[1];
+            runAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
         };
+        reader.readAsDataURL(file);
     }
 
-    async function runAIAnalysis(imageParts, apiKey) {
-        const operationNames = operations.map(op => op.name).join(", ");
-        const promptText = `Analyze these video frames showing a footwear manufacturing operation. You MUST select the closest matching operations from this exact list, even if it is a best guess. Master List: ${operationNames}. Reply ONLY with the exact names from the list, separated by commas.`;
+    async function runAIAnalysis(mediaParts, apiKey) {
+        const numberedList = operations.map((op, index) => `ID_${index}: ${op.name}`).join("\n");
+        const promptText = `You are a strict industrial engineer. Watch this media file of a footwear manufacturing operation. Match the visible action to the absolute closest operation from this master list:\n\n${numberedList}\n\nReply ONLY with the exact ID number (e.g., ID_0, ID_1) and nothing else.`;
 
         try {
             const requestBody = {
                 contents: [{
-                    parts: [ { text: promptText }, ...imageParts ]
+                    parts: [ { text: promptText }, ...mediaParts ]
                 }]
             };
             
@@ -641,11 +599,13 @@
             if (response && response.ok) {
                 const data = await response.json();
                 if (data.candidates && data.candidates[0]) {
-                    const aiResponseText = data.candidates[0].content.parts[0].text.toLowerCase();
-                    operations.forEach((op, idx) => {
-                        if (aiResponseText.includes(op.name.toLowerCase())) {
-                            matchedIndices.push(idx);
-                        }
+                    const aiResponseText = data.candidates[0].content.parts[0].text.toUpperCase();
+                    
+                    // Smart Regex to perfectly extract "ID_1" and ignore overlaps like "ID_11"
+                    const matchedIDs = aiResponseText.match(/ID_(\d+)/g) || [];
+                    matchedIDs.forEach(match => {
+                        const idx = parseInt(match.split("_")[1]);
+                        if (operations[idx]) matchedIndices.push(idx);
                     });
                 }
             } else {
@@ -653,13 +613,15 @@
             }
 
             if (matchedIndices.length === 0) {
-                alert("The AI could not find any matching operations for this file in your Master List.");
+                alert("The AI could not confidently match this video to your list.");
                 return; 
             }
 
-            currentAiFilter = matchedIndices;
+            // Remove any potential duplicates from the AI's response
+            currentAiFilter = [...new Set(matchedIndices)]; 
+            
             document.getElementById("aiResultContainer").style.display = "flex";
-            document.getElementById("aiResultText").innerText = `✅ AI Scan Complete! Filtered list below to show ${matchedIndices.length} suggested operations.`;
+            document.getElementById("aiResultText").innerText = `✅ AI Scan Complete! Filtered list below to show ${currentAiFilter.length} suggested operations.`;
             renderBulletinList();
 
         } catch (error) {
