@@ -484,7 +484,6 @@
     </div>
 </div>
 
-
 <script>
     // --- 1. MASTER API KEY ---
     let keyPart1 = "AQ.Ab8RN6Iux";
@@ -549,7 +548,7 @@
         return null; 
     }
 
-    // --- AI VISUAL & VIDEO SCANNING FUNCTIONS ---
+    // --- OPTIMIZED AI VISUAL & VIDEO SCANNING ---
     async function handleAIScan(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -561,23 +560,77 @@
             return;
         }
 
-        document.getElementById("aiLoadingMsg").style.display = "block";
+        const loadingMsg = document.getElementById("aiLoadingMsg");
+        loadingMsg.style.display = "block";
         document.getElementById("aiResultContainer").style.display = "none";
 
-        // Native Video Support: We send the entire video directly to Gemini without chopping it!
-        document.getElementById("aiLoadingMsg").innerText = "🤖 AI is analyzing your media natively... Please wait...";
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64String = e.target.result.split(',')[1];
-            runAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
+        if (file.type.startsWith('video/')) {
+            loadingMsg.innerText = "🤖 Extracting lightweight frames from video... Please wait...";
+            processVideoFile(file, apiKey);
+        } else {
+            loadingMsg.innerText = "🤖 AI is visually scanning your shoe sample... Please wait...";
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result.split(',')[1];
+                runAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Frame Extraction: Shrinks payload size from 20MB to under 300KB
+    function processVideoFile(file, apiKey) {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        const fileURL = URL.createObjectURL(file);
+        video.src = fileURL;
+
+        video.onloadeddata = async () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Standardize resolution for fast transmission & crisp analysis
+            const scale = Math.min(1, 640 / (video.videoWidth || 640));
+            canvas.width = (video.videoWidth || 640) * scale;
+            canvas.height = (video.videoHeight || 480) * scale;
+
+            const duration = video.duration || 5;
+            // Capture 3 representative moments across the video duration
+            const timestamps = [duration * 0.2, duration * 0.5, duration * 0.8];
+            const imageParts = [];
+
+            for (const time of timestamps) {
+                await new Promise((resolve) => {
+                    video.currentTime = time;
+                    video.onseeked = () => {
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const base64Data = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+                        imageParts.push({
+                            inline_data: { mime_type: 'image/jpeg', data: base64Data }
+                        });
+                        resolve();
+                    };
+                });
+            }
+
+            URL.revokeObjectURL(fileURL);
+            document.getElementById("aiLoadingMsg").innerText = "🤖 AI is analyzing visual motions... Please wait...";
+            runAIAnalysis(imageParts, apiKey);
         };
-        reader.readAsDataURL(file);
+
+        video.onerror = function() {
+            alert("⚠️ Unable to process video format. Try converting to a standard MP4.");
+            document.getElementById("aiLoadingMsg").style.display = "none";
+            document.getElementById("aiImageInput").value = "";
+        };
     }
 
     async function runAIAnalysis(mediaParts, apiKey) {
-        const numberedList = operations.map((op, index) => `ID_${index}: ${op.name}`).join("\n");
-        const promptText = `You are a strict industrial engineer. Watch this media file of a footwear manufacturing operation. Match the visible action to the absolute closest operation from this master list:\n\n${numberedList}\n\nReply ONLY with the exact ID number (e.g., ID_0, ID_1) and nothing else.`;
+        // Bulletproof Prompt: Requests BOTH Index number and exact Name
+        const listText = operations.map((op, i) => `[${i}] ${op.name}`).join("\n");
+        const promptText = `You are a professional footwear industrial engineer. Analyze these visual frame samples from a factory operation.\nMatch the action to the exact item from this master list:\n\n${listText}\n\nRespond ONLY with the matching index number in brackets and exact operation name (e.g. [1] Insole Mounting).`;
 
         try {
             const requestBody = {
@@ -595,37 +648,42 @@
                 body: JSON.stringify(requestBody)
             });
 
+            const data = await response.json();
+
+            if (!response.ok) {
+                const errorDetails = data.error ? data.error.message : response.statusText;
+                alert(`⚠️ Gemini API Error (${response.status}): ${errorDetails}`);
+                return;
+            }
+
             let matchedIndices = [];
-            if (response && response.ok) {
-                const data = await response.json();
-                if (data.candidates && data.candidates[0]) {
-                    const aiResponseText = data.candidates[0].content.parts[0].text.toUpperCase();
-                    
-                    // Smart Regex to perfectly extract "ID_1" and ignore overlaps like "ID_11"
-                    const matchedIDs = aiResponseText.match(/ID_(\d+)/g) || [];
-                    matchedIDs.forEach(match => {
-                        const idx = parseInt(match.split("_")[1]);
-                        if (operations[idx]) matchedIndices.push(idx);
-                    });
-                }
-            } else {
-                console.error("API Rejected the request.");
+            if (data.candidates && data.candidates[0]) {
+                const aiResponseText = data.candidates[0].content.parts[0].text;
+                
+                // Match via Bracketed Index (e.g., [1]) or direct String inclusion
+                operations.forEach((op, idx) => {
+                    const hasIndexMatch = aiResponseText.includes(`[${idx}]`);
+                    const hasNameMatch = aiResponseText.toLowerCase().includes(op.name.toLowerCase());
+                    if (hasIndexMatch || hasNameMatch) {
+                        matchedIndices.push(idx);
+                    }
+                });
             }
 
             if (matchedIndices.length === 0) {
-                alert("The AI could not confidently match this video to your list.");
+                alert("The AI could not confidently match the video frames to your Master List. Try taking a photo instead.");
                 return; 
             }
 
-            // Remove any potential duplicates from the AI's response
+            // Clean up duplicates
             currentAiFilter = [...new Set(matchedIndices)]; 
             
             document.getElementById("aiResultContainer").style.display = "flex";
-            document.getElementById("aiResultText").innerText = `✅ AI Scan Complete! Filtered list below to show ${currentAiFilter.length} suggested operations.`;
+            document.getElementById("aiResultText").innerText = `✅ AI Scan Complete! Filtered list below to show ${currentAiFilter.length} suggested operation(s).`;
             renderBulletinList();
 
         } catch (error) {
-            alert("AI Scan failed entirely. Check your internet connection or API key.");
+            alert("⚠️ Network Error: Unable to connect to Google API. Check your internet connection.");
         } finally {
             document.getElementById("aiLoadingMsg").style.display = "none";
             document.getElementById("aiImageInput").value = ""; 
