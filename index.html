@@ -591,8 +591,8 @@
         video.src = fileURL;
         
         video.onloadeddata = async () => {
-            canvas.width = video.videoWidth / 2; // Scale down for faster processing
-            canvas.height = video.videoHeight / 2;
+            canvas.width = video.videoWidth; 
+            canvas.height = video.videoHeight;
             
             const duration = video.duration;
             // Take up to 5 evenly spaced frames from the video
@@ -619,7 +619,7 @@
 
     async function runAIAnalysis(imageParts, apiKey) {
         const operationNames = operations.map(op => op.name).join(", ");
-        const promptText = `Analyze the provided visual evidence (either a single image or a sequence of video frames). Based on the visible construction, tools used, and stitching motions, which operations from this exact list are required? Master List: ${operationNames}. Reply with the exact names from the list.`;
+        const promptText = `Analyze these video frames showing a footwear manufacturing operation. You MUST select the closest matching operations from this exact list, even if it is a best guess. Master List: ${operationNames}. Reply ONLY with the exact names from the list, separated by commas.`;
 
         try {
             const requestBody = {
