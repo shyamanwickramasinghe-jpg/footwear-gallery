@@ -486,10 +486,10 @@
 
 <script>
     // --- 1. MASTER API KEY ---
-    let keyPart1 = "AQ.Ab8RN6Iux";
-    let keyPart2 = "hdNCQ4LtHxJP";
-    let keyPart3 = "Uh-n9C50mCpp";
-    let keyPart4 = "KtrdNcgpsGJ5zZwJA";
+    let keyPart1 = "AQ.Ab8RN6IQ9HzYUxZiK_";
+    let keyPart2 = "Zfs7lrvcAPZQqg27Y_";
+    let keyPart3 = "zZLMC-J6nmlCTQ";
+    let keyPart4 = "";
     
     let masterApiKey = keyPart1 + keyPart2 + keyPart3 + keyPart4;
     // -----------------------------------------------------------------------
@@ -660,8 +660,8 @@ Reply ONLY with the numbers of the operations (e.g. 1, 5, 7). Do not type any wo
                 }]
             };
             
-            // VERIFIED, STABLE URL
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, {
+            // USING GEMINI 2.5 FLASH AS GOOGLE DEPRECATED 1.5 FLASH
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
