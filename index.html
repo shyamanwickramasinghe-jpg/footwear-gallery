@@ -322,7 +322,7 @@
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <input type="text" id="bulletinSearch" onkeyup="renderBulletinList()" placeholder="Search to filter..." style="flex: 1; margin: 0;">
                 <button class="btn-warning" onclick="document.getElementById('aiImageInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">📸 AI Visual Scan</button>
-                <input type="file" id="aiImageInput" accept="image/*" style="display: none;" onchange="handleAIScan(event)">
+                <input type="file" id="aiImageInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleAIScan(event)">
             </div>
             
             <div id="aiLoadingMsg" style="display:none; color: #ffc107; font-weight: bold; margin-bottom: 15px; text-align: center; background: #333; padding: 10px; border-radius: 6px; border: 1px solid #ffc107;">
@@ -484,6 +484,10 @@
     </div>
 </div>
 
+<!-- Hidden Video Element for AI Frame Extraction -->
+<video id="aiHiddenVideo" style="display: none;" muted playsinline></video>
+<canvas id="aiHiddenCanvas" style="display: none;"></canvas>
+
 <script>
     // --- 1. MASTER API KEY ---
     let keyPart1 = "AQ.Ab8RN6Iux";
@@ -548,8 +552,8 @@
         return null; 
     }
 
-    // --- AI VISUAL SCANNING FUNCTIONS ---
-    function handleAIScan(event) {
+    // --- AI VISUAL & VIDEO SCANNING FUNCTIONS ---
+    async function handleAIScan(event) {
         const file = event.target.files[0];
         if (!file) return;
         
@@ -560,30 +564,67 @@
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64String = e.target.result.split(',')[1];
-            const mimeType = file.type;
-            runVisualCosting(base64String, mimeType);
-        };
-        reader.readAsDataURL(file);
-    }
-
-async function runVisualCosting(base64Image, mimeType) {
-        const apiKey = getActiveApiKey();
         document.getElementById("aiLoadingMsg").style.display = "block";
         document.getElementById("aiResultContainer").style.display = "none";
 
+        if (file.type.startsWith('video/')) {
+            document.getElementById("aiLoadingMsg").innerText = "🤖 AI is extracting frames from your video... Please wait...";
+            extractFramesFromVideo(file, apiKey);
+        } else {
+            document.getElementById("aiLoadingMsg").innerText = "🤖 AI is visually scanning your shoe sample... Please wait...";
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result.split(',')[1];
+                runAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function extractFramesFromVideo(file, apiKey) {
+        const video = document.getElementById('aiHiddenVideo');
+        const canvas = document.getElementById('aiHiddenCanvas');
+        const ctx = canvas.getContext('2d');
+        const frames = [];
+        
+        const fileURL = URL.createObjectURL(file);
+        video.src = fileURL;
+        
+        video.onloadeddata = async () => {
+            canvas.width = video.videoWidth / 2; // Scale down for faster processing
+            canvas.height = video.videoHeight / 2;
+            
+            const duration = video.duration;
+            // Take up to 5 evenly spaced frames from the video
+            const frameCount = Math.min(5, Math.floor(duration)); 
+            const interval = duration / (frameCount + 1);
+
+            for (let i = 1; i <= frameCount; i++) {
+                video.currentTime = interval * i;
+                await new Promise(resolve => {
+                    video.onseeked = () => {
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const base64Frame = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+                        frames.push({ inline_data: { mime_type: 'image/jpeg', data: base64Frame } });
+                        resolve();
+                    };
+                });
+            }
+            
+            URL.revokeObjectURL(fileURL);
+            document.getElementById("aiLoadingMsg").innerText = "🤖 AI is analyzing the motion sequence... Please wait...";
+            runAIAnalysis(frames, apiKey);
+        };
+    }
+
+    async function runAIAnalysis(imageParts, apiKey) {
         const operationNames = operations.map(op => op.name).join(", ");
-        const promptText = `Look at this shoe sample. Based on the visible construction and stitching, which operations from this exact list are required? Master List: ${operationNames}. Reply with the exact names from the list.`;
+        const promptText = `Analyze the provided visual evidence (either a single image or a sequence of video frames). Based on the visible construction, tools used, and stitching motions, which operations from this exact list are required? Master List: ${operationNames}. Reply with the exact names from the list.`;
 
         try {
             const requestBody = {
                 contents: [{
-                    parts: [
-                        { text: promptText },
-                        { inline_data: { mime_type: mimeType, data: base64Image } }
-                    ]
+                    parts: [ { text: promptText }, ...imageParts ]
                 }]
             };
             
@@ -611,10 +652,9 @@ async function runVisualCosting(base64Image, mimeType) {
                 console.error("API Rejected the request.");
             }
 
-            // FIX: If it finds nothing, alert the user and stop immediately. No fake results!
             if (matchedIndices.length === 0) {
-                alert("The AI could not find any matching operations for this image in your Master List.");
-                return; // This forces the code to stop right here
+                alert("The AI could not find any matching operations for this file in your Master List.");
+                return; 
             }
 
             currentAiFilter = matchedIndices;
