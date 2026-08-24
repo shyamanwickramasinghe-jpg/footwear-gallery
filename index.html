@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
     <title>DSI Footwear Operations</title>
     <!-- Load YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -79,7 +80,7 @@
             gap: 15px;
         }
         .header-left { display: flex; align-items: center; gap: 15px; }
-        .header-logo { width: 45px; height: 45px; flex-shrink: 0; }
+        .header-logo { width: 45px; height: 45px; flex-shrink: 0; forced-color-adjust: none; }
         .header-left h2 { margin: 0; font-size: 1.3em; color: #ddd; }
         
         .help-btn { background: #ffc107; color: #000; border: none; padding: 8px 16px; font-weight: bold; border-radius: 20px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: background 0.3s; }
@@ -100,14 +101,12 @@
         }
         .input-group { display: flex; gap: 15px; }
         .input-group > div { flex: 1; }
-        button { background: #28a745; cursor: pointer; border: none; font-weight: bold; }
-        button:hover { background: #218838; }
+        button { background: #28a745; cursor: pointer; border: none; font-weight: bold; transition: opacity 0.2s; }
+        button:hover { opacity: 0.85; }
         .btn-danger { background: #dc3545; color: white; }
-        .btn-danger:hover { background: #c82333; }
         .btn-warning { background: #ffc107; color: black; }
-        .btn-warning:hover { background: #e0a800; }
         .btn-primary { background: #007bff; color: white; }
-        .btn-primary:hover { background: #0056b3; }
+        .btn-info { background: #17a2b8; color: white; }
         
         input[type=range] { -webkit-appearance: none; background: #444; height: 6px; border-radius: 3px; outline: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #007bff; cursor: pointer; }
@@ -123,7 +122,6 @@
         .player-frame iframe { width: 100% !important; height: 100% !important; border: none !important; border-radius: 6px; }
         .video-title { font-size: 0.9em; color: #aaa; margin-bottom: 5px; text-transform: uppercase; text-align: center; display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 40px; }
         .speed-select { padding: 5px 12px; margin: 0; font-size: 1.1em; width: auto; background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-        .speed-select:hover { background: #0056b3; }
 
         #exportArea { width: 100%; height: 150px; background: #111; color: #0f0; font-family: monospace; padding: 10px; display: none; }
 
@@ -210,6 +208,20 @@
         .admin-banner { background: rgba(220, 53, 69, 0.15); border: 2px solid #dc3545; color: #ffcccc; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; }
         .admin-banner h3 { margin: 0 0 5px 0; color: #ff4d4d; font-size: 1.2em; }
         .admin-banner p { margin: 0; font-size: 0.9em; line-height: 1.4; }
+
+        /* --- PRINT PDF STYLES (LIGHTWEIGHT) --- */
+        @media print {
+            body { background: #fff !important; color: #000 !important; }
+            .tabs, .dsi-header, .header-flex, .bulletin-creation-tools, .bulletin-list, .modal-overlay { display: none !important; }
+            .container { box-shadow: none; padding: 0; background: transparent !important; max-width: 100%; }
+            #bulletinResultArea { display: block !important; margin-top: 0 !important; }
+            .bulletin-table { border-collapse: collapse; }
+            .bulletin-table th { background: #eee !important; color: #000 !important; border: 1px solid #ccc; box-shadow: none; }
+            .bulletin-table td { border: 1px solid #ccc; color: #000 !important; }
+            .bulletin-table tfoot td { background: #fff !important; color: #000 !important; border-top: 2px solid #000; }
+            .bulletin-thumb, button { display: none !important; }
+            .shared-header { display: block !important; background: #eee !important; color: #000 !important; border: 1px solid #ccc; }
+        }
     </style>
 </head>
 <body>
@@ -314,24 +326,28 @@
 
     <!-- Tab 2: Operation Bulletin -->
     <div id="bulletin" class="tab-content">
-        <div class="shared-header">👟 IE Operations Video Guide</div>
+        <div class="shared-header">👟 IE Operations Guide</div>
         
         <div class="bulletin-creation-tools">
             <h3 style="margin-top: 0;">Step 1: Operation Master List Selection</h3>
             
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="bulletinSearch" onkeyup="renderBulletinList()" placeholder="Search to filter..." style="flex: 1; margin: 0;">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                <input type="text" id="bulletinSearch" onkeyup="renderBulletinList()" placeholder="Search to filter..." style="flex: 1; min-width: 200px; margin: 0;">
                 <button class="btn-warning" onclick="document.getElementById('aiImageInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">📸 AI Visual Scan</button>
                 <input type="file" id="aiImageInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleAIScan(event)">
+                
+                <!-- NEW FEATURE: Web Search Match -->
+                <button class="btn-info" onclick="document.getElementById('aiWebInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">🌐 Web & YouTube Match</button>
+                <input type="file" id="aiWebInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleWebScan(event)">
             </div>
             
             <div id="aiLoadingMsg" style="display:none; color: #ffc107; font-weight: bold; margin-bottom: 15px; text-align: center; background: #333; padding: 10px; border-radius: 6px; border: 1px solid #ffc107;">
-                🤖 AI is visually scanning your media... Please wait...
+                🤖 AI is scanning your media... Please wait...
             </div>
 
             <div id="aiResultContainer" style="display:none; color: #fff; background: #198754; font-weight: bold; margin-bottom: 15px; padding: 10px; border-radius: 6px; border: 1px solid #218838; display: flex; justify-content: space-between; align-items: center;">
                 <span id="aiResultText">✅ AI Scan Complete! Check the list below.</span>
-                <button onclick="clearAIFilter()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Clear AI Filter</button>
+                <button onclick="clearAIFilter()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Clear Filter</button>
             </div>
             
             <div class="bulletin-list" style="padding: 0;">
@@ -357,7 +373,7 @@
         </div>
 
         <div id="bulletinResultArea" style="display: none; margin-top: 30px;">
-            <h3 class="bulletin-creation-tools">Step 2: Share with IE Team</h3>
+            <h3 class="bulletin-creation-tools">Step 2: Share & Export Targets</h3>
             
             <table class="bulletin-table" id="bulletinTable">
                 <thead>
@@ -376,9 +392,12 @@
                 </tfoot>
             </table>
 
-            <div class="bulletin-creation-tools" style="display: flex; gap: 10px; margin-top: 20px;">
-                <button onclick="copyShareLink()" style="flex: 1; background: #17a2b8;">Copy Link (WhatsApp)</button>
-                <button onclick="sendIEEmail()" style="flex: 1; background: #6f42c1;">Send via Email</button>
+            <div class="bulletin-creation-tools" style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                <button onclick="copyShareLink()" style="flex: 1; min-width: 150px; background: #007bff;">📋 Copy WhatsApp Link</button>
+                <button onclick="sendIEEmail()" style="flex: 1; min-width: 150px; background: #6f42c1;">📧 Send via Email</button>
+                <!-- NEW FEATURE: Export Options -->
+                <button onclick="downloadCSV()" style="flex: 1; min-width: 150px; background: #28a745;">⬇️ Download CSV</button>
+                <button onclick="window.print()" style="flex: 1; min-width: 150px; background: #ffc107; color: #000;">🖨️ Print PDF</button>
             </div>
         </div>
     </div>
@@ -445,6 +464,17 @@
     </div>
 </div>
 
+<!-- NEW Modal for Web Search Results -->
+<div class="modal-overlay" id="webResultModal">
+    <div class="modal-content" style="border-color: #17a2b8;">
+        <h3 style="margin-top: 0; color: #17a2b8;">🌐 Global Similarity Search Results</h3>
+        <div id="webResultBody" style="color: #fff; line-height: 1.6; padding: 15px; background: #222; border-radius: 6px;">
+            <!-- Populated by JS -->
+        </div>
+        <button class="modal-close" onclick="closeWebResultModal()" style="background: #333; border: 1px solid #17a2b8; color: #17a2b8;">Close</button>
+    </div>
+</div>
+
 <!-- IN-APP HELP GUIDE MODAL -->
 <div class="modal-overlay" id="helpModal">
     <div class="modal-content" style="border-color: #ffc107;">
@@ -465,10 +495,9 @@
         <div class="help-guide-section">
             <h4>📋 2. Operation Bulletin (Sharing)</h4>
             <ul>
-                <li><strong>AI Visual Scan:</strong> Upload a photo of a shoe, and our AI will automatically scan and filter the master list below to show you the best matching operations!</li>
-                <li><strong>Smart Memory:</strong> Checking boxes saves them in memory. You can clear the search bar or clear the AI filter, and your checkmarks will never disappear.</li>
-                <li><strong>Preview:</strong> Hover your mouse over any image in the list to automatically zoom in and confirm the operation.</li>
-                <li><strong>Generate & Share:</strong> Click <em>Create Bulletin List</em> to compile all checked items. Then click <em>Copy Link (WhatsApp)</em>. Paste this link into a message. When they click it, they will see a clean, Read-Only version of your selected targets!</li>
+                <li><strong>AI Visual Scan:</strong> Upload a photo of a shoe to match local factory operations.</li>
+                <li><strong>Web & YouTube Match:</strong> Upload a photo of unknown machinery to automatically generate clickable search links to similar tutorials worldwide.</li>
+                <li><strong>Export & Print:</strong> Create your bulletin list, then download it as a lightweight CSV for software importing, or Print it directly to a clean PDF.</li>
             </ul>
         </div>
 
@@ -549,27 +578,22 @@
         return null; 
     }
 
-    // --- OPTIMIZED AI VISUAL & VIDEO SCANNING ---
+    // --- STANDARD AI VISUAL SCANNING (Local Match) ---
     async function handleAIScan(event) {
         const file = event.target.files[0];
         if (!file) return;
         
         const apiKey = getActiveApiKey();
-        if (!apiKey) {
-            alert("⚠️ No API Key found. Please add your Google Gemini API Key in the 'Manage (Admin)' tab.");
-            document.getElementById("aiImageInput").value = ""; 
-            return;
-        }
+        if (!apiKey) return alert("⚠️ No API Key found.");
 
         const loadingMsg = document.getElementById("aiLoadingMsg");
+        loadingMsg.innerText = "🤖 AI is scanning your media for local matches... Please wait...";
         loadingMsg.style.display = "block";
         document.getElementById("aiResultContainer").style.display = "none";
 
         if (file.type.startsWith('video/')) {
-            loadingMsg.innerText = "🤖 Extracting lightweight frames from video... Please wait...";
-            processVideoFile(file, apiKey);
+            processVideoFile(file, apiKey, false);
         } else {
-            loadingMsg.innerText = "🤖 AI is visually scanning your media... Please wait...";
             const reader = new FileReader();
             reader.onload = function(e) {
                 const base64String = e.target.result.split(',')[1];
@@ -579,8 +603,32 @@
         }
     }
 
-    // Frame Extraction: Shrinks payload size from 20MB to under 300KB
-    function processVideoFile(file, apiKey) {
+    // --- NEW FEATURE: WEB/YOUTUBE SEARCH SCANNING ---
+    async function handleWebScan(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const apiKey = getActiveApiKey();
+        if (!apiKey) return alert("⚠️ No API Key found.");
+
+        const loadingMsg = document.getElementById("aiLoadingMsg");
+        loadingMsg.innerText = "🌐 Analyzing media and searching the global web... Please wait...";
+        loadingMsg.style.display = "block";
+
+        if (file.type.startsWith('video/')) {
+            processVideoFile(file, apiKey, true); // true = Web mode
+        } else {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result.split(',')[1];
+                runWebAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Frame Extraction Router
+    function processVideoFile(file, apiKey, isWebMode) {
         const video = document.createElement('video');
         video.preload = 'metadata';
         video.muted = true;
@@ -615,95 +663,103 @@
             }
 
             URL.revokeObjectURL(fileURL);
-            document.getElementById("aiLoadingMsg").innerText = "🤖 AI is analyzing visual motions... Please wait...";
-            runAIAnalysis(imageParts, apiKey);
+            if (isWebMode) {
+                runWebAnalysis(imageParts, apiKey);
+            } else {
+                runAIAnalysis(imageParts, apiKey);
+            }
         };
 
         video.onerror = function() {
             alert("⚠️ Unable to process video format. Try converting to a standard MP4.");
             document.getElementById("aiLoadingMsg").style.display = "none";
             document.getElementById("aiImageInput").value = "";
+            document.getElementById("aiWebInput").value = "";
         };
     }
 
+    // Main AI Engine Call (Local Filter)
     async function runAIAnalysis(mediaParts, apiKey) {
-        const operationCues = [
-            "0: Toe Cap Attaching (Stitching or attaching toe cap piece onto shoe upper)",
-            "1: Insole Mounting (Applying glue or cement to insole boards/midsoles using a roller machine, holding pink/fiber insoles, stacking insole boards)",
-            "2: Toe Back Jointing - Square Shape - SN (Single needle stitching rear or toe joint seam on upper)",
-            "3: Overlap Trimming - Dual Density Sole (Trimming excess rubber or sole material around edge)",
-            "4: Toe Cap Attaching - Court shoe - Large (Attaching large toe cap on court shoe upper)",
-            "5: Edge Folding - Machine - Complete Sandle (Folding and creasing leather upper edges using a motorized folding machine with a presser guide)",
-            "6: Upper Insole Attaching - Stroble (Strobel stitching shoe upper to flexible insole fabric board around edge)",
-            "7: Punching & Eyeleting - Auto (Automatic machine punching holes and pressing metal eyelets)",
-            "8: Eyelet Piece Attaching - Mesh + PVC - Large decorative - SNPB (Post-bed machine stitching decorative eyelet panel onto mesh/PVC upper)",
-            "9: Ornament Attaching - Heart Shape - SNPB (Stitching heart ornament/emblem onto upper using post-bed machine)",
-            "10: Toe Back Jointing - Safety shoe - Pattern Sew (Pattern sewing safety shoe toe or back joint)",
-            "11: Eyelet Piece Attaching - Decorative - SNPB (Post-bed stitching of decorative eyelet pieces)"
-        ];
-
-        const listText = operations.map((op, i) => {
-            return operationCues[i] || `${i}: ${op.name}`;
-        }).join("\n");
-
-        const promptText = `You are a professional footwear industrial engineer analyzing visual frames from a factory video or photo.
-Analyze this footwear manufacturing media. You MUST pick the closest matching operations from this exact list, even if it is just a best guess:
-
-${listText}
-
-Reply ONLY with the numbers of the operations (e.g. 1, 5, 7). Do not type any words.`;
+        const operationCues = operations.map((op, i) => `${i}: ${op.name}`).join("\n");
+        const promptText = `Analyze this footwear manufacturing media. Pick the closest matching operations from this exact list:\n${operationCues}\nReply ONLY with the numbers of the operations (e.g. 1, 5).`;
 
         try {
-            const requestBody = {
-                contents: [{
-                    parts: [ { text: promptText }, ...mediaParts ]
-                }]
-            };
-            
+            const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'x-goog-api-key': apiKey.trim()
-                },
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
                 body: JSON.stringify(requestBody)
             });
 
             const data = await response.json();
-
-            if (!response.ok) {
-                alert(`⚠️ API Error: ${data.error ? data.error.message : 'Unknown authentication error'}`);
-                return;
-            }
+            if (!response.ok) return alert(`⚠️ API Error: ${data.error.message}`);
 
             let matchedIndices = [];
             if (data.candidates && data.candidates[0]) {
-                const aiResponseText = data.candidates[0].content.parts[0].text;
-                
-                const numbers = aiResponseText.match(/\d+/g) || [];
+                const numbers = data.candidates[0].content.parts[0].text.match(/\d+/g) || [];
                 numbers.forEach(num => {
                     const idx = parseInt(num);
                     if (operations[idx] !== undefined) matchedIndices.push(idx);
                 });
             }
 
-            if (matchedIndices.length === 0) {
-                alert("The AI could not find any visible details in the media that match your list. Please try a clearer video or photo.");
-                return; 
-            }
-
+            if (matchedIndices.length === 0) return alert("AI could not find local matches.");
             currentAiFilter = [...new Set(matchedIndices)]; 
-            
             document.getElementById("aiResultContainer").style.display = "flex";
             document.getElementById("aiResultText").innerText = `✅ AI Scan Complete! Filtered list below to show ${currentAiFilter.length} suggested operation(s).`;
             renderBulletinList();
-
         } catch (error) {
-            alert("⚠️ Network Error: Unable to connect to Google API. Check your internet connection.");
+            alert("⚠️ Network Error.");
         } finally {
             document.getElementById("aiLoadingMsg").style.display = "none";
             document.getElementById("aiImageInput").value = ""; 
         }
+    }
+
+    // NEW Main AI Engine Call (Web Search Matches)
+    async function runWebAnalysis(mediaParts, apiKey) {
+        const promptText = `Identify the footwear manufacturing machine, process, or operation shown in this image/video frame. Provide a brief 1-2 sentence description. Then, provide exactly 3 highly specific search terms that a user could type into YouTube to find similar tutorial videos or machine demonstrations worldwide. Format your reply with the description first, followed by a bulleted list of the 3 search terms. Do not use markdown bolding.`;
+
+        try {
+            const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await response.json();
+            if (!response.ok) return alert(`⚠️ API Error: ${data.error.message}`);
+
+            if (data.candidates && data.candidates[0]) {
+                let aiText = data.candidates[0].content.parts[0].text;
+                let formattedHtml = "<p><strong>AI Identification:</strong></p>";
+                
+                // Convert bullet points into clickable YouTube Links
+                const lines = aiText.split('\n');
+                lines.forEach(line => {
+                    if (line.trim().startsWith('*') || line.trim().startsWith('-')) {
+                        let term = line.replace(/^[*\-\s]+/, '').trim();
+                        let ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(term)}`;
+                        formattedHtml += `<div style="margin-top: 10px;"><a href="${ytUrl}" target="_blank" style="color: #00ffff; text-decoration: none; display: flex; align-items: center; gap: 8px;">▶️ Search YouTube: <em>${term}</em></a></div>`;
+                    } else if (line.trim() !== '') {
+                        formattedHtml += `<p style="margin-bottom: 5px;">${line}</p>`;
+                    }
+                });
+
+                document.getElementById("webResultBody").innerHTML = formattedHtml;
+                document.getElementById("webResultModal").style.display = "flex";
+            }
+        } catch (error) {
+            alert("⚠️ Network Error.");
+        } finally {
+            document.getElementById("aiLoadingMsg").style.display = "none";
+            document.getElementById("aiWebInput").value = ""; 
+        }
+    }
+
+    function closeWebResultModal() {
+        document.getElementById("webResultModal").style.display = "none";
     }
     
     // --- CLEAR FILTER WITHOUT WIPING SELECTIONS ---
@@ -1074,6 +1130,31 @@ Reply ONLY with the numbers of the operations (e.g. 1, 5, 7). Do not type any wo
         const subject = encodeURIComponent("IE Team: New Operations Bulletin");
         const body = encodeURIComponent("Hello IE Team,\n\nPlease review the selected operations and SMV times by clicking the link below:\n\n" + link + "\n\nRegards.");
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    }
+
+    // --- NEW FEATURE: EXPORT LIGHTWEIGHT CSV ---
+    function downloadCSV() {
+        if (checkedBulletinIndices.size === 0) return alert("No operations selected to download.");
+        
+        let csvContent = "data:text/csv;charset=utf-8,No.,Operation Name,SMV (min)\n";
+        let selectedIndices = Array.from(checkedBulletinIndices).sort((a, b) => a - b);
+        let total = 0;
+        
+        selectedIndices.forEach((index, i) => {
+            const op = operations[index];
+            total += op.smvPair;
+            csvContent += `${i + 1},"${op.name}",${op.smvPair.toFixed(4)}\n`;
+        });
+        
+        csvContent += `,,Total SMV:,${total.toFixed(4)}\n`;
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "DSI_Operations_Targets.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     window.onload = function() {
