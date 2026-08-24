@@ -680,8 +680,36 @@
 
     // Main AI Engine Call (Local Filter)
     async function runAIAnalysis(mediaParts, apiKey) {
-        const operationCues = operations.map((op, i) => `${i}: ${op.name}`).join("\n");
-        const promptText = `Analyze this footwear manufacturing media. Pick the closest matching operations from this exact list:\n${operationCues}\nReply ONLY with the numbers of the operations (e.g. 1, 5).`;
+        
+        // --- RESTORED & UPGRADED AI CHEAT SHEET ---
+        // Focused strictly on machine types and physical actions, completely ignoring material colors.
+        const operationCues = [
+            "0: Toe Cap Attaching (Stitching or attaching toe cap piece onto shoe upper)",
+            "1: Insole Mounting (Applying glue or cement to insole boards/midsoles using a motorized roller machine, holding and feeding insoles through rollers, stacking insole boards)",
+            "2: Toe Back Jointing - Square Shape - SN (Single needle stitching rear or toe joint seam on upper)",
+            "3: Overlap Trimming - Dual Density Sole (Trimming excess rubber or sole material around the edge of the shoe)",
+            "4: Toe Cap Attaching - Court shoe - Large (Attaching large toe cap on court shoe upper)",
+            "5: Edge Folding - Machine - Complete Sandle (Folding and creasing leather/synthetic upper edges using a motorized folding machine with a presser guide)",
+            "6: Upper Insole Attaching - Stroble (Strobel stitching shoe upper to flexible insole fabric board around the perimeter)",
+            "7: Punching & Eyeleting - Auto (Automatic machine punching holes and pressing metal eyelets into shoe uppers)",
+            "8: Eyelet Piece Attaching - Mesh + PVC - Large decorative - SNPB (Post-bed machine stitching decorative eyelet panel onto mesh/PVC upper)",
+            "9: Ornament Attaching - Heart Shape - SNPB (Stitching an ornament/emblem onto the upper using a post-bed sewing machine)",
+            "10: Toe Back Jointing - Safety shoe - Pattern Sew (Pattern sewing machine automatically stitching safety shoe toe or back joint)",
+            "11: Eyelet Piece Attaching - Decorative - SNPB (Post-bed stitching of decorative eyelet pieces)",
+            "12: Tounge Turning and set - Machine (Using a machine to turn and press the shoe tongue into shape)"
+        ];
+
+        // Safely map the cues to the current operations array
+        const listText = operations.map((op, i) => {
+            return operationCues[i] ? operationCues[i] : `${i}: ${op.name}`;
+        }).join("\n");
+
+        const promptText = `You are a professional footwear industrial engineer analyzing visual frames from a factory video or photo.
+        Analyze this footwear manufacturing media. You MUST pick the closest matching operations from this exact list, focusing on the machine type and physical actions being performed:
+        
+        ${listText}
+        
+        Reply ONLY with the numbers of the operations (e.g. 1, 5). Do not type any words.`;
 
         try {
             const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
