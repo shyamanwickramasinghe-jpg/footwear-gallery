@@ -186,6 +186,19 @@
         .bulletin-table tr:hover { background: #333; }
         .bulletin-table tfoot td { border-top: 2px solid #007bff; font-weight: bold; font-size: 1.1em; background: #1a1a1a; }
         
+        /* New Shape Badge Styling */
+        .shape-badge {
+            display: inline-block;
+            background: #111;
+            color: #17a2b8;
+            border: 1px solid #17a2b8;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-top: 6px;
+            font-weight: bold;
+        }
+
         /* Modal General Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; }
         .modal-content { width: 90%; max-width: 800px; background: #111; padding: 20px; border-radius: 12px; border: 2px solid #007bff; max-height: 90vh; overflow-y: auto; }
@@ -428,12 +441,79 @@
         <label style="color: #007bff; font-weight:bold;">Video Link (ImageKit or YouTube):</label><br>
         <input type="text" id="newFileName" placeholder="e.g. https://ik.imagekit.io/... or https://youtube.com/..." style="width: 100%; border: 1px solid #007bff;"><br>
 
+        <!-- ADDED DROPDOWN MENU FOR 36 SHAPES -->
+        <div class="input-group">
+            <div style="margin-bottom: 15px;">
+                <label style="color: #ffc107; font-weight:bold;">Component Marking Template Shape:</label><br>
+                <select id="shapeSelect" style="width: 100%; font-size: 1.1em; background: #222; color: #fff; border: 1px solid #555; margin-top: 5px;">
+                    <option value="">-- No Specific Shape / General --</option>
+                    
+                    <optgroup label="Vamp & Toe Components">
+                        <option value="Vamp - Standard / Plain">Vamp - Standard / Plain</option>
+                        <option value="Vamp - U-Shape / Moc Toe">Vamp - U-Shape / Moc Toe</option>
+                        <option value="Vamp - Winged / Sport">Vamp - Winged / Sport</option>
+                        <option value="Toe Cap - Standard">Toe Cap - Standard</option>
+                        <option value="Toe Cap - Winged">Toe Cap - Winged</option>
+                        <option value="Mudguard - Front Toe">Mudguard - Front Toe</option>
+                        <option value="Mudguard - Full Side">Mudguard - Full Side</option>
+                    </optgroup>
+                    
+                    <optgroup label="Quarter & Side Components">
+                        <option value="Quarter Panel - L-Shape">Quarter Panel - L-Shape</option>
+                        <option value="Quarter Panel - Split">Quarter Panel - Split</option>
+                        <option value="Saddle / Midfoot Overlay">Saddle / Midfoot Overlay</option>
+                        <option value="Quarter Decoration Panel">Quarter Decoration Panel</option>
+                        <option value="Screen / Logo Marking">Screen / Logo Marking</option>
+                    </optgroup>
+                    
+                    <optgroup label="Heel & Back Components">
+                        <option value="Heel Counter - Internal">Heel Counter - Internal</option>
+                        <option value="Heel Counter - External Crescent">Heel Counter - External Crescent</option>
+                        <option value="Back Panel / Back Joint Overlay">Back Panel / Back Joint Overlay</option>
+                        <option value="Collar Panel / Cuff">Collar Panel / Cuff</option>
+                        <option value="Heel Tab / Pull Loop">Heel Tab / Pull Loop</option>
+                    </optgroup>
+                    
+                    <optgroup label="Lacing & Tongue Components">
+                        <option value="Tongue Panel - Standard Shield">Tongue Panel - Standard Shield</option>
+                        <option value="Tongue Panel - Split">Tongue Panel - Split</option>
+                        <option value="Eyelet Stay - U-Throat">Eyelet Stay - U-Throat</option>
+                        <option value="Eyelet Stay - Straight / Split">Eyelet Stay - Straight / Split</option>
+                        <option value="D-Ring / Loop Holder Tab">D-Ring / Loop Holder Tab</option>
+                    </optgroup>
+                    
+                    <optgroup label="Sandal Straps & Parts">
+                        <option value="Strap - Velcro / Adjustable Box">Strap - Velcro / Adjustable Box</option>
+                        <option value="Strap - Front Vamp">Strap - Front Vamp</option>
+                        <option value="Strap - Back (Inward)">Strap - Back (Inward)</option>
+                        <option value="Strap - Back (Outward)">Strap - Back (Outward)</option>
+                        <option value="Strap - T-Bar">Strap - T-Bar</option>
+                        <option value="Strap - Y-Shape / V-Shape">Strap - Y-Shape / V-Shape</option>
+                        <option value="Strap - Boomerang / Curved">Strap - Boomerang / Curved</option>
+                    </optgroup>
+
+                    <optgroup label="Linings & Internal Components">
+                        <option value="Lining - Vamp">Lining - Vamp</option>
+                        <option value="Lining - Quarter">Lining - Quarter</option>
+                        <option value="Lining - Tongue">Lining - Tongue</option>
+                        <option value="Collar Sponge / Foam Insert">Collar Sponge / Foam Insert</option>
+                    </optgroup>
+                    
+                    <optgroup label="Decorations & Small Parts">
+                        <option value="Ornament - Round / Logo Patch">Ornament - Round / Logo Patch</option>
+                        <option value="Ornament - Bow / Butterfly">Ornament - Bow / Butterfly</option>
+                        <option value="Edge Binding / Piping">Edge Binding / Piping</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+
         <div class="input-group">
             <div><label>Observed Time (sec):</label><br><input type="number" step="0.1" id="obsTime" placeholder="e.g. 41.4" style="width: 100%;" required></div>
             <div><label>Perf. Rating (%):</label><br><input type="number" id="perfRating" value="100" style="width: 100%;"></div>
             <div><label>Allowances (%):</label><br><input type="number" id="allowance" value="15" style="width: 100%;"></div>
         </div>
-        <button onclick="addOperation()" style="margin-top: 15px; width: 100%; padding: 12px; font-size: 1.1em;">+ Add Operation to Local List</button>
+        <button onclick="addOperation()" style="margin-top: 5px; width: 100%; padding: 12px; font-size: 1.1em;">+ Add Operation to Local List</button>
 
         <hr style="border-color: #444; margin: 30px 0;">
 
@@ -525,42 +605,43 @@
 
     // --- THIS IS YOUR MASTER LIST. ONLY YOU EDIT THIS IN GITHUB! ---
     let defaultOperations = [
-        { name: "Toe Cap Attaching", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1512409466993771_hd.mp4?tr=orig-true", smvPair: 0.6900 },
-        { name: "Insole Mounting", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1279161734388912_hd.mp4?tr=orig-true", smvPair: 0.1530 },
-        { name: "Toe Back Jointing - Square Shape - SN", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1FyVRqo6ad_hd.mp4?tr=orig-true", smvPair: 0.5750 },
-        { name: "Overlap Trimming - Dual Density Sole", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_100_hd.mp4?tr=orig-true", smvPair: 0.5750 },
-        { name: "Toe Cap Attaching - Court shoe - Large", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_949015277891840_hd.mp4?tr=orig-true", smvPair: 0.6900 },
-        { name: "Edge Folding - Machine - Complete Sandle", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_967491046144817_hd%20(1).mp4?tr=orig-true", smvPair: 0.6130 },
-        { name: "Upper Insole Attaching - Stroble", file: "https://ik.imagekit.io/qegfiwkq6/Upper%20Insole%20Attaching%20-%20Stroble.mp4?tr=orig-true", smvPair: 0.5558 },
-        { name: "Punching & Eyeleting - Auto", file: "https://ik.imagekit.io/qegfiwkq6/Punching%20&%20Eyeleting%20-%20Auto.mp4?tr=orig-true", smvPair: 0.2683 },
-        { name: "Ornament Attaching - Heart Shape - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Ornament%20Attaching%20-%20Heart%20Shape%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.6133 },
-        { name: "Toe Back Jointing - Safety shoe - Pattern Sew", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20Back%20Jointing%20-%20Safety%20shoe%20-%20Pattern%20Sew.mp4?tr=orig-true", smvPair: 1.3800 },
-        { name: "Eyelet Piece Attaching - Decorative - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Eyelet%20Piece%20Attaching%20-%20Decorative%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.6133 },
-        { name: "Tounge Turning and set - Machine", file: "https://ik.imagekit.io/qegfiwkq6/Tounge%20Turning%20and%20set%20-%20Machine.mp4?tr=orig-true", smvPair: 0.8433 },
-        { name: "Tounge Deco and Loop attaching - SNPB - Mesh + PVC", file: "https://ik.imagekit.io/qegfiwkq6/Tounge%20Deco%20and%20Loop%20attaching%20-%20SNPB%20-%20Mesh%20+%20PVC.mp4?tr=orig-true", smvPair: 0.9583 },
-        { name: "Velcro strap jointing - SNPB - 3 straps", file: "https://ik.imagekit.io/qegfiwkq6/Velcro%20strap%20jointing%20-%20SNPB%20-%203%20straps.mp4?tr=orig-true", smvPair: 1.0733 },
-        { name: "Toe stifner skiving", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20stifner%20skiving.mp4?tr=orig-true", smvPair: 0.2300 },
-        { name: "Insole pad printing - Machine - New tech", file: "https://ik.imagekit.io/qegfiwkq6/Insole%20pad%20printing%20-%20Machine%20-%20New%20tech.mp4?tr=orig-true", smvPair: 0.0383 },
-        { name: "Counter attaching - 3D - Pattern Sew - New Tech", file: "https://ik.imagekit.io/qegfiwkq6/Counter%20attaching%20-%203D%20-%20Pattern%20Sew%20-%20New%20Tech.mp4?tr=orig-true", smvPair: 0.6133 },
-        { name: "Eyelet piece attaching - High cut - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Eyelet%20piece%20attaching%20-%20High%20cut%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.7667 },
-        { name: "Back lining attaching - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Back%20lining%20attaching%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.2875 },
-        { name: "Punching and Eyeleting - Auto", file: "https://ik.imagekit.io/qegfiwkq6/Punching%20and%20Eyeleting%20-%20Auto.mp4?tr=orig-true", smvPair: 0.2875 },
-        { name: "Side and Heel mounting - Auto - New Tech", file: "https://ik.imagekit.io/qegfiwkq6/Side%20and%20Heel%20mounting%20-%20Auto%20-%20New%20Tech.mp4?tr=orig-true", smvPair: 0.6517 },
-        { name: "Toe decoration stitch - SNPB - Half moon shape", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20decoration%20stitch%20-%20SNPB%20-%20Half%20moon%20shape.mp4?tr=orig-true", smvPair: 0.6900 },
-        { name: "Toe back jointing - SNPB - Sqaure Shape", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20back%20jointing%20-%20SNPB%20-%20Sqaure%20Shape.mp4?tr=orig-true", smvPair: 0.9200 },
-        { name: "Toe piece attaching - DNPB - Butterfly shape", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20piece%20attaching%20-%20DNPB%20-%20Butterfly%20shape.mp4?tr=orig-true", smvPair: 0.5367 },
-        { name: "Toe piece attaching - SNPB - Largest", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20piece%20attaching%20-%20SNPB%20-%20Largest.mp4?tr=orig-true", smvPair: 0.4600 },
-        { name: "Back strap attaching - Nylon strap - Pattern Sew - New Tech", file: "https://ik.imagekit.io/qegfiwkq6/Back%20strap%20attaching%20-%20Nylon%20strap%20-%20Pattern%20Sew%20-%20New%20Tech.mp4?tr=orig-true", smvPair: 0.4600 },
-        { name: "Quarter attaching - Large - SNPB - Mesh+PVC", file: "https://ik.imagekit.io/qegfiwkq6/Quarter%20attaching%20-%20Large%20-%20SNPB%20-%20Mesh+PVC.mp4?tr=orig-true", smvPair: 1.0733 },
-        { name: "Overlap cutting - Dual Density Sole - Machine", file: "https://ik.imagekit.io/qegfiwkq6/Overlap%20cutting%20-%20Dual%20Density%20Sole%20-%20Machine.mp4?tr=orig-true", smvPair: 0.4600 },
-        { name: "Toe piece attaching - Decorative - DNPB", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20piece%20attaching%20-%20Decorative%20-%20DNPB.mp4?tr=orig-true", smvPair: 0.8050 },
-        { name: "Eyelet Piece Attaching - Mesh + PVC - Large decorative - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Eyelet%20Piece%20Attaching%20-%20Mesh%20+%20PVC%20-%20Large%20decorative%20-%20SNPB.mp4?tr=orig-true", smvPair: 1.9933 },
-        { name: "Binding - Upper top edge - Court shoe", file: "https://ik.imagekit.io/qegfiwkq6/Binding%20-%20Upper%20top%20edge%20-%20Court%20shoe.mp4?tr=orig-true", smvPair: 0.2875 },
-        { name: "Side Punching & Eyeleting - Auto - Complete Canves shoe", file: "https://ik.imagekit.io/qegfiwkq6/Punching%20&%20Eyeleting%20-%20Auto%20-%20Complete%20Canves%20shoe.mp4?tr=orig-true", smvPair: 0.4217 },
-        { name: "Toe Piece Attaching - DNPB - Decorative", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20Piece%20Attaching%20-%20DNPB%20-%20Decorative.mp4?tr=orig-true", smvPair: 0.4600 },
-        { name: "Back Lining turn & pasting - Manual", file: "https://ik.imagekit.io/qegfiwkq6/Back%20Lining%20turn%20&%20pasting%20-%20Manual.mp4?tr=orig-true", smvPair: 1.2267 },
-        { name: "Quarter Large Deco Attaching - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Quarter%20Large%20Deco%20Attaching%20-%20SNPB.mp4?tr=orig-true", smvPair: 2.3767 }
-    ];    // ---------------------------------------------------------------
+        { name: "Toe Cap Attaching", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1512409466993771_hd.mp4?tr=orig-true", smvPair: 0.6900, shape: "Toe Cap - Standard" },
+        { name: "Insole Mounting", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1279161734388912_hd.mp4?tr=orig-true", smvPair: 0.1530, shape: "" },
+        { name: "Toe Back Jointing - Square Shape - SN", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1FyVRqo6ad_hd.mp4?tr=orig-true", smvPair: 0.5750, shape: "Vamp - Standard / Plain" },
+        { name: "Overlap Trimming - Dual Density Sole", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_100_hd.mp4?tr=orig-true", smvPair: 0.5750, shape: "" },
+        { name: "Toe Cap Attaching - Court shoe - Large", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_949015277891840_hd.mp4?tr=orig-true", smvPair: 0.6900, shape: "Toe Cap - Standard" },
+        { name: "Edge Folding - Machine - Complete Sandle", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_967491046144817_hd%20(1).mp4?tr=orig-true", smvPair: 0.6130, shape: "Edge Binding / Piping" },
+        { name: "Upper Insole Attaching - Stroble", file: "https://ik.imagekit.io/qegfiwkq6/Upper%20Insole%20Attaching%20-%20Stroble.mp4?tr=orig-true", smvPair: 0.5558, shape: "" },
+        { name: "Punching & Eyeleting - Auto", file: "https://ik.imagekit.io/qegfiwkq6/Punching%20&%20Eyeleting%20-%20Auto.mp4?tr=orig-true", smvPair: 0.2683, shape: "Eyelet Stay - Straight / Split" },
+        { name: "Ornament Attaching - Heart Shape - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Ornament%20Attaching%20-%20Heart%20Shape%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.6133, shape: "Ornament - Round / Logo Patch" },
+        { name: "Toe Back Jointing - Safety shoe - Pattern Sew", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20Back%20Jointing%20-%20Safety%20shoe%20-%20Pattern%20Sew.mp4?tr=orig-true", smvPair: 1.3800, shape: "Toe Cap - Standard" },
+        { name: "Eyelet Piece Attaching - Decorative - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Eyelet%20Piece%20Attaching%20-%20Decorative%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.6133, shape: "Eyelet Stay - Straight / Split" },
+        { name: "Tounge Turning and set - Machine", file: "https://ik.imagekit.io/qegfiwkq6/Tounge%20Turning%20and%20set%20-%20Machine.mp4?tr=orig-true", smvPair: 0.8433, shape: "Tongue Panel - Standard Shield" },
+        { name: "Tounge Deco and Loop attaching - SNPB - Mesh + PVC", file: "https://ik.imagekit.io/qegfiwkq6/Tounge%20Deco%20and%20Loop%20attaching%20-%20SNPB%20-%20Mesh%20+%20PVC.mp4?tr=orig-true", smvPair: 0.9583, shape: "Tongue Panel - Standard Shield" },
+        { name: "Velcro strap jointing - SNPB - 3 straps", file: "https://ik.imagekit.io/qegfiwkq6/Velcro%20strap%20jointing%20-%20SNPB%20-%203%20straps.mp4?tr=orig-true", smvPair: 1.0733, shape: "Strap - Velcro / Adjustable Box" },
+        { name: "Toe stifner skiving", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20stifner%20skiving.mp4?tr=orig-true", smvPair: 0.2300, shape: "Toe Cap - Standard" },
+        { name: "Insole pad printing - Machine - New tech", file: "https://ik.imagekit.io/qegfiwkq6/Insole%20pad%20printing%20-%20Machine%20-%20New%20tech.mp4?tr=orig-true", smvPair: 0.0383, shape: "" },
+        { name: "Counter attaching - 3D - Pattern Sew - New Tech", file: "https://ik.imagekit.io/qegfiwkq6/Counter%20attaching%20-%203D%20-%20Pattern%20Sew%20-%20New%20Tech.mp4?tr=orig-true", smvPair: 0.6133, shape: "Heel Counter - External Crescent" },
+        { name: "Eyelet piece attaching - High cut - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Eyelet%20piece%20attaching%20-%20High%20cut%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.7667, shape: "Eyelet Stay - U-Throat" },
+        { name: "Back lining attaching - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Back%20lining%20attaching%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.2875, shape: "Lining - Quarter" },
+        { name: "Punching and Eyeleting - Auto", file: "https://ik.imagekit.io/qegfiwkq6/Punching%20and%20Eyeleting%20-%20Auto.mp4?tr=orig-true", smvPair: 0.2875, shape: "Eyelet Stay - Straight / Split" },
+        { name: "Side and Heel mounting - Auto - New Tech", file: "https://ik.imagekit.io/qegfiwkq6/Side%20and%20Heel%20mounting%20-%20Auto%20-%20New%20Tech.mp4?tr=orig-true", smvPair: 0.6517, shape: "" },
+        { name: "Toe decoration stitch - SNPB - Half moon shape", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20decoration%20stitch%20-%20SNPB%20-%20Half%20moon%20shape.mp4?tr=orig-true", smvPair: 0.6900, shape: "Vamp - U-Shape / Moc Toe" },
+        { name: "Toe back jointing - SNPB - Sqaure Shape", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20back%20jointing%20-%20SNPB%20-%20Sqaure%20Shape.mp4?tr=orig-true", smvPair: 0.9200, shape: "Toe Cap - Standard" },
+        { name: "Toe piece attaching - DNPB - Butterfly shape", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20piece%20attaching%20-%20DNPB%20-%20Butterfly%20shape.mp4?tr=orig-true", smvPair: 0.5367, shape: "Ornament - Bow / Butterfly" },
+        { name: "Toe piece attaching - SNPB - Largest", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20piece%20attaching%20-%20SNPB%20-%20Largest.mp4?tr=orig-true", smvPair: 0.4600, shape: "Toe Cap - Winged" },
+        { name: "Back strap attaching - Nylon strap - Pattern Sew - New Tech", file: "https://ik.imagekit.io/qegfiwkq6/Back%20strap%20attaching%20-%20Nylon%20strap%20-%20Pattern%20Sew%20-%20New%20Tech.mp4?tr=orig-true", smvPair: 0.4600, shape: "Strap - Back (Inward)" },
+        { name: "Quarter attaching - Large - SNPB - Mesh+PVC", file: "https://ik.imagekit.io/qegfiwkq6/Quarter%20attaching%20-%20Large%20-%20SNPB%20-%20Mesh+PVC.mp4?tr=orig-true", smvPair: 1.0733, shape: "Quarter Panel - L-Shape" },
+        { name: "Overlap cutting - Dual Density Sole - Machine", file: "https://ik.imagekit.io/qegfiwkq6/Overlap%20cutting%20-%20Dual%20Density%20Sole%20-%20Machine.mp4?tr=orig-true", smvPair: 0.4600, shape: "" },
+        { name: "Toe piece attaching - Decorative - DNPB", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20piece%20attaching%20-%20Decorative%20-%20DNPB.mp4?tr=orig-true", smvPair: 0.8050, shape: "Toe Cap - Winged" },
+        { name: "Eyelet Piece Attaching - Mesh + PVC - Large decorative - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Eyelet%20Piece%20Attaching%20-%20Mesh%20+%20PVC%20-%20Large%20decorative%20-%20SNPB.mp4?tr=orig-true", smvPair: 1.9933, shape: "Eyelet Stay - U-Throat" },
+        { name: "Binding - Upper top edge - Court shoe", file: "https://ik.imagekit.io/qegfiwkq6/Binding%20-%20Upper%20top%20edge%20-%20Court%20shoe.mp4?tr=orig-true", smvPair: 0.2875, shape: "Edge Binding / Piping" },
+        { name: "Side Punching & Eyeleting - Auto - Complete Canves shoe", file: "https://ik.imagekit.io/qegfiwkq6/Punching%20&%20Eyeleting%20-%20Auto%20-%20Complete%20Canves%20shoe.mp4?tr=orig-true", smvPair: 0.4217, shape: "Eyelet Stay - Straight / Split" },
+        { name: "Toe Piece Attaching - DNPB - Decorative", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20Piece%20Attaching%20-%20DNPB%20-%20Decorative.mp4?tr=orig-true", smvPair: 0.4600, shape: "Toe Cap - Standard" },
+        { name: "Back Lining turn & pasting - Manual", file: "https://ik.imagekit.io/qegfiwkq6/Back%20Lining%20turn%20&%20pasting%20-%20Manual.mp4?tr=orig-true", smvPair: 1.2267, shape: "Lining - Quarter" },
+        { name: "Quarter Large Deco Attaching - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Quarter%20Large%20Deco%20Attaching%20-%20SNPB.mp4?tr=orig-true", smvPair: 2.3767, shape: "Quarter Decoration Panel" }
+    ];
+    // ---------------------------------------------------------------
 
     let savedData = localStorage.getItem("footwearOperations");
     let operations = savedData ? JSON.parse(savedData) : defaultOperations;
@@ -701,9 +782,6 @@
 
     // Main AI Engine Call (Local Filter)
     async function runAIAnalysis(mediaParts, apiKey) {
-        
-        // --- RESTORED & UPGRADED AI CHEAT SHEET ---
-        // Focused strictly on machine types and physical actions, completely ignoring material colors.
         const operationCues = [
             "0: Toe Cap Attaching (Stitching or attaching toe cap piece onto shoe upper)",
             "1: Insole Mounting (Applying glue or cement to insole boards/midsoles using a motorized roller machine, holding and feeding insoles through rollers, stacking insole boards)",
@@ -720,7 +798,6 @@
             "12: Tounge Turning and set - Machine (Using a machine to turn and press the shoe tongue into shape)"
         ];
 
-        // Safely map the cues to the current operations array
         const listText = operations.map((op, i) => {
             return operationCues[i] ? operationCues[i] : `${i}: ${op.name}`;
         }).join("\n");
@@ -784,7 +861,6 @@
                 let aiText = data.candidates[0].content.parts[0].text;
                 let formattedHtml = "<p><strong>AI Identification:</strong></p>";
                 
-                // Convert bullet points into clickable YouTube Links
                 const lines = aiText.split('\n');
                 lines.forEach(line => {
                     if (line.trim().startsWith('*') || line.trim().startsWith('-')) {
@@ -811,14 +887,12 @@
         document.getElementById("webResultModal").style.display = "none";
     }
     
-    // --- CLEAR FILTER WITHOUT WIPING SELECTIONS ---
     function clearAIFilter() {
         currentAiFilter = null;
         document.getElementById("aiResultContainer").style.display = "none";
         renderBulletinList(); 
     }
 
-    // --- CHECKBOX MEMORY FUNCTION ---
     function handleCheckboxChange(checkbox, index) {
         if (checkbox.checked) {
             checkedBulletinIndices.add(index);
@@ -976,6 +1050,7 @@
         const n = document.getElementById("newOpName").value.trim();
         let f = document.getElementById("newFileName").value.trim();
         const t = parseFloat(document.getElementById("obsTime").value);
+        const s = document.getElementById("shapeSelect").value;
         
         if (!n || !f || isNaN(t) || t <= 0) return alert("Fill Name, File Name/Link, and Time correctly.");
         
@@ -987,13 +1062,14 @@
         }
 
         const calc = ((t * (parseFloat(document.getElementById("perfRating").value)||100)/100) * (1 + ((parseFloat(document.getElementById("allowance").value)||15)/100))) / 60;
-        operations.push({ name: n, file: f, smvPair: parseFloat(calc.toFixed(4)) });
+        operations.push({ name: n, file: f, smvPair: parseFloat(calc.toFixed(4)), shape: s });
         
         saveToMemory(); populateDropdown(operations); renderBulletinList();
         
         document.getElementById("newOpName").value = ""; 
         document.getElementById("newFileName").value = ""; 
         document.getElementById("obsTime").value = "";
+        document.getElementById("shapeSelect").value = "";
         
         alert("Added Locally! Remember to click 'Generate Code' when you are done to get the master list for GitHub.");
     }
@@ -1024,7 +1100,7 @@
     function generateCode() {
         let codeOutput = `    let defaultOperations = [\n`;
         operations.forEach((op, index) => {
-            codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)} }`;
+            codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)}, shape: "${op.shape || ''}" }`;
             if (index < operations.length - 1) codeOutput += `,`;
             codeOutput += `\n`;
         });
@@ -1049,6 +1125,7 @@
             
             const thumbHtml = getThumbnailHtml(op.file);
             const isChecked = checkedBulletinIndices.has(index) ? "checked" : "";
+            const shapeBadge = op.shape ? `<br><span class="shape-badge">📐 ${op.shape}</span>` : "";
             
             const tr = document.createElement("tr");
             tr.innerHTML = `
@@ -1057,7 +1134,7 @@
                     <input type="checkbox" class="bulletin-checkbox" value="${index}" id="chk_${index}" onchange="handleCheckboxChange(this, ${index})" style="width: 18px; height: 18px; cursor: pointer;" ${isChecked}>
                 </td>
                 <td style="vertical-align: middle;">
-                    <label for="chk_${index}" style="font-weight: bold; font-size: 1.1em; color: #fff; cursor: pointer; display: block; margin: 0;">${op.name}</label>
+                    <label for="chk_${index}" style="font-weight: bold; font-size: 1.1em; color: #fff; cursor: pointer; display: block; margin: 0;">${op.name}${shapeBadge}</label>
                 </td>
                 <td style="color: #007bff; font-weight: bold; font-size: 1.05em; vertical-align: middle;">
                     ${op.smvPair.toFixed(4)}
@@ -1120,11 +1197,12 @@
             totalSMV += op.smvPair;
             
             const thumbHtml = getThumbnailHtml(op.file);
+            const shapeBadge = op.shape ? `<br><span class="shape-badge">📐 ${op.shape}</span>` : "";
 
             tbody.innerHTML += `
                 <tr>
                     <td style="text-align: center; font-weight: bold; color: #888; vertical-align: middle;">${displayCount + 1}</td>
-                    <td style="font-weight: bold; vertical-align: middle;">${op.name}</td>
+                    <td style="font-weight: bold; vertical-align: middle;">${op.name}${shapeBadge}</td>
                     <td style="color: #007bff; font-weight:bold; vertical-align: middle;">${op.smvPair.toFixed(4)}</td>
                     <td style="text-align: right;">
                         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 15px;">
@@ -1181,21 +1259,21 @@
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
 
-    // --- NEW FEATURE: EXPORT LIGHTWEIGHT CSV ---
     function downloadCSV() {
         if (checkedBulletinIndices.size === 0) return alert("No operations selected to download.");
         
-        let csvContent = "data:text/csv;charset=utf-8,No.,Operation Name,SMV (min)\n";
+        let csvContent = "data:text/csv;charset=utf-8,No.,Operation Name,Template Shape,SMV (min)\n";
         let selectedIndices = Array.from(checkedBulletinIndices).sort((a, b) => a - b);
         let total = 0;
         
         selectedIndices.forEach((index, i) => {
             const op = operations[index];
             total += op.smvPair;
-            csvContent += `${i + 1},"${op.name}",${op.smvPair.toFixed(4)}\n`;
+            const shapeStr = op.shape ? `"${op.shape}"` : `"N/A"`;
+            csvContent += `${i + 1},"${op.name}",${shapeStr},${op.smvPair.toFixed(4)}\n`;
         });
         
-        csvContent += `,,Total SMV:,${total.toFixed(4)}\n`;
+        csvContent += `,,,Total SMV:,${total.toFixed(4)}\n`;
         
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
