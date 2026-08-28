@@ -121,7 +121,7 @@
         video, .player-frame { border: 2px solid #444; border-radius: 8px; width: 100%; height: 350px; object-fit: contain; background: #000; box-sizing: border-box; }
         .player-frame iframe { width: 100% !important; height: 100% !important; border: none !important; border-radius: 6px; }
         .video-title { font-size: 0.9em; color: #aaa; margin-bottom: 5px; text-transform: uppercase; text-align: center; display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 40px; }
-        .speed-select { padding: 5px 12px; margin: 0; font-size: 1.1em; width: auto; background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .speed-select { padding: 5px 12px; margin: 0; font-size: 1.1em; width: auto; background: #007bff; color: white; border: none; font-weight: bold; cursor: box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
 
         #exportArea { width: 100%; height: 150px; background: #111; color: #0f0; font-family: monospace; padding: 10px; display: none; }
 
@@ -198,7 +198,7 @@
         .help-guide-section li { margin-bottom: 8px; }
 
         /* Shared Read-Only Mode */
-        .shared-mode-active .tabs, .shared-mode-active #viewer, .shared-mode-active #manage, .shared-mode-active .bulletin-creation-tools, .shared-mode-active .help-btn { display: none !important; }
+        .shared-mode-active .tabs, .shared-mode-active #viewer, .shared-mode-active #estimator, .shared-mode-active #manage, .shared-mode-active .bulletin-creation-tools, .shared-mode-active .help-btn { display: none !important; }
         .shared-mode-active .container { max-width: 800px; padding: 15px; }
         .shared-mode-active #bulletin { display: block !important; }
         .shared-header { background: #e30613; padding: 15px; text-align: center; border-radius: 8px; margin-bottom: 20px; font-weight: bold; font-size: 1.2em; display: none; }
@@ -220,21 +220,22 @@
             .tabs, .dsi-header, .header-flex, .bulletin-creation-tools, .bulletin-list, .modal-overlay, #unifiedPlayerContainer { display: none !important; }
             .container { box-shadow: none; padding: 0; background: transparent !important; max-width: 100%; }
             #bulletinResultArea { display: block !important; margin-top: 0 !important; }
-            .bulletin-table { border-collapse: collapse; }
-            .bulletin-table th { background: #eee !important; color: #000 !important; border: 1px solid #ccc; box-shadow: none; }
-            .bulletin-table td { border: 1px solid #ccc; color: #000 !important; }
-            .bulletin-table tfoot td { background: #fff !important; color: #000 !important; border-top: 2px solid #000; }
+            .bulletin-table { border-collapse: collapse !important; }
+            .bulletin-table th { background: #eee !important; color: #000 !important; border: 1px solid #ccc !important; box-shadow: none; }
+            .bulletin-table td { border: 1px solid #ccc !important; color: #000 !important; }
+            .bulletin-table tfoot td { background: #fff !important; color: #000 !important; border-top: 2px solid #000 !important; }
             .bulletin-thumb, button { display: none !important; }
-            .shared-header { display: block !important; background: #eee !important; color: #000 !important; border: 1px solid #ccc; }
+            .shared-header { display: block !important; background: #eee !important; color: #000 !important; border: 1px solid #ccc !important; }
             
             /* Print Estimator Only Mode */
-            body.print-estimate-only .container > *:not(#viewer) { display: none !important; }
-            body.print-estimate-only #viewer > *:not(#estResultArea) { display: none !important; }
-            body.print-estimate-only #estResultArea { border: none !important; padding: 0 !important; }
+            body.print-estimate-only .container > *:not(#estimator) { display: none !important; }
+            body.print-estimate-only #estimator > *:not(#estResultArea) { display: none !important; }
+            body.print-estimate-only #estResultArea { border: none !important; padding: 0 !important; background: transparent !important; }
             body.print-estimate-only #estResultArea > button { display: none !important; }
             body.print-estimate-only #estPrintHeader { display: flex !important; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
             body.print-estimate-only #estAiOutput { font-size: 1.1em; color: #000 !important; }
-            body.print-estimate-only #estAiOutput strong { color: #000 !important; }
+            body.print-estimate-only #estAiOutput strong, body.print-estimate-only #estAiOutput h3, body.print-estimate-only #estAiOutput h4 { color: #000 !important; }
+            body.print-estimate-only #estAiOutput div { background: transparent !important; border-color: #000 !important; }
         }
     </style>
 </head>
@@ -269,11 +270,12 @@
     <!-- Navigation Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab('viewer', event)">Video Viewer</button>
+        <button class="tab-btn" onclick="openTab('estimator', event)" style="background: #117a8b;">AI Costing Estimator</button>
         <button class="tab-btn" onclick="openTab('bulletin', event)">Operation Bulletin</button>
         <button class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d;">Manage (Admin)</button>
     </div>
 
-    <!-- Tab 1: Video Viewer & Global Estimator -->
+    <!-- Tab 1: Video Viewer -->
     <div id="viewer" class="tab-content active">
         <label>Search Local Master Database:</label><br>
         <input type="text" id="searchInput" onkeyup="filterOperations()" placeholder="Type to filter existing operations..." style="width: 100%;"><br>
@@ -336,11 +338,12 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- NEW: GLOBAL AI ESTIMATOR FOR NEW SAMPLES -->
-        <hr style="border-color: #444; margin: 40px 0 20px 0;">
-        <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px;">🌐 Global AI Costing Estimator (New Sample)</h3>
-        <p style="color: #aaa; font-size: 0.9em;">Upload a photo or video of a new sample to generate a highly detailed, comprehensive global benchmark SMV breakdown.</p>
+    <!-- Tab 2: Global AI Costing Estimator -->
+    <div id="estimator" class="tab-content">
+        <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI Costing Estimator</h3>
+        <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style/process to generate a comprehensive, multi-department global benchmark SMV breakdown (Cutting, Sewing, and Assembly) along with the standard Labor vs. Material ratio.</p>
         
         <div class="input-group" style="margin-bottom: 15px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 250px;">
@@ -354,14 +357,14 @@
                 </select>
             </div>
             <div style="flex: 1; min-width: 250px;">
-                <label style="font-weight: bold;">2. Upload Media:</label><br>
+                <label style="font-weight: bold;">2. Upload Photo / Video:</label><br>
                 <input type="file" id="estMediaInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="width: 100%; padding: 7px; background: #222; border: 1px solid #17a2b8; color: white; border-radius: 6px;">
             </div>
         </div>
         <button class="btn-info" onclick="generateGlobalEstimate()" style="width: 100%; padding: 12px; font-size: 1.1em; background: #17a2b8;">🧠 Generate Global Benchmark Estimate</button>
 
         <div id="estLoadingMsg" style="display:none; color: #17a2b8; font-weight: bold; margin-top: 15px; text-align: center; background: #222; padding: 10px; border-radius: 6px; border: 1px solid #17a2b8;">
-            🧠 Analyzing material and fetching comprehensive global benchmarks... Please wait...
+            🧠 Analyzing material and structuring IE Data Tables... Please wait...
         </div>
 
         <div id="estResultArea" style="display:none; margin-top: 20px; background: #1a1a1a; border: 1px solid #444; padding: 20px; border-radius: 8px;">
@@ -376,7 +379,7 @@
         </div>
     </div>
 
-    <!-- Tab 2: Operation Bulletin -->
+    <!-- Tab 3: Operation Bulletin -->
     <div id="bulletin" class="tab-content">
         <div class="shared-header">👟 IE Operations Guide</div>
         
@@ -452,7 +455,7 @@
         </div>
     </div>
 
-    <!-- Tab 3: Manage Operations (ADMIN ONLY) -->
+    <!-- Tab 4: Manage Operations (ADMIN ONLY) -->
     <div id="manage" class="tab-content">
         
         <div class="admin-banner">
@@ -524,7 +527,7 @@
     </div>
 </div>
 
-<!-- NEW Modal for Web Search Results -->
+<!-- Modal for Web Search Results -->
 <div class="modal-overlay" id="webResultModal">
     <div class="modal-content" style="border-color: #17a2b8;">
         <h3 style="margin-top: 0; color: #17a2b8;">🌐 Global Similarity Search Results</h3>
@@ -535,7 +538,7 @@
     </div>
 </div>
 
-<!-- FULLY REVISED IN-APP HELP GUIDE MODAL -->
+<!-- IN-APP HELP GUIDE MODAL -->
 <div class="modal-overlay" id="helpModal">
     <div class="modal-content" style="border-color: #ffc107;">
         <h2 style="margin-top: 0; color: #ffc107; display: flex; align-items: center; gap: 10px;">
@@ -544,16 +547,23 @@
         <p style="color: #ccc;">Welcome to the DSI Footwear Operations portal. Use the tabs at the top to navigate the platform. Here is how to use each section:</p>
         
         <div class="help-guide-section">
-            <h4>▶️ 1. Video Viewer & Global AI Estimator</h4>
+            <h4>▶️ 1. Video Viewer (Motion Analysis)</h4>
             <ul>
                 <li><strong>Search & Select:</strong> Type an operation name to load existing local data. Adjust sliders to simulate target variations.</li>
-                <li><strong>Motion Study:</strong> Use the right-side video player to slow down the footage (0.25x to 0.75x) to analyze micro-movements accurately.</li>
-                <li><strong>🌐 Global AI Estimator:</strong> Scroll to the bottom of the viewer, select a material, and upload a new sample image/video. The AI will provide a printable global benchmark SMV breakdown and labor/material cost ratio.</li>
+                <li><strong>Motion Study:</strong> Use the right-side video player to slow down footage (0.25x to 0.75x) to analyze micro-movements accurately.</li>
             </ul>
         </div>
 
         <div class="help-guide-section">
-            <h4>📋 2. Operation Bulletin (Sharing & Matching)</h4>
+            <h4 style="color: #17a2b8;">🌐 2. AI Costing Estimator</h4>
+            <ul>
+                <li><strong>Global Benchmark Breakdown:</strong> Select a material, upload a photo or video of a new style/process, and generate a comprehensive SMV breakdown for Cutting, Sewing, and Assembly.</li>
+                <li><strong>Cost Ratios & Print:</strong> View the estimated Labor vs. Material ratio and click <em>Print Costing Sheet</em> to export an executive summary.</li>
+            </ul>
+        </div>
+
+        <div class="help-guide-section">
+            <h4>📋 3. Operation Bulletin (Sharing & Matching)</h4>
             <ul>
                 <li><strong>📸 AI Visual Scan:</strong> Take a photo of a shoe sample from your phone and upload it here to find matching operations from our local database.</li>
                 <li><strong>🌐 Web Match:</strong> Upload a photo of unknown machinery. The AI will generate direct YouTube search links to find global tutorials.</li>
@@ -562,7 +572,7 @@
         </div>
 
         <div class="help-guide-section">
-            <h4 style="color: #e30613;">⚙️ 3. Manage (Admin Database)</h4>
+            <h4 style="color: #e30613;">⚙️ 4. Manage (Admin Database)</h4>
             <ul style="color: #ffcccc;">
                 <li><strong>⚠️ TEAM MEMBERS SHOULD NOT USE THIS TAB.</strong> This section is exclusively for Industrial Engineering Admins managing the master database.</li>
                 <li><strong>Add New Operation:</strong> Enter the data. Use the <em>Vector Builder</em> to click points to draw lines, and drag the blue dots to manually curve shapes.</li>
@@ -639,7 +649,7 @@
     let controls = [];
     let draggingControlIndex = -1;
     let isDragging = false;
-    const gridSize = 10; // Denser grid for precision
+    const gridSize = 10;
 
     function saveToMemory() { localStorage.setItem("footwearOperations", JSON.stringify(operations)); }
 
@@ -664,7 +674,6 @@
     function drawGrid() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Draw denser, brighter background dots
         ctx.fillStyle = '#666';
         for(let x=gridSize; x<canvas.width; x+=gridSize) {
             for(let y=gridSize; y<canvas.height; y+=gridSize) {
@@ -831,11 +840,11 @@
         setTimeout(() => document.body.classList.remove('print-estimate-only'), 500);
     }
 
-    // --- NEW: GLOBAL AI ESTIMATOR LOGIC WITH DETAILED BREAKDOWN ---
+    // --- GLOBAL AI ESTIMATOR LOGIC ---
     async function generateGlobalEstimate() {
         const fileInput = document.getElementById("estMediaInput");
         const file = fileInput.files[0];
-        if (!file) return alert("⚠️ Please upload a photo or video of the sample first.");
+        if (!file) return alert("⚠️ Please upload a photo or video of the style/operation first.");
         
         const apiKey = getActiveApiKey();
         if (!apiKey) return alert("⚠️ No API Key found.");
@@ -894,49 +903,55 @@
     }
 
     async function runGlobalAIAnalysis(mediaParts, material, apiKey) {
-        // Detailed prompt requesting component-wise cutting, 15+ sewing operations, and assembly breakdown
-        const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing sample or process. The primary material is: ${material}.
-        Based on the style and complexity of the shoe shown, provide a highly detailed, comprehensive global benchmark SMV breakdown for the ENTIRE shoe manufacturing process.
+        const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style, sample, or process. The primary material is: ${material}.
+        Based on the style and complexity of the footwear shown, provide a highly detailed, comprehensive global benchmark SMV breakdown for the ENTIRE footwear manufacturing process.
         
-        Output ONLY raw HTML (no markdown code blocks, do not wrap in \`\`\`html) with the following exact structure:
+        Output ONLY raw HTML (no markdown code blocks, do not wrap in \`\`\`html) with the following exact structure to ensure perfect tabular alignment:
         
-        <h4 style="color:#007bff; border-bottom:1px solid #444; padding-bottom:5px;">Operation / Sample Overview</h4>
-        <p>[Write 2 sentences describing the shoe style, complexity, and overall manufacturing requirements]</p>
+        <div style="background: #111; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+            <h4 style="color:#007bff; margin-top:0;">Footwear Style & Operation Overview</h4>
+            <p style="margin-bottom:0; color:#ddd;">[Write 2 sentences describing the shoe style, construction type, complexity, and overall manufacturing requirements]</p>
+        </div>
         
-        <h4 style="color:#007bff; border-bottom:1px solid #444; margin-top: 15px; padding-bottom:5px;">Detailed SMV Breakdown (Global Benchmark)</h4>
-        
-        <h5 style="color:#ffc107; margin-bottom: 5px;">✂️ Cutting Process (Component-Wise)</h5>
-        <ul style="margin-top: 5px;">
-        <li><strong>[Component Name 1] (e.g., Vamp):</strong> [Estimate] min</li>
-        <li><strong>[Component Name 2] (e.g., Quarter):</strong> [Estimate] min</li>
-        <li><strong>[Component Name 3] (e.g., Lining):</strong> [Estimate] min</li>
-        [Add 3-5 more key components based on the shoe]
-        <li style="color:#aaa;"><em>Cutting Subtotal: [Subtotal] min</em></li>
-        </ul>
+        <h3 style="color:#ffc107; margin-bottom: 10px;">✂️ Cutting Process (Component-Wise)</h3>
+        <table class="bulletin-table" style="margin-bottom: 25px;">
+            <thead><tr><th>Component Name</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>
+                <tr><td>[Component 1]</td><td style="text-align: right; color:#00ffff; font-family: monospace; font-size:1.1em;">[0.00]</td></tr>
+                [Add 3-5 more key components]
+            </tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Cutting Subtotal:</td><td style="text-align: right; color:#ffc107; font-family: monospace;">[0.00]</td></tr></tfoot>
+        </table>
 
-        <h5 style="color:#ffc107; margin-bottom: 5px;">🪡 Sewing / Stitching Process (Operation-Wise)</h5>
-        <ul style="margin-top: 5px;">
-        <li><strong>[Operation 1] (e.g., Skiving & Edge Folding):</strong> [Estimate] min</li>
-        <li><strong>[Operation 2] (e.g., Vamp to Quarter Joint):</strong> [Estimate] min</li>
-        <li><strong>[Operation 3] (e.g., Tongue Attaching):</strong> [Estimate] min</li>
-        <li><strong>[Operation 4] (e.g., Collar Stitching):</strong> [Estimate] min</li>
-        [List 10 to 15 specific stitching/preparation operations suitable for this style]
-        <li style="color:#aaa;"><em>Sewing Subtotal: [Subtotal] min</em></li>
-        </ul>
+        <h3 style="color:#ffc107; margin-bottom: 10px;">🪡 Sewing / Stitching Process</h3>
+        <table class="bulletin-table" style="margin-bottom: 25px;">
+            <thead><tr><th>Operation Name</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>
+                <tr><td>[Operation 1]</td><td style="text-align: right; color:#00ffff; font-family: monospace; font-size:1.1em;">[0.00]</td></tr>
+                [List 10 to 15 specific stitching operations]
+            </tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Sewing Subtotal:</td><td style="text-align: right; color:#ffc107; font-family: monospace;">[0.00]</td></tr></tfoot>
+        </table>
 
-        <h5 style="color:#ffc107; margin-bottom: 5px;">🔨 Assembly / Bottoming Process</h5>
-        <ul style="margin-top: 5px;">
-        <li><strong>[Operation 1] (e.g., Lasting):</strong> [Estimate] min</li>
-        <li><strong>[Operation 2] (e.g., Roughing & Cementing):</strong> [Estimate] min</li>
-        <li><strong>[Operation 3] (e.g., Sole Attaching & Pressing):</strong> [Estimate] min</li>
-        [Add 3-5 more assembly operations]
-        <li style="color:#aaa;"><em>Assembly Subtotal: [Subtotal] min</em></li>
-        </ul>
+        <h3 style="color:#ffc107; margin-bottom: 10px;">🔨 Assembly / Bottoming Process</h3>
+        <table class="bulletin-table" style="margin-bottom: 25px;">
+            <thead><tr><th>Operation Name</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>
+                <tr><td>[Operation 1]</td><td style="text-align: right; color:#00ffff; font-family: monospace; font-size:1.1em;">[0.00]</td></tr>
+                [Add 3-5 more assembly operations]
+            </tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Assembly Subtotal:</td><td style="text-align: right; color:#ffc107; font-family: monospace;">[0.00]</td></tr></tfoot>
+        </table>
 
-        <h3 style="margin-top:15px; color:#17a2b8;">Total Estimated Shoe SMV: [Total] min</h3>
+        <div style="background: #198754; border: 2px solid #28a745; padding: 15px; border-radius: 8px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin:0; color:#fff;">Total Estimated Shoe SMV:</h2>
+            <h2 style="margin:0; color:#fff; font-family: monospace;">[Total] min</h2>
+        </div>
 
-        <h4 style="color:#007bff; border-bottom:1px solid #444; padding-bottom:5px; margin-top:20px;">Standard Labor vs. Material Cost Ratio</h4>
-        <p>[Write 1-2 sentences estimating the Labor % vs Material % for this specific material and style]</p>`;
+        <div style="background: #222; border-left: 4px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 4px;">
+            <h4 style="color:#ffc107; margin-top:0;">Standard Labor vs. Material Cost Ratio</h4>
+            <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the Labor % vs Material % for this specific material and style]</p>
+        </div>`;
 
         try {
             const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
@@ -951,7 +966,6 @@
 
             if (data.candidates && data.candidates[0]) {
                 let aiText = data.candidates[0].content.parts[0].text;
-                // Strip markdown formatting if AI includes it by mistake
                 aiText = aiText.replace(/```html/g, "").replace(/```/g, "").trim();
                 
                 document.getElementById("estAiOutput").innerHTML = aiText;
