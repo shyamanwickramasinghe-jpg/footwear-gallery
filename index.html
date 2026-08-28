@@ -211,7 +211,7 @@
 
         /* Updated Canvas Styles for Grid Builder */
         .canvas-container { margin-bottom: 15px; background: #1a1a1a; padding: 10px; border-radius: 8px; border: 1px solid #444; }
-        #drawingCanvas { background: #0a0a0a; border: 1px solid #555; border-radius: 6px; cursor: crosshair; touch-action: none; display: block; width: 100%; max-width: 400px; height: 200px; margin-top: 5px; }
+        #drawingCanvas { background: #0a0a0a; border: 1px solid #555; border-radius: 6px; cursor: crosshair; touch-action: none; display: block; width: 100%; max-width: 600px; height: 300px; margin-top: 5px; }
         .drawn-shape { height: 35px; vertical-align: middle; margin-left: 15px; background: #0a0a0a; border: 1px solid #444; border-radius: 4px; padding: 2px; }
 
         /* --- PRINT PDF STYLES (LIGHTWEIGHT) --- */
@@ -341,7 +341,6 @@
                 <button class="btn-warning" onclick="document.getElementById('aiImageInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">📸 AI Visual Scan</button>
                 <input type="file" id="aiImageInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleAIScan(event)">
                 
-                <!-- NEW FEATURE: Web Search Match -->
                 <button class="btn-info" onclick="document.getElementById('aiWebInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">🌐 Web & YouTube Match</button>
                 <input type="file" id="aiWebInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleWebScan(event)">
             </div>
@@ -435,11 +434,11 @@
         <!-- ENLARGED SNAP-TO-GRID CANVAS SECTION -->
         <div class="canvas-container">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Template Shape (Snap-to-Grid):</label>
+                <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Vector Template Shape:</label>
                 <button onclick="clearCanvas()" style="background: #555; padding: 4px 10px; font-size: 0.85em;">🗑️ Clear Sketch</button>
             </div>
-            <canvas id="drawingCanvas" width="400" height="200"></canvas>
-            <p style="font-size: 0.8em; color: #aaa; margin: 5px 0 0 0;">Click the grid dots to build a perfect geometric blueprint shape.</p>
+            <canvas id="drawingCanvas" width="600" height="300"></canvas>
+            <p style="font-size: 0.9em; color: #ddd; margin: 8px 0 0 0;"><strong>1.</strong> Click grid dots to draw a shape. <br><strong>2.</strong> Click and drag the <span style="color:#007bff; font-weight:bold;">Blue Handles</span> to manually bend straight lines into smooth curves.</p>
         </div>
 
         <div class="input-group">
@@ -519,7 +518,7 @@
             <h4 style="color: #e30613;">⚙️ 3. Manage (Admin Database)</h4>
             <ul style="color: #ffcccc;">
                 <li><strong>⚠️ TEAM MEMBERS SHOULD NOT USE THIS TAB.</strong> This section is exclusively for Industrial Engineering Admins managing the master database.</li>
-                <li><strong>Add New Operation:</strong> Enter the name, video link, and raw seconds. Use the <em>Snap-to-Grid Builder</em> to click points and draw perfect geometric blueprint patterns.</li>
+                <li><strong>Add New Operation:</strong> Enter the name, video link, and raw seconds. Use the <em>Vector Builder</em> to click points to draw lines, and drag the blue dots to manually curve the shapes perfectly.</li>
                 <li><strong>Save Permanently:</strong> Click the yellow <em>Generate Code for GitHub</em> button and paste that code into your master file to save changes for the entire team.</li>
             </ul>
         </div>
@@ -587,21 +586,30 @@
     let currentAiFilter = null; 
     let checkedBulletinIndices = new Set(); 
 
-    // --- GRID CANVAS VARIABLES ---
+    // --- CAD VECTOR CANVAS VARIABLES ---
     let canvas, ctx;
-    let gridPoints = []; 
-    const gridSize = 20; 
+    let anchors = [];
+    let controls = [];
+    let draggingControlIndex = -1;
+    let isDragging = false;
+    const gridSize = 10; // Denser grid for precision
 
     function saveToMemory() { localStorage.setItem("footwearOperations", JSON.stringify(operations)); }
 
-    // --- SNAP TO GRID LOGIC ---
+    // --- CAD VECTOR CANVAS LOGIC ---
     function initCanvas() {
         canvas = document.getElementById('drawingCanvas');
         if (!canvas) return;
         ctx = canvas.getContext('2d');
         
-        canvas.addEventListener('mousedown', handleGridClick);
-        canvas.addEventListener('touchstart', handleGridTouch, {passive: false});
+        canvas.addEventListener('mousedown', handleGridDown);
+        canvas.addEventListener('mousemove', handleGridMove);
+        canvas.addEventListener('mouseup', handleGridUp);
+        canvas.addEventListener('mouseout', handleGridUp);
+        
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleGridDown(e); }, {passive: false});
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleGridMove(e); }, {passive: false});
+        canvas.addEventListener('touchend', handleGridUp);
 
         drawGrid();
     }
@@ -609,38 +617,67 @@
     function drawGrid() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Draw the background dots
-        ctx.fillStyle = '#333';
+        // Draw denser, brighter background dots
+        ctx.fillStyle = '#666';
         for(let x=gridSize; x<canvas.width; x+=gridSize) {
             for(let y=gridSize; y<canvas.height; y+=gridSize) {
                 ctx.beginPath();
-                ctx.arc(x, y, 2, 0, Math.PI*2);
+                ctx.arc(x, y, 1.5, 0, Math.PI*2);
                 ctx.fill();
             }
         }
         
-        // Draw the connected lines
-        if (gridPoints.length > 0) {
+        if (anchors.length > 0) {
+            // Draw smooth curved paths based on anchor and control points
             ctx.beginPath();
             ctx.strokeStyle = '#ffc107'; 
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             
-            ctx.moveTo(gridPoints[0].x, gridPoints[0].y);
-            for(let i=1; i<gridPoints.length; i++) {
-                ctx.lineTo(gridPoints[i].x, gridPoints[i].y);
+            ctx.moveTo(anchors[0].x, anchors[0].y);
+            for(let i=1; i<anchors.length; i++) {
+                ctx.quadraticCurveTo(controls[i-1].x, controls[i-1].y, anchors[i].x, anchors[i].y);
             }
             ctx.stroke();
             
-            // Draw bright dots at clicked points
+            // Draw anchor points (white dots)
             ctx.fillStyle = '#fff';
-            for(let i=0; i<gridPoints.length; i++) {
+            for(let i=0; i<anchors.length; i++) {
                 ctx.beginPath();
-                ctx.arc(gridPoints[i].x, gridPoints[i].y, 4, 0, Math.PI*2);
+                ctx.arc(anchors[i].x, anchors[i].y, 4, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            // Draw curve bend handles (blue dots)
+            ctx.fillStyle = '#007bff';
+            for(let i=0; i<controls.length; i++) {
+                ctx.beginPath();
+                ctx.arc(controls[i].x, controls[i].y, 6, 0, Math.PI*2);
                 ctx.fill();
             }
         }
+    }
+
+    // Helper function to export purely the yellow line, hiding dots and grid
+    function getCleanCanvasImage() {
+        if (anchors.length === 0) return "";
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.beginPath();
+        ctx.strokeStyle = '#ffc107';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.moveTo(anchors[0].x, anchors[0].y);
+        for(let i=1; i<anchors.length; i++) {
+            ctx.quadraticCurveTo(controls[i-1].x, controls[i-1].y, anchors[i].x, anchors[i].y);
+        }
+        ctx.stroke();
+        
+        const dataUrl = canvas.toDataURL('image/png');
+        drawGrid(); // Redraw UI elements afterward
+        return dataUrl;
     }
 
     function getPointerPos(e) {
@@ -662,29 +699,63 @@
         };
     }
 
-    function handleGridClick(e) { addGridPoint(e); }
-
-    function handleGridTouch(e) {
-        e.preventDefault(); 
-        addGridPoint(e);
-    }
-
-    function addGridPoint(e) {
+    function handleGridDown(e) {
         const pos = getPointerPos(e);
+        
+        // 1. Check if user is clicking a blue control handle to bend the curve
+        for(let i=0; i<controls.length; i++) {
+            let dx = pos.x - controls[i].x;
+            let dy = pos.y - controls[i].y;
+            if(Math.sqrt(dx*dx + dy*dy) < 15) { 
+                draggingControlIndex = i;
+                isDragging = true;
+                return; 
+            }
+        }
+
+        // 2. Otherwise, add a new anchor point
         let snappedX = Math.round(pos.x / gridSize) * gridSize;
         let snappedY = Math.round(pos.y / gridSize) * gridSize;
         
-        if(snappedX < 0) snappedX = 0;
-        if(snappedX > canvas.width) snappedX = canvas.width;
-        if(snappedY < 0) snappedY = 0;
-        if(snappedY > canvas.height) snappedY = canvas.height;
+        snappedX = Math.max(0, Math.min(canvas.width, snappedX));
+        snappedY = Math.max(0, Math.min(canvas.height, snappedY));
 
-        gridPoints.push({x: snappedX, y: snappedY});
+        anchors.push({x: snappedX, y: snappedY});
+        
+        // Generate a new control handle exactly in the middle of the new line segment
+        if(anchors.length > 1) {
+            let prev = anchors[anchors.length - 2];
+            controls.push({
+                x: (prev.x + snappedX) / 2,
+                y: (prev.y + snappedY) / 2
+            });
+        }
         drawGrid();
     }
 
+    function handleGridMove(e) {
+        if(isDragging && draggingControlIndex !== -1) {
+            const pos = getPointerPos(e);
+            let snappedX = Math.round(pos.x / gridSize) * gridSize;
+            let snappedY = Math.round(pos.y / gridSize) * gridSize;
+            
+            // Allow dragging the handle to bend the line dynamically
+            controls[draggingControlIndex] = {
+                x: Math.max(0, Math.min(canvas.width, snappedX)), 
+                y: Math.max(0, Math.min(canvas.height, snappedY))
+            };
+            drawGrid();
+        }
+    }
+
+    function handleGridUp(e) {
+        isDragging = false;
+        draggingControlIndex = -1;
+    }
+
     function clearCanvas() {
-        gridPoints = [];
+        anchors = [];
+        controls = [];
         drawGrid();
     }
 
@@ -1085,7 +1156,7 @@
         let f = document.getElementById("newFileName").value.trim();
         const t = parseFloat(document.getElementById("obsTime").value);
         
-        let s = gridPoints.length > 0 ? canvas.toDataURL('image/png') : "";
+        let s = getCleanCanvasImage();
         
         if (!n || !f || isNaN(t) || t <= 0) return alert("Fill Name, File Name/Link, and Time correctly.");
         
@@ -1337,7 +1408,7 @@
             document.getElementById("geminiApiKeyInput").value = savedApiKey;
         }
         
-        const urlParams = newSearchParams(window.location.search);
+        const urlParams = new URLSearchParams(window.location.search);
         const sharedIds = urlParams.get('b');
         
         if (sharedIds) {
