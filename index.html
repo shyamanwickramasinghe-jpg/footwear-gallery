@@ -952,4 +952,641 @@
             if (data.candidates && data.candidates[0]) {
                 let aiText = data.candidates[0].content.parts[0].text;
                 // Strip markdown formatting if AI includes it by mistake
-                aiText = aiText.replace(/```html/g, "").replace(/
+                aiText = aiText.replace(/```html/g, "").replace(/```/g, "").trim();
+                
+                document.getElementById("estAiOutput").innerHTML = aiText;
+                document.getElementById("estResultArea").style.display = "block";
+            }
+        } catch (error) {
+            alert("⚠️ Network Error.");
+        } finally {
+            document.getElementById("estLoadingMsg").style.display = "none";
+            document.getElementById("estMediaInput").value = ""; 
+        }
+    }
+
+    // --- STANDARD AI VISUAL SCANNING (Local Match) ---
+    async function handleAIScan(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const apiKey = getActiveApiKey();
+        if (!apiKey) return alert("⚠️ No API Key found.");
+        const loadingMsg = document.getElementById("aiLoadingMsg");
+        loadingMsg.innerText = "🤖 AI is scanning your media for local matches... Please wait...";
+        loadingMsg.style.display = "block";
+        document.getElementById("aiResultContainer").style.display = "none";
+
+        if (file.type.startsWith('video/')) {
+            processLocalVideoFile(file, apiKey, false);
+        } else {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result.split(',')[1];
+                runLocalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // --- WEB/YOUTUBE SEARCH SCANNING ---
+    async function handleWebScan(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const apiKey = getActiveApiKey();
+        if (!apiKey) return alert("⚠️ No API Key found.");
+        const loadingMsg = document.getElementById("aiLoadingMsg");
+        loadingMsg.innerText = "🌐 Analyzing media and searching the global web... Please wait...";
+        loadingMsg.style.display = "block";
+
+        if (file.type.startsWith('video/')) {
+            processLocalVideoFile(file, apiKey, true);
+        } else {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result.split(',')[1];
+                runWebAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function processLocalVideoFile(file, apiKey, isWebMode) {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        const fileURL = URL.createObjectURL(file);
+        video.src = fileURL;
+
+        video.onloadeddata = async () => {
+            const canvasExtract = document.createElement('canvas');
+            const ctxExtract = canvasExtract.getContext('2d');
+            const scale = Math.min(1, 640 / (video.videoWidth || 640));
+            canvasExtract.width = (video.videoWidth || 640) * scale;
+            canvasExtract.height = (video.videoHeight || 480) * scale;
+            const duration = video.duration || 5;
+            const timestamps = [duration * 0.2, duration * 0.5, duration * 0.8];
+            const imageParts = [];
+
+            for (const time of timestamps) {
+                await new Promise((resolve) => {
+                    video.currentTime = time;
+                    video.onseeked = () => {
+                        ctxExtract.drawImage(video, 0, 0, canvasExtract.width, canvasExtract.height);
+                        const base64Data = canvasExtract.toDataURL('image/jpeg', 0.85).split(',')[1];
+                        imageParts.push({ inline_data: { mime_type: 'image/jpeg', data: base64Data } });
+                        resolve();
+                    };
+                });
+            }
+            URL.revokeObjectURL(fileURL);
+            if (isWebMode) {
+                runWebAnalysis(imageParts, apiKey);
+            } else {
+                runLocalAIAnalysis(imageParts, apiKey);
+            }
+        };
+
+        video.onerror = function() {
+            alert("⚠️ Unable to process video format. Try converting to a standard MP4.");
+            document.getElementById("aiLoadingMsg").style.display = "none";
+            document.getElementById("aiImageInput").value = "";
+            document.getElementById("aiWebInput").value = "";
+        };
+    }
+
+    async function runLocalAIAnalysis(mediaParts, apiKey) {
+        const operationCues = [
+            "0: Toe Cap Attaching", "1: Insole Mounting", "2: Toe Back Jointing - Square Shape - SN",
+            "3: Overlap Trimming - Dual Density Sole", "4: Toe Cap Attaching - Court shoe - Large",
+            "5: Edge Folding - Machine - Complete Sandle", "6: Upper Insole Attaching - Stroble",
+            "7: Punching & Eyeleting - Auto", "8: Eyelet Piece Attaching - Mesh + PVC - Large decorative - SNPB",
+            "9: Ornament Attaching - Heart Shape - SNPB", "10: Toe Back Jointing - Safety shoe - Pattern Sew",
+            "11: Eyelet Piece Attaching - Decorative - SNPB", "12: Tounge Turning and set - Machine"
+        ];
+        const listText = operations.map((op, i) => operationCues[i] ? operationCues[i] : `${i}: ${op.name}`).join("\n");
+        const promptText = `You are a footwear engineer analyzing factory frames. Pick the closest matching operations from this list focusing on machine type and actions:
+        ${listText}
+        Reply ONLY with the numbers of the operations (e.g. 1, 5).`;
+
+        try {
+            const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await response.json();
+            if (!response.ok) return alert(`⚠️ API Error: ${data.error.message}`);
+
+            let matchedIndices = [];
+            if (data.candidates && data.candidates[0]) {
+                const numbers = data.candidates[0].content.parts[0].text.match(/\d+/g) || [];
+                numbers.forEach(num => {
+                    const idx = parseInt(num);
+                    if (operations[idx] !== undefined) matchedIndices.push(idx);
+                });
+            }
+
+            if (matchedIndices.length === 0) return alert("AI could not find local matches.");
+            currentAiFilter = [...new Set(matchedIndices)]; 
+            document.getElementById("aiResultContainer").style.display = "flex";
+            document.getElementById("aiResultText").innerText = `✅ AI Scan Complete! Filtered list below to show ${currentAiFilter.length} suggested operation(s).`;
+            renderBulletinList();
+        } catch (error) {
+            alert("⚠️ Network Error.");
+        } finally {
+            document.getElementById("aiLoadingMsg").style.display = "none";
+            document.getElementById("aiImageInput").value = ""; 
+        }
+    }
+
+    async function runWebAnalysis(mediaParts, apiKey) {
+        const promptText = `Identify the footwear manufacturing machine, process, or operation shown in this image/video frame. Provide a brief 1-2 sentence description. Then, provide exactly 3 highly specific search terms that a user could type into YouTube to find similar tutorial videos or machine demonstrations worldwide. Format your reply with the description first, followed by a bulleted list of the 3 search terms. Do not use markdown bolding.`;
+
+        try {
+            const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await response.json();
+            if (!response.ok) return alert(`⚠️ API Error: ${data.error.message}`);
+
+            if (data.candidates && data.candidates[0]) {
+                let aiText = data.candidates[0].content.parts[0].text;
+                let formattedHtml = "<p><strong>AI Identification:</strong></p>";
+                
+                const lines = aiText.split('\n');
+                lines.forEach(line => {
+                    if (line.trim().startsWith('*') || line.trim().startsWith('-')) {
+                        let term = line.replace(/^[*\-\s]+/, '').trim();
+                        let ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(term)}`;
+                        formattedHtml += `<div style="margin-top: 10px;"><a href="${ytUrl}" target="_blank" style="color: #00ffff; text-decoration: none; display: flex; align-items: center; gap: 8px;">▶️ Search YouTube: <em>${term}</em></a></div>`;
+                    } else if (line.trim() !== '') {
+                        formattedHtml += `<p style="margin-bottom: 5px;">${line}</p>`;
+                    }
+                });
+
+                document.getElementById("webResultBody").innerHTML = formattedHtml;
+                document.getElementById("webResultModal").style.display = "flex";
+            }
+        } catch (error) {
+            alert("⚠️ Network Error.");
+        } finally {
+            document.getElementById("aiLoadingMsg").style.display = "none";
+            document.getElementById("aiWebInput").value = ""; 
+        }
+    }
+
+    function closeWebResultModal() {
+        document.getElementById("webResultModal").style.display = "none";
+    }
+    
+    function clearAIFilter() {
+        currentAiFilter = null;
+        document.getElementById("aiResultContainer").style.display = "none";
+        renderBulletinList(); 
+    }
+
+    function handleCheckboxChange(checkbox, index) {
+        if (checkbox.checked) {
+            checkedBulletinIndices.add(index);
+        } else {
+            checkedBulletinIndices.delete(index);
+        }
+    }
+
+    function getYouTubeID(url) {
+        let video_id = url.split('v=')[1];
+        if (!video_id) video_id = url.split('youtu.be/')[1];
+        if (!video_id) video_id = url.split('shorts/')[1]; 
+        if (video_id) {
+            let ampersandPosition = video_id.indexOf('&');
+            if(ampersandPosition !== -1) video_id = video_id.substring(0, ampersandPosition);
+            let questionPosition = video_id.indexOf('?');
+            if(questionPosition !== -1) video_id = video_id.substring(0, questionPosition);
+            return video_id.trim();
+        }
+        return url;
+    }
+
+    function getThumbnailHtml(url) {
+        if (!url) return "";
+        if (url.includes("youtube.com") || url.includes("youtu.be")) {
+            return `<img src="https://img.youtube.com/vi/${getYouTubeID(url)}/mqdefault.jpg" class="bulletin-thumb" alt="YouTube Thumbnail">`;
+        } else {
+            return `<video class="bulletin-thumb" src="${url}#t=3" preload="metadata" muted playsinline onmouseover="this.play()" onmouseout="this.pause(); this.currentTime=3;"></video>`;
+        }
+    }
+
+    function populateDropdown(list) {
+        const videoSelect = document.getElementById("videoSelect");
+        const deleteSelect = document.getElementById("deleteSelect"); 
+        
+        videoSelect.innerHTML = '<option value="">-- Choose Operation --</option>';
+        if(deleteSelect) deleteSelect.innerHTML = '<option value="">-- Select to Delete --</option>';
+        
+        list.forEach((op, index) => {
+            const option = document.createElement("option");
+            option.value = op.file;
+            option.text = op.name;
+            option.dataset.index = operations.indexOf(op); 
+            videoSelect.add(option);
+            
+            if(deleteSelect) {
+                const delOption = option.cloneNode(true);
+                delOption.dataset.index = operations.indexOf(op);
+                deleteSelect.add(delOption);
+            }
+        });
+    }
+
+    function openTab(tabId, evt) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        if(evt) evt.target.classList.add('active');
+        
+        if (tabId === 'bulletin') renderBulletinList();
+    }
+
+    function filterOperations() {
+        const query = document.getElementById("searchInput").value.toLowerCase();
+        const filtered = operations.filter(op => op.name.toLowerCase().includes(query));
+        populateDropdown(filtered);
+        const select = document.getElementById("videoSelect");
+        select.size = query.length > 0 ? (filtered.length > 0 ? Math.min(filtered.length + 1, 6) : 2) : 1;
+    }
+
+    function changeUnifiedSlomoSpeed() {
+        const selectedSpeed = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
+        document.getElementById("slomoPlayer").playbackRate = selectedSpeed;
+        if (ytPlayerAPI_Slomo && typeof ytPlayerAPI_Slomo.setPlaybackRate === 'function') {
+            ytPlayerAPI_Slomo.setPlaybackRate(selectedSpeed);
+        }
+    }
+
+    function initYouTubePlayers(videoId) {
+        ytPlayerAPI_Normal = new YT.Player('ytPlayerNormal', {
+            videoId: videoId,
+            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
+            events: { 'onReady': e => e.target.playVideo(), 'onStateChange': e => { if(e.data===0) e.target.playVideo(); } }
+        });
+        ytPlayerAPI_Slomo = new YT.Player('ytPlayerSlomo', {
+            videoId: videoId,
+            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'mute': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
+            events: {
+                'onReady': e => { e.target.mute(); e.target.setPlaybackRate(parseFloat(document.getElementById("unifiedSlomoSpeed").value)); e.target.playVideo(); },
+                'onStateChange': e => { if(e.data===1) e.target.setPlaybackRate(parseFloat(document.getElementById("unifiedSlomoSpeed").value)); if(e.data===0) e.target.playVideo(); }
+            }
+        });
+    }
+
+    function playVideo() {
+        const select = document.getElementById("videoSelect");
+        select.size = 1; document.getElementById("searchInput").value = ""; 
+        const smvCard = document.getElementById("smvCard");
+        const unifiedPlayerContainer = document.getElementById("unifiedPlayerContainer");
+
+        if (select.selectedIndex > 0) {
+            const op = operations[select.options[select.selectedIndex].dataset.index];
+            currentBaseSMV = op.smvPair || 0;
+            unifiedPlayerContainer.style.display = "flex";
+
+            if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
+                const ytId = getYouTubeID(op.file);
+                document.getElementById("videoPlayer").style.display = "none";
+                document.getElementById("slomoPlayer").style.display = "none";
+                document.getElementById("videoPlayer").pause();
+                document.getElementById("slomoPlayer").pause();
+                document.getElementById("ytWrapperNormal").style.display = "block";
+                document.getElementById("ytWrapperSlomo").style.display = "block";
+                document.getElementById("ytWrapperNormal").innerHTML = '<div id="ytPlayerNormal"></div>';
+                document.getElementById("ytWrapperSlomo").innerHTML = '<div id="ytPlayerSlomo"></div>';
+                initYouTubePlayers(ytId);
+            } else {
+                document.getElementById("ytWrapperNormal").style.display = "none";
+                document.getElementById("ytWrapperSlomo").style.display = "none";
+                document.getElementById("videoPlayer").style.display = "block";
+                document.getElementById("slomoPlayer").style.display = "block";
+                if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
+                if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+                document.getElementById("videoSource").src = op.file;
+                document.getElementById("videoPlayer").load();
+                document.getElementById("videoPlayer").play();
+                document.getElementById("slomoSource").src = op.file;
+                document.getElementById("slomoPlayer").load();
+                document.getElementById("slomoPlayer").playbackRate = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
+                document.getElementById("slomoPlayer").play();
+            }
+            document.getElementById("perfSlider").value = 100; document.getElementById("allowSlider").value = 15;
+            updateSMV(); smvCard.style.display = "flex";
+        } else {
+            smvCard.style.display = "none"; unifiedPlayerContainer.style.display = "none";
+            document.getElementById("videoPlayer").pause(); document.getElementById("slomoPlayer").pause(); 
+            if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
+            if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+        }
+    }
+
+    function updateSMV() {
+        if (!currentBaseSMV) return;
+        const perf = parseInt(document.getElementById("perfSlider").value);
+        const allow = parseInt(document.getElementById("allowSlider").value);
+        const baseTimeWithoutAllowance = currentBaseSMV / 1.15;
+        const rawSMV = (baseTimeWithoutAllowance * (perf / 100) * (1 + (allow / 100)));
+        document.getElementById("perfLabel").innerText = perf + "%";
+        document.getElementById("allowLabel").innerText = allow + "%";
+        document.getElementById("smvValue").innerText = rawSMV.toFixed(4) + " min";
+        document.getElementById("targetValue").innerText = rawSMV > 0 ? Math.floor(60 / rawSMV) : 0 + " pairs";
+    }
+
+    function addOperation() {
+        const n = document.getElementById("newOpName").value.trim();
+        let f = document.getElementById("newFileName").value.trim();
+        const t = parseFloat(document.getElementById("obsTime").value);
+        
+        let s = getCleanCanvasImage();
+        
+        if (!n || !f || isNaN(t) || t <= 0) return alert("Fill Name, File Name/Link, and Time correctly.");
+        
+        if (f.includes("ik.imagekit.io")) {
+            if (f.includes("?")) {
+                f = f.split("?")[0]; 
+            }
+            f = f + "?tr=orig-true";
+        }
+
+        const calc = ((t * (parseFloat(document.getElementById("perfRating").value)||100)/100) * (1 + ((parseFloat(document.getElementById("allowance").value)||15)/100))) / 60;
+        operations.push({ name: n, file: f, smvPair: parseFloat(calc.toFixed(4)), shape: s });
+        
+        saveToMemory(); populateDropdown(operations); renderBulletinList();
+        
+        document.getElementById("newOpName").value = ""; 
+        document.getElementById("newFileName").value = ""; 
+        document.getElementById("obsTime").value = "";
+        clearCanvas();
+        
+        alert("Added Locally! Remember to click 'Generate Code' when you are done to get the master list for GitHub.");
+    }
+
+    function deleteOperation() {
+        const select = document.getElementById("deleteSelect"); 
+        if (select.selectedIndex <= 0) return alert("Please select an operation to delete.");
+        
+        if (confirm("Are you sure you want to delete this operation?")) {
+            operations.splice(parseInt(select.options[select.selectedIndex].dataset.index), 1);
+            saveToMemory(); 
+            
+            document.getElementById("searchInput").value = ""; 
+            populateDropdown(operations);
+            
+            document.getElementById("smvCard").style.display = "none"; 
+            document.getElementById("unifiedPlayerContainer").style.display = "none";
+            document.getElementById("videoPlayer").pause(); 
+            document.getElementById("slomoPlayer").pause(); 
+            if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
+            if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+            
+            renderBulletinList();
+            alert("Deleted Locally! Remember to click 'Generate Code' to save this change for GitHub.");
+        }
+    }
+
+    function generateCode() {
+        let codeOutput = `    let defaultOperations = [\n`;
+        operations.forEach((op, index) => {
+            codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)}, shape: "${op.shape || ''}" }`;
+            if (index < operations.length - 1) codeOutput += `,`;
+            codeOutput += `\n`;
+        });
+        codeOutput += `    ];`;
+
+        const exportArea = document.getElementById("exportArea");
+        exportArea.value = codeOutput; 
+        exportArea.style.display = "block"; 
+        exportArea.select(); 
+        document.execCommand("copy");
+        alert("Success! The code is copied to your clipboard. Paste this block directly into your index.html file on GitHub to save these changes permanently.");
+    }
+
+    function renderBulletinList() {
+        const query = document.getElementById("bulletinSearch").value.toLowerCase();
+        const tbody = document.getElementById("bulletinSelectionListBody");
+        tbody.innerHTML = "";
+        
+        operations.forEach((op, index) => {
+            if (currentAiFilter !== null && !currentAiFilter.includes(index)) return;
+            if (!op.name.toLowerCase().includes(query)) return;
+            
+            const thumbHtml = getThumbnailHtml(op.file);
+            const isChecked = checkedBulletinIndices.has(index) ? "checked" : "";
+            
+            const shapeBadge = op.shape && op.shape.startsWith('data:image') 
+                ? `<img src="${op.shape}" class="drawn-shape" alt="Custom Shape">` 
+                : "";
+            
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td style="text-align: center; font-weight: bold; color: #888; vertical-align: middle;">${index + 1}</td>
+                <td style="text-align: center; vertical-align: middle;">
+                    <input type="checkbox" class="bulletin-checkbox" value="${index}" id="chk_${index}" onchange="handleCheckboxChange(this, ${index})" style="width: 18px; height: 18px; cursor: pointer;" ${isChecked}>
+                </td>
+                <td style="vertical-align: middle;">
+                    <label for="chk_${index}" style="font-weight: bold; font-size: 1.1em; color: #fff; cursor: pointer; display: flex; align-items: center; margin: 0;">
+                        ${op.name} ${shapeBadge}
+                    </label>
+                </td>
+                <td style="color: #007bff; font-weight: bold; font-size: 1.05em; vertical-align: middle;">
+                    ${op.smvPair.toFixed(4)}
+                </td>
+                <td style="text-align: center; vertical-align: middle;">
+                    ${thumbHtml}
+                </td>
+                <td style="text-align: center; vertical-align: middle;">
+                    <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 8px 15px; margin:0;">▶ Preview</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function openPreviewModal(index) {
+        const op = operations[index];
+        document.getElementById("modalTitle").innerText = op.name;
+        document.getElementById("previewModal").style.display = "flex";
+        
+        if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
+            document.getElementById("modalVideo").style.display = "none";
+            document.getElementById("modalYtWrapper").style.display = "block";
+            document.getElementById("modalYtWrapper").innerHTML = '<div id="modalYtPlayer"></div>';
+            modalYtAPI = new YT.Player('modalYtPlayer', {
+                videoId: getYouTubeID(op.file),
+                playerVars: { 'autoplay': 1, 'playsinline': 1 },
+                events: { 'onReady': e => e.target.playVideo() }
+            });
+        } else {
+            document.getElementById("modalYtWrapper").style.display = "none";
+            const video = document.getElementById("modalVideo");
+            video.style.display = "block";
+            video.src = op.file;
+            video.play();
+        }
+    }
+
+    function closePreviewModal() {
+        document.getElementById("previewModal").style.display = "none";
+        document.getElementById("modalVideo").pause();
+        document.getElementById("modalVideo").src = "";
+        if (modalYtAPI) { modalYtAPI.destroy(); modalYtAPI = null; }
+    }
+
+    function generateBulletinTable() {
+        if (checkedBulletinIndices.size === 0) return alert("Please select at least one operation.");
+        
+        const tbody = document.getElementById("bulletinTableBody");
+        const tfoot = document.getElementById("bulletinTableFooter");
+        
+        tbody.innerHTML = "";
+        tfoot.innerHTML = "";
+        
+        let selectedIndices = Array.from(checkedBulletinIndices).sort((a, b) => a - b);
+        let totalSMV = 0;
+        
+        selectedIndices.forEach((index, displayCount) => {
+            const op = operations[index];
+            totalSMV += op.smvPair;
+            
+            const thumbHtml = getThumbnailHtml(op.file);
+            const shapeBadge = op.shape && op.shape.startsWith('data:image') 
+                ? `<img src="${op.shape}" class="drawn-shape" alt="Custom Shape">` 
+                : "";
+
+            tbody.innerHTML += `
+                <tr>
+                    <td style="text-align: center; font-weight: bold; color: #888; vertical-align: middle;">${displayCount + 1}</td>
+                    <td style="font-weight: bold; vertical-align: middle; display: flex; align-items: center;">
+                        ${op.name} ${shapeBadge}
+                    </td>
+                    <td style="color: #007bff; font-weight:bold; vertical-align: middle;">${op.smvPair.toFixed(4)}</td>
+                    <td style="text-align: right;">
+                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 15px;">
+                            ${thumbHtml}
+                            <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 5px 15px; margin:0;">▶ Play</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tfoot.innerHTML = `
+            <tr>
+                <td colspan="2" style="text-align: right; text-transform: uppercase;">Total SMV:</td>
+                <td style="color: #007bff;">${totalSMV.toFixed(4)}</td>
+                <td></td>
+            </tr>
+        `;
+        
+        document.getElementById("bulletinResultArea").style.display = "block";
+        document.getElementById("bulletinResultArea").dataset.sharedIds = selectedIndices.join(",");
+    }
+
+    function clearBulletin() {
+        if (confirm("Are you sure you want to clear all selections and start over?")) {
+            currentAiFilter = null; 
+            checkedBulletinIndices.clear(); 
+            document.getElementById("bulletinResultArea").style.display = "none";
+            document.getElementById("bulletinResultArea").dataset.sharedIds = "";
+            document.getElementById("bulletinTableBody").innerHTML = "";
+            document.getElementById("bulletinTableFooter").innerHTML = "";
+            document.getElementById("aiResultContainer").style.display = "none";
+            document.getElementById("bulletinSearch").value = "";
+            renderBulletinList(); 
+        }
+    }
+
+    function getShareableURL() {
+        const ids = document.getElementById("bulletinResultArea").dataset.sharedIds;
+        return window.location.origin + window.location.pathname + "?b=" + ids;
+    }
+
+    function copyShareLink() {
+        const link = getShareableURL();
+        navigator.clipboard.writeText(link).then(() => {
+            alert("Share Link Copied! You can paste this in WhatsApp.");
+        });
+    }
+
+    function sendIEEmail() {
+        const link = getShareableURL();
+        const subject = encodeURIComponent("IE Team: New Operations Bulletin");
+        const body = encodeURIComponent("Hello IE Team,\n\nPlease review the selected operations and SMV times by clicking the link below:\n\n" + link + "\n\nRegards.");
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    }
+
+    function downloadCSV() {
+        if (checkedBulletinIndices.size === 0) return alert("No operations selected to download.");
+        
+        let csvContent = "data:text/csv;charset=utf-8,No.,Operation Name,Has Custom Shape,SMV (min)\n";
+        let selectedIndices = Array.from(checkedBulletinIndices).sort((a, b) => a - b);
+        let total = 0;
+        
+        selectedIndices.forEach((index, i) => {
+            const op = operations[index];
+            total += op.smvPair;
+            const hasShapeStr = (op.shape && op.shape.startsWith('data:image')) ? `"Yes"` : `"No"`;
+            csvContent += `${i + 1},"${op.name}",${hasShapeStr},${op.smvPair.toFixed(4)}\n`;
+        });
+        
+        csvContent += `,,,Total SMV:,${total.toFixed(4)}\n`;
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "DSI_Operations_Targets.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    window.onload = function() {
+        initCanvas(); 
+        populateDropdown(operations);
+        
+        const savedApiKey = localStorage.getItem("geminiApiKey");
+        if (savedApiKey) {
+            document.getElementById("geminiApiKeyInput").value = savedApiKey;
+        }
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const sharedIds = urlParams.get('b');
+        
+        if (sharedIds) {
+            document.body.classList.add("shared-mode-active");
+            openTab('bulletin');
+            
+            const indices = sharedIds.split(",");
+            let foundAny = false;
+            indices.forEach(idx => {
+                const parsedIdx = parseInt(idx);
+                if (!isNaN(parsedIdx)) { 
+                    checkedBulletinIndices.add(parsedIdx); 
+                    foundAny = true; 
+                }
+            });
+            
+            if(foundAny) {
+                generateBulletinTable();
+                document.getElementById("bulletinResultArea").style.marginTop = "0";
+            } else {
+                document.getElementById("bulletin").innerHTML = "<h3 style='text-align:center;'>Bulletin link is invalid or expired.</h3>";
+            }
+        }
+    };
+</script>
+</body>
+</html>
