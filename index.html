@@ -209,10 +209,10 @@
         .admin-banner h3 { margin: 0 0 5px 0; color: #ff4d4d; font-size: 1.2em; }
         .admin-banner p { margin: 0; font-size: 0.9em; line-height: 1.4; }
 
-        /* Drawing Canvas Styles */
+        /* Updated Canvas Styles for Grid Builder */
         .canvas-container { margin-bottom: 15px; background: #1a1a1a; padding: 10px; border-radius: 8px; border: 1px solid #444; }
-        #drawingCanvas { background: #000; border: 1px solid #555; border-radius: 6px; cursor: crosshair; touch-action: none; display: block; width: 100%; max-width: 250px; height: 100px; margin-top: 5px; }
-        .drawn-shape { height: 35px; vertical-align: middle; margin-left: 15px; background: #000; border: 1px solid #444; border-radius: 4px; padding: 2px; }
+        #drawingCanvas { background: #0a0a0a; border: 1px solid #555; border-radius: 6px; cursor: crosshair; touch-action: none; display: block; width: 100%; max-width: 400px; height: 200px; margin-top: 5px; }
+        .drawn-shape { height: 35px; vertical-align: middle; margin-left: 15px; background: #0a0a0a; border: 1px solid #444; border-radius: 4px; padding: 2px; }
 
         /* --- PRINT PDF STYLES (LIGHTWEIGHT) --- */
         @media print {
@@ -341,6 +341,7 @@
                 <button class="btn-warning" onclick="document.getElementById('aiImageInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">📸 AI Visual Scan</button>
                 <input type="file" id="aiImageInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleAIScan(event)">
                 
+                <!-- NEW FEATURE: Web Search Match -->
                 <button class="btn-info" onclick="document.getElementById('aiWebInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">🌐 Web & YouTube Match</button>
                 <input type="file" id="aiWebInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleWebScan(event)">
             </div>
@@ -410,7 +411,7 @@
         
         <div class="admin-banner">
             <h3>⚠️ Admin Access Only</h3>
-            <p>IE Team members should not use this tab. Use this tool to auto-format ImageKit links, calculate SMVs, and remove outdated operations. <strong>Changes made here will not be saved permanently.</strong> You must click "Generate Code for GitHub" below and paste the result into your master index.html file to save your changes.</p>
+            <p><strong>TEAM MEMBERS SHOULD NOT USE THIS TAB.</strong> This section is exclusively for managing the master database. Changes made here will not be saved permanently until you click "Generate Code for GitHub" and update the master index.html file.</p>
         </div>
         
         <!-- AI API KEY SECTION -->
@@ -431,14 +432,14 @@
         <label style="color: #007bff; font-weight:bold;">Video Link (ImageKit or YouTube):</label><br>
         <input type="text" id="newFileName" placeholder="e.g. https://ik.imagekit.io/... or https://youtube.com/..." style="width: 100%; border: 1px solid #007bff;"><br>
 
-        <!-- NEW DRAWING CANVAS SECTION -->
+        <!-- ENLARGED SNAP-TO-GRID CANVAS SECTION -->
         <div class="canvas-container">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Template Shape (Optional):</label>
+                <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Template Shape (Snap-to-Grid):</label>
                 <button onclick="clearCanvas()" style="background: #555; padding: 4px 10px; font-size: 0.85em;">🗑️ Clear Sketch</button>
             </div>
-            <canvas id="drawingCanvas" width="200" height="80"></canvas>
-            <p style="font-size: 0.8em; color: #aaa; margin: 5px 0 0 0;">Use your mouse or finger to draw the stitch line or template shape.</p>
+            <canvas id="drawingCanvas" width="400" height="200"></canvas>
+            <p style="font-size: 0.8em; color: #aaa; margin: 5px 0 0 0;">Click the grid dots to build a perfect geometric blueprint shape.</p>
         </div>
 
         <div class="input-group">
@@ -488,37 +489,38 @@
     </div>
 </div>
 
-<!-- IN-APP HELP GUIDE MODAL -->
+<!-- FULLY REVISED IN-APP HELP GUIDE MODAL -->
 <div class="modal-overlay" id="helpModal">
     <div class="modal-content" style="border-color: #ffc107;">
         <h2 style="margin-top: 0; color: #ffc107; display: flex; align-items: center; gap: 10px;">
-            📖 User Guide
+            📖 FOOTTECH User Guide
         </h2>
-        <p style="color: #ccc;">Welcome to the DSI Footwear Operations portal. Use the tabs at the top to navigate. Here is how to use each section:</p>
+        <p style="color: #ccc;">Welcome to the DSI Footwear Operations portal. Use the tabs at the top to navigate the platform. Here is how to use each section:</p>
         
         <div class="help-guide-section">
             <h4>▶️ 1. Video Viewer (Motion Analysis)</h4>
             <ul>
-                <li><strong>Search & Select:</strong> Type an operation name to find it, then click to load the data.</li>
+                <li><strong>Search & Select:</strong> Type an operation name to find it, then click to load the video and data.</li>
                 <li><strong>Simulate Targets:</strong> Move the <em>Performance</em> and <em>Allowance</em> sliders. The Revised SMV and Hourly Target boxes will recalculate instantly.</li>
-                <li><strong>Motion Study:</strong> Use the right-side video player to slow down the footage (0.25x to 0.75x) to analyze micro-movements.</li>
+                <li><strong>Motion Study:</strong> Use the right-side video player to slow down the footage (0.25x to 0.75x) to analyze micro-movements accurately.</li>
             </ul>
         </div>
 
         <div class="help-guide-section">
-            <h4>📋 2. Operation Bulletin (Sharing)</h4>
+            <h4>📋 2. Operation Bulletin (Sharing & AI)</h4>
             <ul>
-                <li><strong>AI Visual Scan:</strong> Upload a photo of a shoe to match local factory operations.</li>
-                <li><strong>Web & YouTube Match:</strong> Upload a photo of unknown machinery to automatically generate clickable search links to similar tutorials worldwide.</li>
-                <li><strong>Export & Print:</strong> Create your bulletin list, then download it as a lightweight CSV for software importing, or Print it directly to a clean PDF.</li>
+                <li><strong>📸 AI Visual Scan:</strong> Take a photo of a shoe sample from your phone and upload it here. The AI will automatically visually scan the photo and find the matching operations from our local database.</li>
+                <li><strong>🌐 Web & YouTube Match:</strong> Upload a photo of unknown machinery or a new operation process. The AI will analyze it and generate direct YouTube search links to find global tutorials and demonstrations.</li>
+                <li><strong>Export & Print:</strong> Check the boxes of the operations you need. You can then download a lightweight CSV file for software importing, print a clean PDF, or copy a direct link to share the list via WhatsApp.</li>
             </ul>
         </div>
 
         <div class="help-guide-section">
-            <h4>⚙️ 3. Manage (Admin Database)</h4>
-            <ul>
-                <li><strong>Add New Operation:</strong> Enter the name, video link, draw a custom shape (optional), and add raw seconds.</li>
-                <li><strong>Save Permanently:</strong> Once you add or delete operations, click the yellow <em>Generate Code for GitHub</em> button. Paste that code into your master file to save it for everyone.</li>
+            <h4 style="color: #e30613;">⚙️ 3. Manage (Admin Database)</h4>
+            <ul style="color: #ffcccc;">
+                <li><strong>⚠️ TEAM MEMBERS SHOULD NOT USE THIS TAB.</strong> This section is exclusively for Industrial Engineering Admins managing the master database.</li>
+                <li><strong>Add New Operation:</strong> Enter the name, video link, and raw seconds. Use the <em>Snap-to-Grid Builder</em> to click points and draw perfect geometric blueprint patterns.</li>
+                <li><strong>Save Permanently:</strong> Click the yellow <em>Generate Code for GitHub</em> button and paste that code into your master file to save changes for the entire team.</li>
             </ul>
         </div>
         
@@ -542,6 +544,7 @@
         { name: "Insole Mounting", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1279161734388912_hd.mp4?tr=orig-true", smvPair: 0.1530, shape: "" },
         { name: "Toe Back Jointing - Square Shape - SN", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1FyVRqo6ad_hd.mp4?tr=orig-true", smvPair: 0.5750, shape: "" },
         { name: "Overlap Trimming - Dual Density Sole", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_100_hd.mp4?tr=orig-true", smvPair: 0.5750, shape: "" },
+        { name: "Toe Cap Attaching - Court shoe - Large", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_949015277891840_hd.mp4?tr=orig-true", smvPair: 0.6900, shape: "" },
         { name: "Edge Folding - Machine - Complete Sandle", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_967491046144817_hd%20(1).mp4?tr=orig-true", smvPair: 0.6130, shape: "" },
         { name: "Upper Insole Attaching - Stroble", file: "https://ik.imagekit.io/qegfiwkq6/Upper%20Insole%20Attaching%20-%20Stroble.mp4?tr=orig-true", smvPair: 0.5558, shape: "" },
         { name: "Punching & Eyeleting - Auto", file: "https://ik.imagekit.io/qegfiwkq6/Punching%20&%20Eyeleting%20-%20Auto.mp4?tr=orig-true", smvPair: 0.2683, shape: "" },
@@ -571,7 +574,6 @@
         { name: "Toe Piece Attaching - DNPB - Decorative", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20Piece%20Attaching%20-%20DNPB%20-%20Decorative.mp4?tr=orig-true", smvPair: 0.4600, shape: "" },
         { name: "Back Lining turn & pasting - Manual", file: "https://ik.imagekit.io/qegfiwkq6/Back%20Lining%20turn%20&%20pasting%20-%20Manual.mp4?tr=orig-true", smvPair: 1.2267, shape: "" },
         { name: "Quarter Large Deco Attaching - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Quarter%20Large%20Deco%20Attaching%20-%20SNPB.mp4?tr=orig-true", smvPair: 2.3767, shape: "" },
-        { name: "Toe piece attaching - Large - DNPB", file: "https://ik.imagekit.io/qegfiwkq6/Toe%20piece%20attaching%20-%20Large%20-%20DNPB.mp4?tr=orig-true", smvPair: 0.4600, shape: "data:image/png;base64,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" },
         { name: "Back lining attaching - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Back%20lining%20attaching%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.4792, shape: "" }
     ];
     // ---------------------------------------------------------------
@@ -585,33 +587,60 @@
     let currentAiFilter = null; 
     let checkedBulletinIndices = new Set(); 
 
-    // --- DRAWING CANVAS VARIABLES ---
+    // --- GRID CANVAS VARIABLES ---
     let canvas, ctx;
-    let isDrawing = false;
-    let hasDrawn = false;
+    let gridPoints = []; 
+    const gridSize = 20; 
 
     function saveToMemory() { localStorage.setItem("footwearOperations", JSON.stringify(operations)); }
 
-    // --- DRAWING CANVAS LOGIC ---
+    // --- SNAP TO GRID LOGIC ---
     function initCanvas() {
         canvas = document.getElementById('drawingCanvas');
         if (!canvas) return;
         ctx = canvas.getContext('2d');
-        ctx.strokeStyle = '#ffc107'; // Yellow pencil
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        // Mouse Events
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
         
-        // Touch Events for Tablets/Phones
-        canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
-        canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
-        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('mousedown', handleGridClick);
+        canvas.addEventListener('touchstart', handleGridTouch, {passive: false});
+
+        drawGrid();
+    }
+
+    function drawGrid() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw the background dots
+        ctx.fillStyle = '#333';
+        for(let x=gridSize; x<canvas.width; x+=gridSize) {
+            for(let y=gridSize; y<canvas.height; y+=gridSize) {
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+        
+        // Draw the connected lines
+        if (gridPoints.length > 0) {
+            ctx.beginPath();
+            ctx.strokeStyle = '#ffc107'; 
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            ctx.moveTo(gridPoints[0].x, gridPoints[0].y);
+            for(let i=1; i<gridPoints.length; i++) {
+                ctx.lineTo(gridPoints[i].x, gridPoints[i].y);
+            }
+            ctx.stroke();
+            
+            // Draw bright dots at clicked points
+            ctx.fillStyle = '#fff';
+            for(let i=0; i<gridPoints.length; i++) {
+                ctx.beginPath();
+                ctx.arc(gridPoints[i].x, gridPoints[i].y, 4, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
     }
 
     function getPointerPos(e) {
@@ -624,47 +653,39 @@
             clientY = e.touches[0].clientY;
         }
         
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
         return {
-            x: clientX - rect.left,
-            y: clientY - rect.top
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
         };
     }
 
-    function startDrawing(e) {
-        isDrawing = true;
-        hasDrawn = true;
+    function handleGridClick(e) { addGridPoint(e); }
+
+    function handleGridTouch(e) {
+        e.preventDefault(); 
+        addGridPoint(e);
+    }
+
+    function addGridPoint(e) {
         const pos = getPointerPos(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-    }
+        let snappedX = Math.round(pos.x / gridSize) * gridSize;
+        let snappedY = Math.round(pos.y / gridSize) * gridSize;
+        
+        if(snappedX < 0) snappedX = 0;
+        if(snappedX > canvas.width) snappedX = canvas.width;
+        if(snappedY < 0) snappedY = 0;
+        if(snappedY > canvas.height) snappedY = canvas.height;
 
-    function draw(e) {
-        if (!isDrawing) return;
-        const pos = getPointerPos(e);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-    }
-
-    function stopDrawing() {
-        if (!isDrawing) return;
-        isDrawing = false;
-        ctx.beginPath();
-    }
-
-    function handleTouchStart(e) {
-        e.preventDefault(); // Prevents scrolling while drawing
-        startDrawing(e);
-    }
-
-    function handleTouchMove(e) {
-        e.preventDefault();
-        draw(e);
+        gridPoints.push({x: snappedX, y: snappedY});
+        drawGrid();
     }
 
     function clearCanvas() {
-        if (!ctx) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        hasDrawn = false;
+        gridPoints = [];
+        drawGrid();
     }
 
     // --- HELP MODAL FUNCTIONS ---
@@ -1064,8 +1085,7 @@
         let f = document.getElementById("newFileName").value.trim();
         const t = parseFloat(document.getElementById("obsTime").value);
         
-        // Grab the drawing as an image string if they drew something
-        let s = hasDrawn ? canvas.toDataURL('image/png') : "";
+        let s = gridPoints.length > 0 ? canvas.toDataURL('image/png') : "";
         
         if (!n || !f || isNaN(t) || t <= 0) return alert("Fill Name, File Name/Link, and Time correctly.");
         
@@ -1084,7 +1104,7 @@
         document.getElementById("newOpName").value = ""; 
         document.getElementById("newFileName").value = ""; 
         document.getElementById("obsTime").value = "";
-        clearCanvas(); // clear the drawing board for the next entry
+        clearCanvas();
         
         alert("Added Locally! Remember to click 'Generate Code' when you are done to get the master list for GitHub.");
     }
@@ -1115,7 +1135,6 @@
     function generateCode() {
         let codeOutput = `    let defaultOperations = [\n`;
         operations.forEach((op, index) => {
-            // Note: If you drew a shape, the base64 string saved here will be quite long!
             codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)}, shape: "${op.shape || ''}" }`;
             if (index < operations.length - 1) codeOutput += `,`;
             codeOutput += `\n`;
@@ -1142,7 +1161,6 @@
             const thumbHtml = getThumbnailHtml(op.file);
             const isChecked = checkedBulletinIndices.has(index) ? "checked" : "";
             
-            // If there is a drawn image string, render it!
             const shapeBadge = op.shape && op.shape.startsWith('data:image') 
                 ? `<img src="${op.shape}" class="drawn-shape" alt="Custom Shape">` 
                 : "";
@@ -1311,7 +1329,7 @@
     }
 
     window.onload = function() {
-        initCanvas(); // Initialize the drawing board!
+        initCanvas(); 
         populateDropdown(operations);
         
         const savedApiKey = localStorage.getItem("geminiApiKey");
@@ -1319,7 +1337,7 @@
             document.getElementById("geminiApiKeyInput").value = savedApiKey;
         }
         
-        const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = newSearchParams(window.location.search);
         const sharedIds = urlParams.get('b');
         
         if (sharedIds) {
