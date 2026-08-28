@@ -121,7 +121,7 @@
         video, .player-frame { border: 2px solid #444; border-radius: 8px; width: 100%; height: 350px; object-fit: contain; background: #000; box-sizing: border-box; }
         .player-frame iframe { width: 100% !important; height: 100% !important; border: none !important; border-radius: 6px; }
         .video-title { font-size: 0.9em; color: #aaa; margin-bottom: 5px; text-transform: uppercase; text-align: center; display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 40px; }
-        .speed-select { padding: 5px 12px; margin: 0; font-size: 1.1em; width: auto; background: #007bff; color: white; border: none; font-weight: bold; cursor: box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .speed-select { padding: 5px 12px; margin: 0; font-size: 1.1em; width: auto; background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
 
         #exportArea { width: 100%; height: 150px; background: #111; color: #0f0; font-family: monospace; padding: 10px; display: none; }
 
@@ -270,7 +270,7 @@
     <!-- Navigation Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab('viewer', event)">Video Viewer</button>
-        <button class="tab-btn" onclick="openTab('estimator', event)" style="background: #117a8b;">AI Costing Estimator</button>
+        <button class="tab-btn" onclick="openTab('estimator', event)">AI SMV Estimator</button>
         <button class="tab-btn" onclick="openTab('bulletin', event)">Operation Bulletin</button>
         <button class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d;">Manage (Admin)</button>
     </div>
@@ -340,9 +340,9 @@
         </div>
     </div>
 
-    <!-- Tab 2: Global AI Costing Estimator -->
+    <!-- Tab 2: Global AI SMV Estimator -->
     <div id="estimator" class="tab-content">
-        <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI Costing Estimator</h3>
+        <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI SMV Estimator</h3>
         <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style/process to generate a comprehensive, multi-department global benchmark SMV breakdown (Cutting, Sewing, and Assembly) along with the standard Labor vs. Material ratio.</p>
         
         <div class="input-group" style="margin-bottom: 15px; flex-wrap: wrap;">
@@ -547,7 +547,7 @@
         <p style="color: #ccc;">Welcome to the DSI Footwear Operations portal. Use the tabs at the top to navigate the platform. Here is how to use each section:</p>
         
         <div class="help-guide-section">
-            <h4>▶️ 1. Video Viewer (Motion Analysis)</h4>
+            <h4>▶️ 1. Video Viewer</h4>
             <ul>
                 <li><strong>Search & Select:</strong> Type an operation name to load existing local data. Adjust sliders to simulate target variations.</li>
                 <li><strong>Motion Study:</strong> Use the right-side video player to slow down footage (0.25x to 0.75x) to analyze micro-movements accurately.</li>
@@ -555,7 +555,7 @@
         </div>
 
         <div class="help-guide-section">
-            <h4 style="color: #17a2b8;">🌐 2. AI Costing Estimator</h4>
+            <h4 style="color: #17a2b8;">🌐 2. AI SMV Estimator</h4>
             <ul>
                 <li><strong>Global Benchmark Breakdown:</strong> Select a material, upload a photo or video of a new style/process, and generate a comprehensive SMV breakdown for Cutting, Sewing, and Assembly.</li>
                 <li><strong>Cost Ratios & Print:</strong> View the estimated Labor vs. Material ratio and click <em>Print Costing Sheet</em> to export an executive summary.</li>
