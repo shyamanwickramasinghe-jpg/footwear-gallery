@@ -214,10 +214,10 @@
         #drawingCanvas { background: #0a0a0a; border: 1px solid #555; border-radius: 6px; cursor: crosshair; touch-action: none; display: block; width: 100%; max-width: 600px; height: 300px; margin-top: 5px; }
         .drawn-shape { height: 35px; vertical-align: middle; margin-left: 15px; background: #0a0a0a; border: 1px solid #444; border-radius: 4px; padding: 2px; }
 
-        /* --- PRINT PDF STYLES (LIGHTWEIGHT) --- */
+        /* --- PRINT PDF STYLES --- */
         @media print {
             body { background: #fff !important; color: #000 !important; }
-            .tabs, .dsi-header, .header-flex, .bulletin-creation-tools, .bulletin-list, .modal-overlay { display: none !important; }
+            .tabs, .dsi-header, .header-flex, .bulletin-creation-tools, .bulletin-list, .modal-overlay, #unifiedPlayerContainer { display: none !important; }
             .container { box-shadow: none; padding: 0; background: transparent !important; max-width: 100%; }
             #bulletinResultArea { display: block !important; margin-top: 0 !important; }
             .bulletin-table { border-collapse: collapse; }
@@ -226,6 +226,15 @@
             .bulletin-table tfoot td { background: #fff !important; color: #000 !important; border-top: 2px solid #000; }
             .bulletin-thumb, button { display: none !important; }
             .shared-header { display: block !important; background: #eee !important; color: #000 !important; border: 1px solid #ccc; }
+            
+            /* Print Estimator Only Mode */
+            body.print-estimate-only .container > *:not(#viewer) { display: none !important; }
+            body.print-estimate-only #viewer > *:not(#estResultArea) { display: none !important; }
+            body.print-estimate-only #estResultArea { border: none !important; padding: 0 !important; }
+            body.print-estimate-only #estResultArea > button { display: none !important; }
+            body.print-estimate-only #estPrintHeader { display: flex !important; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+            body.print-estimate-only #estAiOutput { font-size: 1.1em; color: #000 !important; }
+            body.print-estimate-only #estAiOutput strong { color: #000 !important; }
         }
     </style>
 </head>
@@ -264,10 +273,10 @@
         <button class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d;">Manage (Admin)</button>
     </div>
 
-    <!-- Tab 1: Video Viewer -->
+    <!-- Tab 1: Video Viewer & Global Estimator -->
     <div id="viewer" class="tab-content active">
-        <label>Search Operation:</label><br>
-        <input type="text" id="searchInput" onkeyup="filterOperations()" placeholder="Type to filter operations..." style="width: 100%;"><br>
+        <label>Search Local Master Database:</label><br>
+        <input type="text" id="searchInput" onkeyup="filterOperations()" placeholder="Type to filter existing operations..." style="width: 100%;"><br>
 
         <label>Select Operation:</label><br>
         <select id="videoSelect" onchange="playVideo()" style="width: 100%;">
@@ -326,6 +335,44 @@
                     <div id="ytPlayerSlomo"></div>
                 </div>
             </div>
+        </div>
+
+        <!-- NEW: GLOBAL AI ESTIMATOR FOR NEW SAMPLES -->
+        <hr style="border-color: #444; margin: 40px 0 20px 0;">
+        <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px;">🌐 Global AI Costing Estimator (New Sample)</h3>
+        <p style="color: #aaa; font-size: 0.9em;">Upload a photo or video of a new sample operation to generate a global benchmark SMV and Labor vs. Material ratio.</p>
+        
+        <div class="input-group" style="margin-bottom: 15px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 250px;">
+                <label style="font-weight: bold;">1. Primary Material:</label><br>
+                <select id="estMaterial" style="width: 100%; border-color: #17a2b8;">
+                    <option value="Leather">Leather (Slower handling, higher material cost)</option>
+                    <option value="Synthetic / PU">Synthetic / PU (Standard handling)</option>
+                    <option value="Canvas / Textile">Canvas / Textile (Faster handling, lower material cost)</option>
+                    <option value="Mesh / Knit">Mesh / Knit (Careful alignment needed)</option>
+                    <option value="Rubber / EVA">Rubber / EVA (Bottom components)</option>
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 250px;">
+                <label style="font-weight: bold;">2. Upload Media:</label><br>
+                <input type="file" id="estMediaInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="width: 100%; padding: 7px; background: #222; border: 1px solid #17a2b8; color: white; border-radius: 6px;">
+            </div>
+        </div>
+        <button class="btn-info" onclick="generateGlobalEstimate()" style="width: 100%; padding: 12px; font-size: 1.1em; background: #17a2b8;">🧠 Generate Global Benchmark Estimate</button>
+
+        <div id="estLoadingMsg" style="display:none; color: #17a2b8; font-weight: bold; margin-top: 15px; text-align: center; background: #222; padding: 10px; border-radius: 6px; border: 1px solid #17a2b8;">
+            🧠 Analyzing material and fetching global benchmarks... Please wait...
+        </div>
+
+        <div id="estResultArea" style="display:none; margin-top: 20px; background: #1a1a1a; border: 1px solid #444; padding: 20px; border-radius: 8px;">
+            <div id="estPrintableContent">
+                <div class="dsi-header" style="display:none; align-items: center; justify-content: flex-start; gap: 15px;" id="estPrintHeader">
+                    <img src="https://ik.imagekit.io/qegfiwkq6/4544545.jpg?updatedAt=1785824235651" alt="DSI Logo" style="height: 40px;">
+                    <h3 style="margin: 0; text-transform: uppercase; font-size: 1.2em;">Global Costing Estimate Report</h3>
+                </div>
+                <div id="estAiOutput" style="line-height: 1.6; color: #ddd;"></div>
+            </div>
+            <button class="btn-warning" onclick="printEstimate()" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 1.1em; color: black;">🖨️ Print Costing Sheet</button>
         </div>
     </div>
 
@@ -497,20 +544,20 @@
         <p style="color: #ccc;">Welcome to the DSI Footwear Operations portal. Use the tabs at the top to navigate the platform. Here is how to use each section:</p>
         
         <div class="help-guide-section">
-            <h4>▶️ 1. Video Viewer (Motion Analysis)</h4>
+            <h4>▶️ 1. Video Viewer & Global AI Estimator</h4>
             <ul>
-                <li><strong>Search & Select:</strong> Type an operation name to find it, then click to load the video and data.</li>
-                <li><strong>Simulate Targets:</strong> Move the <em>Performance</em> and <em>Allowance</em> sliders. The Revised SMV and Hourly Target boxes will recalculate instantly.</li>
+                <li><strong>Search & Select:</strong> Type an operation name to load existing local data. Adjust sliders to simulate target variations.</li>
                 <li><strong>Motion Study:</strong> Use the right-side video player to slow down the footage (0.25x to 0.75x) to analyze micro-movements accurately.</li>
+                <li><strong>🌐 Global AI Estimator:</strong> Scroll to the bottom of the viewer, select a material, and upload a new sample image/video. The AI will provide a printable global benchmark SMV breakdown and labor/material cost ratio.</li>
             </ul>
         </div>
 
         <div class="help-guide-section">
-            <h4>📋 2. Operation Bulletin (Sharing & AI)</h4>
+            <h4>📋 2. Operation Bulletin (Sharing & Matching)</h4>
             <ul>
-                <li><strong>📸 AI Visual Scan:</strong> Take a photo of a shoe sample from your phone and upload it here. The AI will automatically visually scan the photo and find the matching operations from our local database.</li>
-                <li><strong>🌐 Web & YouTube Match:</strong> Upload a photo of unknown machinery or a new operation process. The AI will analyze it and generate direct YouTube search links to find global tutorials and demonstrations.</li>
-                <li><strong>Export & Print:</strong> Check the boxes of the operations you need. You can then download a lightweight CSV file for software importing, print a clean PDF, or copy a direct link to share the list via WhatsApp.</li>
+                <li><strong>📸 AI Visual Scan:</strong> Take a photo of a shoe sample from your phone and upload it here to find matching operations from our local database.</li>
+                <li><strong>🌐 Web Match:</strong> Upload a photo of unknown machinery. The AI will generate direct YouTube search links to find global tutorials.</li>
+                <li><strong>Export & Print:</strong> Check the boxes of the operations you need. Download a CSV, print a PDF, or copy a WhatsApp link.</li>
             </ul>
         </div>
 
@@ -518,8 +565,8 @@
             <h4 style="color: #e30613;">⚙️ 3. Manage (Admin Database)</h4>
             <ul style="color: #ffcccc;">
                 <li><strong>⚠️ TEAM MEMBERS SHOULD NOT USE THIS TAB.</strong> This section is exclusively for Industrial Engineering Admins managing the master database.</li>
-                <li><strong>Add New Operation:</strong> Enter the name, video link, and raw seconds. Use the <em>Vector Builder</em> to click points to draw lines, and drag the blue dots to manually curve the shapes perfectly.</li>
-                <li><strong>Save Permanently:</strong> Click the yellow <em>Generate Code for GitHub</em> button and paste that code into your master file to save changes for the entire team.</li>
+                <li><strong>Add New Operation:</strong> Enter the data. Use the <em>Vector Builder</em> to click points to draw lines, and drag the blue dots to manually curve shapes.</li>
+                <li><strong>Save Permanently:</strong> Click <em>Generate Code for GitHub</em> and paste that code into your master file.</li>
             </ul>
         </div>
         
@@ -628,7 +675,6 @@
         }
         
         if (anchors.length > 0) {
-            // Draw smooth curved paths based on anchor and control points
             ctx.beginPath();
             ctx.strokeStyle = '#ffc107'; 
             ctx.lineWidth = 3;
@@ -641,7 +687,6 @@
             }
             ctx.stroke();
             
-            // Draw anchor points (white dots)
             ctx.fillStyle = '#fff';
             for(let i=0; i<anchors.length; i++) {
                 ctx.beginPath();
@@ -649,7 +694,6 @@
                 ctx.fill();
             }
 
-            // Draw curve bend handles (blue dots)
             ctx.fillStyle = '#007bff';
             for(let i=0; i<controls.length; i++) {
                 ctx.beginPath();
@@ -659,7 +703,6 @@
         }
     }
 
-    // Helper function to export purely the yellow line, hiding dots and grid
     function getCleanCanvasImage() {
         if (anchors.length === 0) return "";
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -676,7 +719,7 @@
         ctx.stroke();
         
         const dataUrl = canvas.toDataURL('image/png');
-        drawGrid(); // Redraw UI elements afterward
+        drawGrid(); 
         return dataUrl;
     }
 
@@ -702,7 +745,6 @@
     function handleGridDown(e) {
         const pos = getPointerPos(e);
         
-        // 1. Check if user is clicking a blue control handle to bend the curve
         for(let i=0; i<controls.length; i++) {
             let dx = pos.x - controls[i].x;
             let dy = pos.y - controls[i].y;
@@ -713,7 +755,6 @@
             }
         }
 
-        // 2. Otherwise, add a new anchor point
         let snappedX = Math.round(pos.x / gridSize) * gridSize;
         let snappedY = Math.round(pos.y / gridSize) * gridSize;
         
@@ -722,7 +763,6 @@
 
         anchors.push({x: snappedX, y: snappedY});
         
-        // Generate a new control handle exactly in the middle of the new line segment
         if(anchors.length > 1) {
             let prev = anchors[anchors.length - 2];
             controls.push({
@@ -739,7 +779,6 @@
             let snappedX = Math.round(pos.x / gridSize) * gridSize;
             let snappedY = Math.round(pos.y / gridSize) * gridSize;
             
-            // Allow dragging the handle to bend the line dynamically
             controls[draggingControlIndex] = {
                 x: Math.max(0, Math.min(canvas.width, snappedX)), 
                 y: Math.max(0, Math.min(canvas.height, snappedY))
@@ -785,45 +824,153 @@
         return null; 
     }
 
-    // --- STANDARD AI VISUAL SCANNING (Local Match) ---
-    async function handleAIScan(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+    // --- PRINT GLOBAL ESTIMATE ---
+    function printEstimate() {
+        document.body.classList.add('print-estimate-only');
+        window.print();
+        setTimeout(() => document.body.classList.remove('print-estimate-only'), 500);
+    }
+
+    // --- NEW: GLOBAL AI ESTIMATOR LOGIC ---
+    async function generateGlobalEstimate() {
+        const fileInput = document.getElementById("estMediaInput");
+        const file = fileInput.files[0];
+        if (!file) return alert("⚠️ Please upload a photo or video of the operation first.");
         
         const apiKey = getActiveApiKey();
         if (!apiKey) return alert("⚠️ No API Key found.");
 
+        const material = document.getElementById("estMaterial").value;
+        const loadingMsg = document.getElementById("estLoadingMsg");
+        
+        loadingMsg.style.display = "block";
+        document.getElementById("estResultArea").style.display = "none";
+
+        if (file.type.startsWith('video/')) {
+            const video = document.createElement('video');
+            video.preload = 'metadata';
+            video.muted = true;
+            video.playsInline = true;
+            const fileURL = URL.createObjectURL(file);
+            video.src = fileURL;
+
+            video.onloadeddata = async () => {
+                const canvasExtract = document.createElement('canvas');
+                const ctxExtract = canvasExtract.getContext('2d');
+                const scale = Math.min(1, 640 / (video.videoWidth || 640));
+                canvasExtract.width = (video.videoWidth || 640) * scale;
+                canvasExtract.height = (video.videoHeight || 480) * scale;
+                const duration = video.duration || 5;
+                const timestamps = [duration * 0.2, duration * 0.5, duration * 0.8];
+                const imageParts = [];
+
+                for (const time of timestamps) {
+                    await new Promise((resolve) => {
+                        video.currentTime = time;
+                        video.onseeked = () => {
+                            ctxExtract.drawImage(video, 0, 0, canvasExtract.width, canvasExtract.height);
+                            const base64Data = canvasExtract.toDataURL('image/jpeg', 0.85).split(',')[1];
+                            imageParts.push({ inline_data: { mime_type: 'image/jpeg', data: base64Data } });
+                            resolve();
+                        };
+                    });
+                }
+                URL.revokeObjectURL(fileURL);
+                runGlobalAIAnalysis(imageParts, material, apiKey);
+            };
+            video.onerror = () => {
+                alert("⚠️ Unable to process video format.");
+                loadingMsg.style.display = "none";
+                fileInput.value = "";
+            };
+        } else {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result.split(',')[1];
+                runGlobalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], material, apiKey);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    async function runGlobalAIAnalysis(mediaParts, material, apiKey) {
+        const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing process or sample. The primary material is: ${material}.
+        Provide a global benchmark estimate. 
+        Output ONLY raw HTML (no markdown code blocks, do not wrap in \`\`\`html) with the following structure:
+        <h4 style="color:#007bff; border-bottom:1px solid #444; padding-bottom:5px;">Operation / Sample Overview</h4>
+        <p>[Write 2 sentences describing the operation and complexity]</p>
+        <h4 style="color:#007bff; border-bottom:1px solid #444; padding-bottom:5px;">Estimated SMV Breakdown (Global Benchmark)</h4>
+        <ul>
+        <li><strong>Handling & Positioning:</strong> [Estimate] min</li>
+        <li><strong>Alignment & Prep:</strong> [Estimate] min</li>
+        <li><strong>Processing / Stitching:</strong> [Estimate] min</li>
+        <li style="margin-top:10px; font-size:1.1em; color:#17a2b8;"><strong>Total Estimated Benchmark SMV: [Total] min</strong></li>
+        </ul>
+        <h4 style="color:#007bff; border-bottom:1px solid #444; padding-bottom:5px;">Standard Labor vs. Material Cost Ratio</h4>
+        <p>[Write 1 sentence estimating the Labor % vs Material % for this specific material and operation]</p>`;
+
+        try {
+            const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await response.json();
+            if (!response.ok) return alert(`⚠️ API Error: ${data.error.message}`);
+
+            if (data.candidates && data.candidates[0]) {
+                let aiText = data.candidates[0].content.parts[0].text;
+                // Strip markdown formatting if AI includes it by mistake
+                aiText = aiText.replace(/```html/g, "").replace(/```/g, "").trim();
+                
+                document.getElementById("estAiOutput").innerHTML = aiText;
+                document.getElementById("estResultArea").style.display = "block";
+            }
+        } catch (error) {
+            alert("⚠️ Network Error.");
+        } finally {
+            document.getElementById("estLoadingMsg").style.display = "none";
+            document.getElementById("estMediaInput").value = ""; 
+        }
+    }
+
+    // --- STANDARD AI VISUAL SCANNING (Local Match) ---
+    async function handleAIScan(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const apiKey = getActiveApiKey();
+        if (!apiKey) return alert("⚠️ No API Key found.");
         const loadingMsg = document.getElementById("aiLoadingMsg");
         loadingMsg.innerText = "🤖 AI is scanning your media for local matches... Please wait...";
         loadingMsg.style.display = "block";
         document.getElementById("aiResultContainer").style.display = "none";
 
         if (file.type.startsWith('video/')) {
-            processVideoFile(file, apiKey, false);
+            processLocalVideoFile(file, apiKey, false);
         } else {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const base64String = e.target.result.split(',')[1];
-                runAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
+                runLocalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
             };
             reader.readAsDataURL(file);
         }
     }
 
-    // --- NEW FEATURE: WEB/YOUTUBE SEARCH SCANNING ---
+    // --- WEB/YOUTUBE SEARCH SCANNING ---
     async function handleWebScan(event) {
         const file = event.target.files[0];
         if (!file) return;
-        
         const apiKey = getActiveApiKey();
         if (!apiKey) return alert("⚠️ No API Key found.");
-
         const loadingMsg = document.getElementById("aiLoadingMsg");
         loadingMsg.innerText = "🌐 Analyzing media and searching the global web... Please wait...";
         loadingMsg.style.display = "block";
 
         if (file.type.startsWith('video/')) {
-            processVideoFile(file, apiKey, true); // true = Web mode
+            processLocalVideoFile(file, apiKey, true);
         } else {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -834,8 +981,7 @@
         }
     }
 
-    // Frame Extraction Router
-    function processVideoFile(file, apiKey, isWebMode) {
+    function processLocalVideoFile(file, apiKey, isWebMode) {
         const video = document.createElement('video');
         video.preload = 'metadata';
         video.muted = true;
@@ -846,11 +992,9 @@
         video.onloadeddata = async () => {
             const canvasExtract = document.createElement('canvas');
             const ctxExtract = canvasExtract.getContext('2d');
-            
             const scale = Math.min(1, 640 / (video.videoWidth || 640));
             canvasExtract.width = (video.videoWidth || 640) * scale;
             canvasExtract.height = (video.videoHeight || 480) * scale;
-
             const duration = video.duration || 5;
             const timestamps = [duration * 0.2, duration * 0.5, duration * 0.8];
             const imageParts = [];
@@ -861,19 +1005,16 @@
                     video.onseeked = () => {
                         ctxExtract.drawImage(video, 0, 0, canvasExtract.width, canvasExtract.height);
                         const base64Data = canvasExtract.toDataURL('image/jpeg', 0.85).split(',')[1];
-                        imageParts.push({
-                            inline_data: { mime_type: 'image/jpeg', data: base64Data }
-                        });
+                        imageParts.push({ inline_data: { mime_type: 'image/jpeg', data: base64Data } });
                         resolve();
                     };
                 });
             }
-
             URL.revokeObjectURL(fileURL);
             if (isWebMode) {
                 runWebAnalysis(imageParts, apiKey);
             } else {
-                runAIAnalysis(imageParts, apiKey);
+                runLocalAIAnalysis(imageParts, apiKey);
             }
         };
 
@@ -885,34 +1026,19 @@
         };
     }
 
-    // Main AI Engine Call (Local Filter)
-    async function runAIAnalysis(mediaParts, apiKey) {
+    async function runLocalAIAnalysis(mediaParts, apiKey) {
         const operationCues = [
-            "0: Toe Cap Attaching (Stitching or attaching toe cap piece onto shoe upper)",
-            "1: Insole Mounting (Applying glue or cement to insole boards/midsoles using a motorized roller machine, holding and feeding insoles through rollers, stacking insole boards)",
-            "2: Toe Back Jointing - Square Shape - SN (Single needle stitching rear or toe joint seam on upper)",
-            "3: Overlap Trimming - Dual Density Sole (Trimming excess rubber or sole material around the edge of the shoe)",
-            "4: Toe Cap Attaching - Court shoe - Large (Attaching large toe cap on court shoe upper)",
-            "5: Edge Folding - Machine - Complete Sandle (Folding and creasing leather/synthetic upper edges using a motorized folding machine with a presser guide)",
-            "6: Upper Insole Attaching - Stroble (Strobel stitching shoe upper to flexible insole fabric board around the perimeter)",
-            "7: Punching & Eyeleting - Auto (Automatic machine punching holes and pressing metal eyelets into shoe uppers)",
-            "8: Eyelet Piece Attaching - Mesh + PVC - Large decorative - SNPB (Post-bed machine stitching decorative eyelet panel onto mesh/PVC upper)",
-            "9: Ornament Attaching - Heart Shape - SNPB (Stitching an ornament/emblem onto the upper using a post-bed sewing machine)",
-            "10: Toe Back Jointing - Safety shoe - Pattern Sew (Pattern sewing machine automatically stitching safety shoe toe or back joint)",
-            "11: Eyelet Piece Attaching - Decorative - SNPB (Post-bed stitching of decorative eyelet pieces)",
-            "12: Tounge Turning and set - Machine (Using a machine to turn and press the shoe tongue into shape)"
+            "0: Toe Cap Attaching", "1: Insole Mounting", "2: Toe Back Jointing - Square Shape - SN",
+            "3: Overlap Trimming - Dual Density Sole", "4: Toe Cap Attaching - Court shoe - Large",
+            "5: Edge Folding - Machine - Complete Sandle", "6: Upper Insole Attaching - Stroble",
+            "7: Punching & Eyeleting - Auto", "8: Eyelet Piece Attaching - Mesh + PVC - Large decorative - SNPB",
+            "9: Ornament Attaching - Heart Shape - SNPB", "10: Toe Back Jointing - Safety shoe - Pattern Sew",
+            "11: Eyelet Piece Attaching - Decorative - SNPB", "12: Tounge Turning and set - Machine"
         ];
-
-        const listText = operations.map((op, i) => {
-            return operationCues[i] ? operationCues[i] : `${i}: ${op.name}`;
-        }).join("\n");
-
-        const promptText = `You are a professional footwear industrial engineer analyzing visual frames from a factory video or photo.
-        Analyze this footwear manufacturing media. You MUST pick the closest matching operations from this exact list, focusing on the machine type and physical actions being performed:
-        
+        const listText = operations.map((op, i) => operationCues[i] ? operationCues[i] : `${i}: ${op.name}`).join("\n");
+        const promptText = `You are a footwear engineer analyzing factory frames. Pick the closest matching operations from this list focusing on machine type and actions:
         ${listText}
-        
-        Reply ONLY with the numbers of the operations (e.g. 1, 5). Do not type any words.`;
+        Reply ONLY with the numbers of the operations (e.g. 1, 5).`;
 
         try {
             const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
@@ -947,7 +1073,6 @@
         }
     }
 
-    // NEW Main AI Engine Call (Web Search Matches)
     async function runWebAnalysis(mediaParts, apiKey) {
         const promptText = `Identify the footwear manufacturing machine, process, or operation shown in this image/video frame. Provide a brief 1-2 sentence description. Then, provide exactly 3 highly specific search terms that a user could type into YouTube to find similar tutorial videos or machine demonstrations worldwide. Format your reply with the description first, followed by a bulleted list of the 3 search terms. Do not use markdown bolding.`;
 
