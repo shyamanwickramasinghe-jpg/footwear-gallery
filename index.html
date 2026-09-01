@@ -518,6 +518,7 @@
                 🤖 AI is scanning your media... Please wait...
             </div>
 
+            <!-- Fix: Inline display removed so it properly hides on load -->
             <div id="aiResultContainer" style="display:none; color: #fff; background: #198754; font-weight: bold; margin-bottom: 15px; padding: 10px; border-radius: 6px; border: 1px solid #218838; justify-content: space-between; align-items: center;">
                 <span id="aiResultText">✅ AI Scan Complete! Check the list below.</span>
                 <button onclick="clearAIFilter()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Clear Filter</button>
@@ -1052,11 +1053,13 @@
         
         Based on the style and complexity of the footwear shown, provide a highly detailed, comprehensive global benchmark SMV breakdown for the ENTIRE footwear manufacturing process (Cutting, Sewing, Assembly).
         
+        Crucially, carefully analyze the visual appearance of the *user's specific uploaded footwear* (its primary color, secondary accent colors, unique stitching patterns, unique shape details, texture, etc.).
+        
         Additionally, estimate the global market retail price for this type of shoe in USD and its equivalent in LKR (assuming 1 USD = 328 LKR).
         
-        You will also generate 5 similar market competitor items. 
-
-        Output ONLY raw HTML (no markdown code blocks) with the following exact structure. Ensure perfect tabular alignment and use unique data for all parts. I HAVE HARDCODED THE IMAGE SRC URLS, DO NOT CHANGE THEM.
+        You will generate 5 similar market competitor items. DO NOT write image URLs. ONLY write a 5-word visual description of the shoe inside the 'data-desc' attribute as instructed below.
+        
+        Output ONLY raw HTML (no markdown code blocks) with the following exact structure. Ensure perfect tabular alignment and use unique data for all parts.
 
         <div style="background: #111; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
             <h4 style="color:#007bff; margin-top:0;">Footwear Style & Operation Overview</h4>
@@ -1102,34 +1105,39 @@
 
         <h3 style="color:#17a2b8; margin-top: 30px; border-bottom: 1px solid #444; padding-bottom: 10px;">💰 Global Market Benchmarks & Competitors</h3>
         <p style="color: #ddd;">Estimated Global Retail Price Range: <strong style="color: #28a745;">$[Min USD] - $[Max USD]</strong> (Approx. <strong style="color: #ffc107;">LKR [Min LKR] - LKR [Max LKR]</strong>)</p>
-        <p style="font-size: 0.9em; color: #aaa; margin-top: 5px;">*Images below are static placeholders representing standard global footwear categories.</p>
+        <p style="font-size: 0.9em; color: #aaa; margin-top: 5px;">*Images below are AI mockups of visually similar styles generated from visual analysis.</p>
         <div class="competitor-grid">
+            <!-- Competitor Card 1 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=300&fit=crop" alt="Competitor 1"></div>
+                <div class="img-container"><img src="" class="dynamic-comp-img" data-desc="[WRITE_SHORT_VISUAL_DESCRIPTION_HERE]" alt="Competitor 1"></div>
                 <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 1]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
+            <!-- Competitor Card 2 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=400&h=300&fit=crop" alt="Competitor 2"></div>
+                <div class="img-container"><img src="" class="dynamic-comp-img" data-desc="[WRITE_SHORT_VISUAL_DESCRIPTION_HERE]" alt="Competitor 2"></div>
                 <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 2]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
+            <!-- Competitor Card 3 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=300&fit=crop" alt="Competitor 3"></div>
+                <div class="img-container"><img src="" class="dynamic-comp-img" data-desc="[WRITE_SHORT_VISUAL_DESCRIPTION_HERE]" alt="Competitor 3"></div>
                 <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 3]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
+            <!-- Competitor Card 4 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&h=300&fit=crop" alt="Competitor 4"></div>
+                <div class="img-container"><img src="" class="dynamic-comp-img" data-desc="[WRITE_SHORT_VISUAL_DESCRIPTION_HERE]" alt="Competitor 4"></div>
                 <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 4]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
+            <!-- Competitor Card 5 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=400&h=300&fit=crop" alt="Competitor 5"></div>
+                <div class="img-container"><img src="" class="dynamic-comp-img" data-desc="[WRITE_SHORT_VISUAL_DESCRIPTION_HERE]" alt="Competitor 5"></div>
                 <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 5]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
@@ -1153,6 +1161,21 @@
                 aiText = aiText.replace(/```html/g, "").replace(/```/g, "").trim();
                 
                 document.getElementById("estAiOutput").innerHTML = aiText;
+
+                // --- BULLETPROOF JAVASCRIPT IMAGE FIX ---
+                // We extract the plain text description the AI wrote inside 'data-desc',
+                // perfectly URL-encode it using JS, and set the image src automatically.
+                const compImages = document.querySelectorAll('#estAiOutput .dynamic-comp-img');
+                compImages.forEach((img, index) => {
+                    let rawDesc = img.getAttribute('data-desc') || "generic shoe";
+                    
+                    // encodeURIComponent makes it 100% web safe (turns spaces to %20)
+                    const safeUrlDesc = encodeURIComponent(rawDesc.trim());
+                    
+                    // Build the final URL securely
+                    img.src = `https://image.pollinations.ai/prompt/professional_product_photography_of_shoe_${safeUrlDesc}?width=400&height=300&nologo=true&seed=${index + 1}`;
+                });
+
                 document.getElementById("estResultArea").style.display = "block";
             }
         } catch (error) {
