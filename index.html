@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
     <title>DSI FOOTTECH: AI Labor Estimator & Social Media Trending Operations</title>
+    <!-- Load YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         body {
@@ -255,6 +256,48 @@
             color: #fff;
         }
 
+        /* --- NEW: Competitor Market Grid Styles --- */
+        .competitor-grid {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .competitor-card {
+            background: #111;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 10px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+        .competitor-card .img-container {
+            overflow: hidden;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #333;
+        }
+        .competitor-card img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .competitor-card:hover img {
+            transform: scale(1.35);
+        }
+        .competitor-price {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .competitor-lkr {
+            color: #ffc107;
+            font-size: 0.85em;
+            margin-top: 3px;
+        }
+
         /* --- PRINT PDF STYLES --- */
         @media print {
             body { background: #fff !important; color: #000 !important; }
@@ -277,17 +320,21 @@
             body.print-estimate-only #estAiOutput { font-size: 1.1em; color: #000 !important; }
             body.print-estimate-only #estAiOutput strong, body.print-estimate-only #estAiOutput h3, body.print-estimate-only #estAiOutput h4 { color: #000 !important; }
             body.print-estimate-only #estAiOutput div { background: transparent !important; border-color: #000 !important; }
+            body.print-estimate-only .competitor-grid { display: flex !important; flex-wrap: wrap !important; }
+            body.print-estimate-only .competitor-card { break-inside: avoid; border: 1px solid #ccc !important; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <!-- Corporate Header -->
     <div class="dsi-header">
         <img src="https://ik.imagekit.io/qegfiwkq6/4544545.jpg?updatedAt=1785824235651" alt="DSI Logo" class="dsi-image-logo">
         <h3>D. Samson Industries (Pvt) Ltd</h3>
     </div>
 
+    <!-- App Subtitle & Help Button -->
     <div class="header-flex">
         <div class="header-left">
             <svg class="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
@@ -306,6 +353,7 @@
         <button class="help-btn" onclick="openHelpModal()">📖 How to Use</button>
     </div>
 
+    <!-- Navigation Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab('viewer', event)">Video Viewer</button>
         <button class="tab-btn" onclick="openTab('estimator', event)">AI SMV Estimator</button>
@@ -313,6 +361,7 @@
         <button class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d;">Manage (Admin)</button>
     </div>
 
+    <!-- Tab 1: Video Viewer -->
     <div id="viewer" class="tab-content active">
         <label>Search Local Master Database:</label><br>
         <input type="search" id="searchInput" name="app_search_query_no_autofill" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other" onkeyup="filterOperations()" placeholder="Type to filter existing operations..." style="width: 100%;"><br>
@@ -377,14 +426,17 @@
         </div>
     </div>
 
+    <!-- Tab 2: Global AI SMV Estimator -->
     <div id="estimator" class="tab-content">
         <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI SMV Estimator</h3>
         <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style/process to generate a comprehensive, multi-department global benchmark SMV breakdown (Cutting, Sewing, and Assembly) along with the standard Labor vs. Material ratio.</p>
         
+        <!-- FIXED BANNER IMAGE: 50% width, cover to avoid compression, left-aligned -->
         <img src="https://ik.imagekit.io/qegfiwkq6/Bgrd%20image.jpg" alt="AI Footwear Robotics" style="width: 50%; height: 125px; object-fit: cover; border-radius: 8px; margin-bottom: 25px; border: 2px solid #17a2b8; display: block;">
         
         <div class="input-group" style="margin-bottom: 20px; flex-wrap: wrap;">
             
+            <!-- Custom Downward-Only Upper Material Dropdown -->
             <div style="flex: 1; min-width: 200px;">
                 <label style="font-weight: bold;">1. Upper Material:</label>
                 <input type="hidden" id="estMaterial" value="Leather">
@@ -400,6 +452,7 @@
                 </div>
             </div>
 
+            <!-- Custom Downward-Only Sole Type Dropdown -->
             <div style="flex: 1; min-width: 200px;">
                 <label style="font-weight: bold;">2. Sole Type:</label>
                 <input type="hidden" id="estSoleType" value="EVA Injection">
@@ -444,6 +497,7 @@
         </div>
     </div>
 
+    <!-- Tab 3: Operation Bulletin -->
     <div id="bulletin" class="tab-content">
         <div class="shared-header">👟 IE Operations Guide</div>
         
@@ -481,7 +535,8 @@
                         </tr>
                     </thead>
                     <tbody id="bulletinSelectionListBody">
-                        </tbody>
+                        <!-- Dynamically filled with javascript -->
+                    </tbody>
                 </table>
             </div>
             
@@ -502,9 +557,11 @@
                     </tr>
                 </thead>
                 <tbody id="bulletinTableBody">
-                    </tbody>
+                    <!-- Populated by JS -->
+                </tbody>
                 <tfoot id="bulletinTableFooter">
-                    </tfoot>
+                    <!-- Populated by JS -->
+                </tfoot>
             </table>
 
             <div class="bulletin-creation-tools" style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
@@ -516,6 +573,7 @@
         </div>
     </div>
 
+    <!-- Tab 4: Manage Operations (ADMIN ONLY) -->
     <div id="manage" class="tab-content">
         
         <div class="admin-banner">
@@ -523,6 +581,7 @@
             <p><strong>TEAM MEMBERS SHOULD NOT USE THIS TAB.</strong> This section is exclusively for managing the master database. Changes made here will not be saved permanently until you click "Generate Code for GitHub" and update the master index.html file.</p>
         </div>
         
+        <!-- AI API KEY SECTION -->
         <h3 style="color: #ffc107;">🤖 AI Visual Costing Setup</h3>
         <label>Google Gemini API Key:</label><br>
         <div style="display: flex; gap: 10px; align-items: flex-start;">
@@ -540,6 +599,7 @@
         <label style="color: #007bff; font-weight:bold;">Video Link (ImageKit or YouTube):</label><br>
         <input type="text" id="newFileName" placeholder="e.g. https://ik.imagekit.io/... or https://youtube.com/..." style="width: 100%; border: 1px solid #007bff;"><br>
 
+        <!-- ENLARGED SNAP-TO-GRID CANVAS SECTION -->
         <div class="canvas-container">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Vector Template Shape:</label>
@@ -573,6 +633,7 @@
 
 </div>
 
+<!-- Global Modal for Video Preview -->
 <div class="modal-overlay" id="previewModal">
     <div class="modal-content">
         <h3 id="modalTitle" style="margin-top: 0; color: #fff;">Preview</h3>
@@ -584,15 +645,18 @@
     </div>
 </div>
 
+<!-- Modal for Web Search Results -->
 <div class="modal-overlay" id="webResultModal">
     <div class="modal-content" style="border-color: #17a2b8;">
         <h3 style="margin-top: 0; color: #17a2b8;">🌐 Global Similarity Search Results</h3>
         <div id="webResultBody" style="color: #fff; line-height: 1.6; padding: 15px; background: #222; border-radius: 6px;">
-            </div>
+            <!-- Populated by JS -->
+        </div>
         <button class="modal-close" onclick="closeWebResultModal()" style="background: #333; border: 1px solid #17a2b8; color: #17a2b8;">Close</button>
     </div>
 </div>
 
+<!-- IN-APP HELP GUIDE MODAL -->
 <div class="modal-overlay" id="helpModal">
     <div class="modal-content" style="border-color: #ffc107;">
         <h2 style="margin-top: 0; color: #ffc107; display: flex; align-items: center; gap: 10px;">
@@ -990,6 +1054,8 @@
         const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style, sample, or process. The primary upper material is: ${material} and the sole type is: ${soleType}.
         Based on the style and complexity of the footwear shown, provide a highly detailed, comprehensive global benchmark SMV breakdown for the ENTIRE footwear manufacturing process.
         
+        Additionally, estimate the global market retail price for this type of shoe in USD and its equivalent in LKR (assuming 1 USD = 328 LKR). Also, provide 5 similar market competitor items with their estimated prices.
+
         Output ONLY raw HTML (no markdown code blocks, do not wrap in \`\`\`html) with the following exact structure to ensure perfect tabular alignment:
         
         <div style="background: #111; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
@@ -1035,6 +1101,41 @@
         <div style="background: #222; border-left: 4px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 4px;">
             <h4 style="color:#ffc107; margin-top:0;">Standard Labor vs. Material Cost Ratio</h4>
             <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the Labor % vs Material % for this specific material and style]</p>
+        </div>
+
+        <h3 style="color:#17a2b8; margin-top: 30px; border-bottom: 1px solid #444; padding-bottom: 10px;">💰 Global Market Benchmarks & Competitors</h3>
+        <p style="color: #ddd;">Estimated Global Retail Price Range: <strong style="color: #28a745;">$[Min USD] - $[Max USD]</strong> (Approx. <strong style="color: #ffc107;">LKR [Min LKR] - LKR [Max LKR]</strong>)</p>
+        <div class="competitor-grid">
+            <div class="competitor-card">
+                <div class="img-container"><img src="https://loremflickr.com/400/300/sneaker?lock=1" alt="Competitor 1"></div>
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 1]</div>
+                <div class="competitor-price">$[USD Price]</div>
+                <div class="competitor-lkr">LKR [LKR Price]</div>
+            </div>
+            <div class="competitor-card">
+                <div class="img-container"><img src="https://loremflickr.com/400/300/sneaker?lock=2" alt="Competitor 2"></div>
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 2]</div>
+                <div class="competitor-price">$[USD Price]</div>
+                <div class="competitor-lkr">LKR [LKR Price]</div>
+            </div>
+            <div class="competitor-card">
+                <div class="img-container"><img src="https://loremflickr.com/400/300/sneaker?lock=3" alt="Competitor 3"></div>
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 3]</div>
+                <div class="competitor-price">$[USD Price]</div>
+                <div class="competitor-lkr">LKR [LKR Price]</div>
+            </div>
+            <div class="competitor-card">
+                <div class="img-container"><img src="https://loremflickr.com/400/300/sneaker?lock=4" alt="Competitor 4"></div>
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 4]</div>
+                <div class="competitor-price">$[USD Price]</div>
+                <div class="competitor-lkr">LKR [LKR Price]</div>
+            </div>
+            <div class="competitor-card">
+                <div class="img-container"><img src="https://loremflickr.com/400/300/sneaker?lock=5" alt="Competitor 5"></div>
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 5]</div>
+                <div class="competitor-price">$[USD Price]</div>
+                <div class="competitor-lkr">LKR [LKR Price]</div>
+            </div>
         </div>`;
 
         try {
