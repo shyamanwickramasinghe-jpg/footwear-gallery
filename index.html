@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
-    <title>DSI Footwear Operations</title>
-    <!-- Load YouTube IFrame API -->
+    <title>DSI FOOTTECH: AI Labor & Trending Operations</title>
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         body {
@@ -242,13 +241,11 @@
 <body>
 
 <div class="container">
-    <!-- Corporate Header -->
     <div class="dsi-header">
         <img src="https://ik.imagekit.io/qegfiwkq6/4544545.jpg?updatedAt=1785824235651" alt="DSI Logo" class="dsi-image-logo">
         <h3>D. Samson Industries (Pvt) Ltd</h3>
     </div>
 
-    <!-- App Subtitle & Help Button -->
     <div class="header-flex">
         <div class="header-left">
             <svg class="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
@@ -262,12 +259,11 @@
                 </text>
                 <path d="M 160 380 Q 250 410 340 380" stroke="#e30613" stroke-width="12" stroke-linecap="round" fill="none" />
             </svg>
-            <h2>Social Media Trending Footwear Operations</h2>
+            <h2 style="color: #17a2b8;">AI Labor Estimator & Trending Operations</h2>
         </div>
         <button class="help-btn" onclick="openHelpModal()">📖 How to Use</button>
     </div>
 
-    <!-- Navigation Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab('viewer', event)">Video Viewer</button>
         <button class="tab-btn" onclick="openTab('estimator', event)">AI SMV Estimator</button>
@@ -275,7 +271,6 @@
         <button class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d;">Manage (Admin)</button>
     </div>
 
-    <!-- Tab 1: Video Viewer -->
     <div id="viewer" class="tab-content active">
         <label>Search Local Master Database:</label><br>
         <input type="text" id="searchInput" onkeyup="filterOperations()" placeholder="Type to filter existing operations..." style="width: 100%;"><br>
@@ -340,7 +335,6 @@
         </div>
     </div>
 
-    <!-- Tab 2: Global AI SMV Estimator -->
     <div id="estimator" class="tab-content">
         <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI SMV Estimator</h3>
         <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style/process to generate a comprehensive, multi-department global benchmark SMV breakdown (Cutting, Sewing, and Assembly) along with the standard Labor vs. Material ratio.</p>
@@ -379,7 +373,6 @@
         </div>
     </div>
 
-    <!-- Tab 3: Operation Bulletin -->
     <div id="bulletin" class="tab-content">
         <div class="shared-header">👟 IE Operations Guide</div>
         
@@ -417,8 +410,7 @@
                         </tr>
                     </thead>
                     <tbody id="bulletinSelectionListBody">
-                        <!-- Dynamically filled with javascript -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
             
@@ -439,11 +431,9 @@
                     </tr>
                 </thead>
                 <tbody id="bulletinTableBody">
-                    <!-- Populated by JS -->
-                </tbody>
+                    </tbody>
                 <tfoot id="bulletinTableFooter">
-                    <!-- Populated by JS -->
-                </tfoot>
+                    </tfoot>
             </table>
 
             <div class="bulletin-creation-tools" style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
@@ -455,7 +445,6 @@
         </div>
     </div>
 
-    <!-- Tab 4: Manage Operations (ADMIN ONLY) -->
     <div id="manage" class="tab-content">
         
         <div class="admin-banner">
@@ -463,7 +452,6 @@
             <p><strong>TEAM MEMBERS SHOULD NOT USE THIS TAB.</strong> This section is exclusively for managing the master database. Changes made here will not be saved permanently until you click "Generate Code for GitHub" and update the master index.html file.</p>
         </div>
         
-        <!-- AI API KEY SECTION -->
         <h3 style="color: #ffc107;">🤖 AI Visual Costing Setup</h3>
         <label>Google Gemini API Key:</label><br>
         <div style="display: flex; gap: 10px; align-items: flex-start;">
@@ -481,7 +469,6 @@
         <label style="color: #007bff; font-weight:bold;">Video Link (ImageKit or YouTube):</label><br>
         <input type="text" id="newFileName" placeholder="e.g. https://ik.imagekit.io/... or https://youtube.com/..." style="width: 100%; border: 1px solid #007bff;"><br>
 
-        <!-- ENLARGED SNAP-TO-GRID CANVAS SECTION -->
         <div class="canvas-container">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Vector Template Shape:</label>
@@ -515,7 +502,6 @@
 
 </div>
 
-<!-- Global Modal for Video Preview -->
 <div class="modal-overlay" id="previewModal">
     <div class="modal-content">
         <h3 id="modalTitle" style="margin-top: 0; color: #fff;">Preview</h3>
@@ -527,18 +513,15 @@
     </div>
 </div>
 
-<!-- Modal for Web Search Results -->
 <div class="modal-overlay" id="webResultModal">
     <div class="modal-content" style="border-color: #17a2b8;">
         <h3 style="margin-top: 0; color: #17a2b8;">🌐 Global Similarity Search Results</h3>
         <div id="webResultBody" style="color: #fff; line-height: 1.6; padding: 15px; background: #222; border-radius: 6px;">
-            <!-- Populated by JS -->
-        </div>
+            </div>
         <button class="modal-close" onclick="closeWebResultModal()" style="background: #333; border: 1px solid #17a2b8; color: #17a2b8;">Close</button>
     </div>
 </div>
 
-<!-- IN-APP HELP GUIDE MODAL -->
 <div class="modal-overlay" id="helpModal">
     <div class="modal-content" style="border-color: #ffc107;">
         <h2 style="margin-top: 0; color: #ffc107; display: flex; align-items: center; gap: 10px;">
@@ -547,7 +530,7 @@
         <p style="color: #ccc;">Welcome to the DSI Footwear Operations portal. Use the tabs at the top to navigate the platform. Here is how to use each section:</p>
         
         <div class="help-guide-section">
-            <h4>▶️ 1. Video Viewer</h4>
+            <h4>▶️ 1. Video Viewer (Motion Analysis)</h4>
             <ul>
                 <li><strong>Search & Select:</strong> Type an operation name to load existing local data. Adjust sliders to simulate target variations.</li>
                 <li><strong>Motion Study:</strong> Use the right-side video player to slow down footage (0.25x to 0.75x) to analyze micro-movements accurately.</li>
