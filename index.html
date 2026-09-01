@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
     <title>DSI FOOTTECH: AI Labor Estimator & Social Media Trending Operations</title>
+    <!-- Load YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         body {
@@ -272,19 +273,28 @@
             text-align: center;
         }
         .competitor-card .img-container {
-            overflow: hidden;
+            /* Removed overflow: hidden so the image can pop out cleanly */
             border-radius: 6px;
             margin-bottom: 10px;
             border: 1px solid #333;
+            position: relative;
         }
         .competitor-card img {
             width: 100%;
             height: 110px;
             object-fit: cover;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+            position: relative;
+            z-index: 1;
+            transform-origin: center;
+            border-radius: 6px;
+            background: #000;
         }
         .competitor-card:hover img {
-            transform: scale(1.35);
+            transform: scale(2.5);
+            z-index: 9999;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.9);
+            border: 2px solid #007bff;
         }
         .competitor-price {
             color: #28a745;
@@ -327,11 +337,13 @@
 <body>
 
 <div class="container">
+    <!-- Corporate Header -->
     <div class="dsi-header">
         <img src="https://ik.imagekit.io/qegfiwkq6/4544545.jpg?updatedAt=1785824235651" alt="DSI Logo" class="dsi-image-logo">
         <h3>D. Samson Industries (Pvt) Ltd</h3>
     </div>
 
+    <!-- App Subtitle & Help Button -->
     <div class="header-flex">
         <div class="header-left">
             <svg class="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
@@ -350,6 +362,7 @@
         <button class="help-btn" onclick="openHelpModal()">📖 How to Use</button>
     </div>
 
+    <!-- Navigation Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab('viewer', event)">Video Viewer</button>
         <button class="tab-btn" onclick="openTab('estimator', event)">AI SMV Estimator</button>
@@ -357,6 +370,7 @@
         <button class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d;">Manage (Admin)</button>
     </div>
 
+    <!-- Tab 1: Video Viewer -->
     <div id="viewer" class="tab-content active">
         <label>Search Local Master Database:</label><br>
         <input type="search" id="searchInput" name="app_search_query_no_autofill" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other" onkeyup="filterOperations()" placeholder="Type to filter existing operations..." style="width: 100%;"><br>
@@ -421,6 +435,7 @@
         </div>
     </div>
 
+    <!-- Tab 2: Global AI SMV Estimator -->
     <div id="estimator" class="tab-content">
         <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI SMV Estimator</h3>
         <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style/process to generate a comprehensive, multi-department global benchmark SMV breakdown (Cutting, Sewing, and Assembly) along with the standard Labor vs. Material ratio.</p>
@@ -429,6 +444,7 @@
         
         <div class="input-group" style="margin-bottom: 20px; flex-wrap: wrap;">
             
+            <!-- Custom Downward-Only Upper Material Dropdown -->
             <div style="flex: 1; min-width: 200px;">
                 <label style="font-weight: bold;">1. Upper Material:</label>
                 <input type="hidden" id="estMaterial" value="Leather">
@@ -444,6 +460,7 @@
                 </div>
             </div>
 
+            <!-- Custom Downward-Only Sole Type Dropdown -->
             <div style="flex: 1; min-width: 200px;">
                 <label style="font-weight: bold;">2. Sole Type:</label>
                 <input type="hidden" id="estSoleType" value="PVC Injection">
@@ -489,6 +506,7 @@
         </div>
     </div>
 
+    <!-- Tab 3: Operation Bulletin -->
     <div id="bulletin" class="tab-content">
         <div class="shared-header">👟 IE Operations Guide</div>
         
@@ -508,7 +526,8 @@
                 🤖 AI is scanning your media... Please wait...
             </div>
 
-            <div id="aiResultContainer" style="display:none; color: #fff; background: #198754; font-weight: bold; margin-bottom: 15px; padding: 10px; border-radius: 6px; border: 1px solid #218838; display: flex; justify-content: space-between; align-items: center;">
+            <!-- BUG FIX: Removed display: flex from inline style so display: none works on load -->
+            <div id="aiResultContainer" style="display:none; color: #fff; background: #198754; font-weight: bold; margin-bottom: 15px; padding: 10px; border-radius: 6px; border: 1px solid #218838; justify-content: space-between; align-items: center;">
                 <span id="aiResultText">✅ AI Scan Complete! Check the list below.</span>
                 <button onclick="clearAIFilter()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Clear Filter</button>
             </div>
@@ -526,7 +545,8 @@
                         </tr>
                     </thead>
                     <tbody id="bulletinSelectionListBody">
-                        </tbody>
+                        <!-- Dynamically filled with javascript -->
+                    </tbody>
                 </table>
             </div>
             
@@ -547,9 +567,11 @@
                     </tr>
                 </thead>
                 <tbody id="bulletinTableBody">
-                    </tbody>
+                    <!-- Populated by JS -->
+                </tbody>
                 <tfoot id="bulletinTableFooter">
-                    </tfoot>
+                    <!-- Populated by JS -->
+                </tfoot>
             </table>
 
             <div class="bulletin-creation-tools" style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
@@ -561,6 +583,7 @@
         </div>
     </div>
 
+    <!-- Tab 4: Manage Operations (ADMIN ONLY) -->
     <div id="manage" class="tab-content">
         
         <div class="admin-banner">
@@ -568,6 +591,7 @@
             <p><strong>TEAM MEMBERS SHOULD NOT USE THIS TAB.</strong> This section is exclusively for managing the master database. Changes made here will not be saved permanently until you click "Generate Code for GitHub" and update the master index.html file.</p>
         </div>
         
+        <!-- AI API KEY SECTION -->
         <h3 style="color: #ffc107;">🤖 AI Visual Costing Setup</h3>
         <label>Google Gemini API Key:</label><br>
         <div style="display: flex; gap: 10px; align-items: flex-start;">
@@ -585,6 +609,7 @@
         <label style="color: #007bff; font-weight:bold;">Video Link (ImageKit or YouTube):</label><br>
         <input type="text" id="newFileName" placeholder="e.g. https://ik.imagekit.io/... or https://youtube.com/..." style="width: 100%; border: 1px solid #007bff;"><br>
 
+        <!-- ENLARGED SNAP-TO-GRID CANVAS SECTION -->
         <div class="canvas-container">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Vector Template Shape:</label>
@@ -618,6 +643,7 @@
 
 </div>
 
+<!-- Global Modal for Video Preview -->
 <div class="modal-overlay" id="previewModal">
     <div class="modal-content">
         <h3 id="modalTitle" style="margin-top: 0; color: #fff;">Preview</h3>
@@ -629,15 +655,18 @@
     </div>
 </div>
 
+<!-- Modal for Web Search Results -->
 <div class="modal-overlay" id="webResultModal">
     <div class="modal-content" style="border-color: #17a2b8;">
         <h3 style="margin-top: 0; color: #17a2b8;">🌐 Global Similarity Search Results</h3>
         <div id="webResultBody" style="color: #fff; line-height: 1.6; padding: 15px; background: #222; border-radius: 6px;">
-            </div>
+            <!-- Populated by JS -->
+        </div>
         <button class="modal-close" onclick="closeWebResultModal()" style="background: #333; border: 1px solid #17a2b8; color: #17a2b8;">Close</button>
     </div>
 </div>
 
+<!-- IN-APP HELP GUIDE MODAL -->
 <div class="modal-overlay" id="helpModal">
     <div class="modal-content" style="border-color: #ffc107;">
         <h2 style="margin-top: 0; color: #ffc107; display: flex; align-items: center; gap: 10px;">
@@ -1032,6 +1061,9 @@
     }
 
     async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey) {
+        const safeMaterial = material.replace(/[^a-zA-Z0-9]/g, '_');
+        const safeSole = soleType.replace(/[^a-zA-Z0-9]/g, '_');
+
         const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style, sample, or process. The primary upper material is: ${material} and the sole type is: ${soleType}.
         Based on the style and complexity of the footwear shown, provide a highly detailed, comprehensive global benchmark SMV breakdown for the ENTIRE footwear manufacturing process.
         
@@ -1088,31 +1120,31 @@
         <p style="color: #ddd;">Estimated Global Retail Price Range: <strong style="color: #28a745;">$[Min USD] - $[Max USD]</strong> (Approx. <strong style="color: #ffc107;">LKR [Min LKR] - LKR [Max LKR]</strong>)</p>
         <div class="competitor-grid">
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/[Insert_highly_descriptive_URL_encoded_prompt_for_Competitor_1_shoe_appearance_using_underscores_instead_of_spaces]?width=400&height=300&nologo=true" alt="Competitor 1"></div>
+                <div class="img-container"><img src="https://image.pollinations.ai/prompt/shoe_side_profile_style_1_${safeMaterial}_${safeSole}?width=400&height=300&nologo=true" alt="Competitor 1"></div>
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 1]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/[Insert_highly_descriptive_URL_encoded_prompt_for_Competitor_2_shoe_appearance_using_underscores_instead_of_spaces]?width=400&height=300&nologo=true" alt="Competitor 2"></div>
+                <div class="img-container"><img src="https://image.pollinations.ai/prompt/shoe_side_profile_style_2_${safeMaterial}_${safeSole}?width=400&height=300&nologo=true" alt="Competitor 2"></div>
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 2]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/[Insert_highly_descriptive_URL_encoded_prompt_for_Competitor_3_shoe_appearance_using_underscores_instead_of_spaces]?width=400&height=300&nologo=true" alt="Competitor 3"></div>
+                <div class="img-container"><img src="https://image.pollinations.ai/prompt/shoe_side_profile_style_3_${safeMaterial}_${safeSole}?width=400&height=300&nologo=true" alt="Competitor 3"></div>
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 3]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/[Insert_highly_descriptive_URL_encoded_prompt_for_Competitor_4_shoe_appearance_using_underscores_instead_of_spaces]?width=400&height=300&nologo=true" alt="Competitor 4"></div>
+                <div class="img-container"><img src="https://image.pollinations.ai/prompt/shoe_side_profile_style_4_${safeMaterial}_${safeSole}?width=400&height=300&nologo=true" alt="Competitor 4"></div>
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 4]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/[Insert_highly_descriptive_URL_encoded_prompt_for_Competitor_5_shoe_appearance_using_underscores_instead_of_spaces]?width=400&height=300&nologo=true" alt="Competitor 5"></div>
+                <div class="img-container"><img src="https://image.pollinations.ai/prompt/shoe_side_profile_style_5_${safeMaterial}_${safeSole}?width=400&height=300&nologo=true" alt="Competitor 5"></div>
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 5]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
