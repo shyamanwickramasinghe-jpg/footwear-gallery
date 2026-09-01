@@ -1061,27 +1061,30 @@
     }
 
     async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey) {
-        const safeMaterial = material.replace(/[^a-zA-Z0-9]/g, '_');
-        const safeSole = soleType.replace(/[^a-zA-Z0-9]/g, '_');
+        // --- VISUAL COLOR & STYLE EXTRACTION PROMPT ---
+        const promptText = `As a footwear engineer and visual specialist, analyze the attached media showing a footwear manufacturing style. The selected material is: ${material} and the sole type is: ${soleType}.
 
-        const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style, sample, or process. The primary upper material is: ${material} and the sole type is: ${soleType}.
-        Based on the style and complexity of the footwear shown, provide a highly detailed, comprehensive global benchmark SMV breakdown for the ENTIRE footwear manufacturing process.
+        Based on the complexity and style shown, provide a highly detailed, comprehensive global benchmark SMV breakdown for the ENTIRE footwear manufacturing process (Cutting, Sewing, Assembly).
         
-        Additionally, estimate the global market retail price for this type of shoe in USD and its equivalent in LKR (assuming 1 USD = 328 LKR). Also, provide 5 similar market competitor items with their estimated prices.
+        Crucially, carefully analyze the visual appearance of the *user's specific uploaded footwear* (its primary color, secondary accent colors, unique stitching patterns, unique shape details, texture, etc.).
+        
+        Additionally, estimate the global market retail price for this type of shoe in USD and its equivalent in LKR (assuming 1 USD = 328 LKR).
+        
+        You will also generate exactly 5 distinct AI-generated mockup images of competitor shoes that are *visually similar* in construction and aesthetic to the one uploaded. *Instead of hardcoded prompts, you must visually describe the user's shoe in your own words* and use this detailed description to generate the unique competitor mockup images.
 
-        Output ONLY raw HTML (no markdown code blocks, do not wrap in \`\`\`html) with the following exact structure to ensure perfect tabular alignment. Replace bracketed info with your generated data. Be specific with operations!
-        
+        Output ONLY raw HTML (no markdown code blocks) with the following exact structure. Ensure perfect tabular alignment and use unique data for all parts, especially for the 5 competitor cards below.
+
+        --- START HTML ---
         <div style="background: #111; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
             <h4 style="color:#007bff; margin-top:0;">Footwear Style & Operation Overview</h4>
-            <p style="margin-bottom:0; color:#ddd;">[Write 2 sentences describing the shoe style, construction type, complexity, and overall manufacturing requirements based on the upper material and sole type]</p>
+            <p style="margin-bottom:0; color:#ddd;">[Write 2 sentences describing the specific visual style, colors, complexity, and manufacturing requirements based on your visual analysis]</p>
         </div>
         
         <h3 style="color:#ffc107; margin-bottom: 10px;">✂️ Cutting Process (Component-Wise)</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Component Name</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
             <tbody>
-                <tr><td>[Component 1]</td><td style="text-align: right; color:#00ffff; font-family: monospace; font-size:1.1em;">[0.00]</td></tr>
-                [Add 3-5 more key components]
+                [Add 5-7 key components with their realistic benchmark SMV times]
             </tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Cutting Subtotal:</td><td style="text-align: right; color:#ffc107; font-family: monospace;">[0.00]</td></tr></tfoot>
         </table>
@@ -1090,8 +1093,7 @@
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
             <tbody>
-                <tr><td>[Operation 1]</td><td style="text-align: right; color:#00ffff; font-family: monospace; font-size:1.1em;">[0.00]</td></tr>
-                [List 10 to 15 specific stitching operations]
+                [List 12 to 18 highly specific sewing operations matching the style's complexity, focusing on machine types]
             </tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Sewing Subtotal:</td><td style="text-align: right; color:#ffc107; font-family: monospace;">[0.00]</td></tr></tfoot>
         </table>
@@ -1100,8 +1102,7 @@
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
             <tbody>
-                <tr><td>[Operation 1]</td><td style="text-align: right; color:#00ffff; font-family: monospace; font-size:1.1em;">[0.00]</td></tr>
-                [Add 3-5 more assembly operations specific to ${soleType}]
+                [Add 8-12 assembly operations specific to ${soleType}]
             </tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Assembly Subtotal:</td><td style="text-align: right; color:#ffc107; font-family: monospace;">[0.00]</td></tr></tfoot>
         </table>
@@ -1113,43 +1114,52 @@
 
         <div style="background: #222; border-left: 4px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 4px;">
             <h4 style="color:#ffc107; margin-top:0;">Standard Labor vs. Material Cost Ratio</h4>
-            <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the Labor % vs Material % for this specific material and style]</p>
+            <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the realistic Labor % vs Material % for this specific material and style]</p>
         </div>
 
         <h3 style="color:#17a2b8; margin-top: 30px; border-bottom: 1px solid #444; padding-bottom: 10px;">💰 Global Market Benchmarks & Competitors</h3>
         <p style="color: #ddd;">Estimated Global Retail Price Range: <strong style="color: #28a745;">$[Min USD] - $[Max USD]</strong> (Approx. <strong style="color: #ffc107;">LKR [Min LKR] - LKR [Max LKR]</strong>)</p>
+        <p style="font-size: 0.9em; color: #aaa; margin-top: 5px;">*Images below are AI mockups of visually similar styles generated from visual analysis.</p>
         <div class="competitor-grid">
+            <!-- Competitor Card 1 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/shoe_side_profile_style_1_${safeMaterial}_${safeSole}?width=400&height=300&nologo=true" alt="Competitor 1"></div>
+                <div class="img-container"><img src="https://image.pollinations.ai/prompt/competitor_style_mockup_visually_similar_to_[YOUR_UNIQUE_VISUAL_DESCRIPTION_HERE]?width=400&height=300&nologo=true&seed=1" alt="Competitor 1"></div>
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 1]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
+            <!-- Competitor Card 2 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/shoe_side_profile_style_2_${safeMaterial}_${safeSole}?width=400&height=300&nologo=true" alt="Competitor 2"></div>
+                <div class="img-container"><img src="https://image.pollinations.ai/prompt/competitor_style_mockup_visually_similar_to_[YOUR_UNIQUE_VISUAL_DESCRIPTION_HERE]?width=400&height=300&nologo=true&seed=2" alt="Competitor 2"></div>
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 2]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
+            <!-- Competitor Card 3 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/shoe_side_profile_style_3_${safeMaterial}_${safeSole}?width=400&height=300&nologo=true" alt="Competitor 3"></div>
+                <div class="img-container"><img src="https://image.pollinations.ai/prompt/competitor_style_mockup_visually_similar_to_[YOUR_UNIQUE_VISUAL_DESCRIPTION_HERE]?width=400&height=300&nologo=true&seed=3" alt="Competitor 3"></div>
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 3]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
+            <!-- Competitor Card 4 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/shoe_side_profile_style_4_${safeMaterial}_${safeSole}?width=400&height=300&nologo=true" alt="Competitor 4"></div>
+                <div class="img-container"><img src="https://image.pollinations.ai/prompt/competitor_style_mockup_visually_similar_to_[YOUR_UNIQUE_VISUAL_DESCRIPTION_HERE]?width=400&height=300&nologo=true&seed=4" alt="Competitor 4"></div>
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 4]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
+            <!-- Competitor Card 5 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/shoe_side_profile_style_5_${safeMaterial}_${safeSole}?width=400&height=300&nologo=true" alt="Competitor 5"></div>
+                <div class="img-container"><img src="https://image.pollinations.ai/prompt/competitor_style_mockup_visually_similar_to_[YOUR_UNIQUE_VISUAL_DESCRIPTION_HERE]?width=400&height=300&nologo=true&seed=5" alt="Competitor 5"></div>
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 5]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
-        </div>`;
+        </div>
+        --- END HTML ---
+        
+        Ensure each YOUR_UNIQUE_VISUAL_DESCRIPTION_HERE is a unique descriptive snippet derived *only* from the uploaded media (e.g., 'primary red canvas upper with white unique zig-zag side stitching and black detailed sole profile'). Ensure the seed number (1, 2, 3, 4, 5) is added to each URL to force unique image generation.`;
 
         try {
             const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
@@ -1164,6 +1174,7 @@
 
             if (data.candidates && data.candidates[0]) {
                 let aiText = data.candidates[0].content.parts[0].text;
+                // Remove potential markdown code blocks and trim
                 aiText = aiText.replace(/```html/g, "").replace(/```/g, "").trim();
                 
                 document.getElementById("estAiOutput").innerHTML = aiText;
