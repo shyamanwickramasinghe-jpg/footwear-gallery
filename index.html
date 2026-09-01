@@ -8,8 +8,8 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         body {
-            /* Colorful IE/Manufacturing background with a dark overlay for readability */
-            background: linear-gradient(rgba(20, 25, 35, 0.85), rgba(20, 25, 35, 0.85)), url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+            /* Modern AI/Tech Footwear background with a dark, colorful overlay for readability */
+            background: linear-gradient(rgba(18, 22, 30, 0.88), rgba(18, 22, 30, 0.88)), url('https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
             background-size: cover;
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -20,11 +20,11 @@
         .container {
             max-width: 1000px; 
             margin: 0 auto;
-            background: rgba(30, 30, 30, 0.85);
+            background: rgba(30, 30, 30, 0.80);
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
         }
 
         /* --- DSI Corporate Header --- */
@@ -258,7 +258,7 @@
 
     <div id="viewer" class="tab-content active">
         <label>Search Local Master Database:</label><br>
-        <input type="text" id="searchInput" onkeyup="filterOperations()" placeholder="Type to filter existing operations..." style="width: 100%;"><br>
+        <input type="text" id="searchInput" autocomplete="new-password" data-lpignore="true" onkeyup="filterOperations()" placeholder="Type to filter existing operations..." style="width: 100%;"><br>
 
         <label>Select Operation:</label><br>
         <select id="videoSelect" onchange="playVideo()" style="width: 100%;">
@@ -324,7 +324,7 @@
         <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI SMV Estimator</h3>
         <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style/process to generate a comprehensive, multi-department global benchmark SMV breakdown (Cutting, Sewing, and Assembly) along with the standard Labor vs. Material ratio.</p>
         
-        <div class="input-group" style="margin-bottom: 15px; flex-wrap: wrap;">
+        <div class="input-group" style="margin-bottom: 60px; flex-wrap: wrap; padding-bottom: 20px;">
             <div style="flex: 1; min-width: 200px;">
                 <label style="font-weight: bold;">1. Upper Material:</label><br>
                 <select id="estMaterial" style="width: 100%; border-color: #17a2b8;">
@@ -355,6 +355,7 @@
                 <input type="file" id="estMediaInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="width: 100%; padding: 7px; background: #222; border: 1px solid #17a2b8; color: white; border-radius: 6px;">
             </div>
         </div>
+        
         <button class="btn-info" onclick="generateGlobalEstimate()" style="width: 100%; padding: 12px; font-size: 1.1em; background: #17a2b8;">🧠 Generate Global Benchmark Estimate</button>
 
         <div id="estLoadingMsg" style="display:none; color: #17a2b8; font-weight: bold; margin-top: 15px; text-align: center; background: #222; padding: 10px; border-radius: 6px; border: 1px solid #17a2b8;">
@@ -455,7 +456,7 @@
         <h3 style="color: #ffc107;">🤖 AI Visual Costing Setup</h3>
         <label>Google Gemini API Key:</label><br>
         <div style="display: flex; gap: 10px; align-items: flex-start;">
-            <input type="password" id="geminiApiKeyInput" placeholder="Paste your API key here" style="flex: 1; margin: 0;">
+            <input type="password" id="geminiApiKeyInput" placeholder="Paste your API key here" style="flex: 1; margin: 0;" autocomplete="new-password">
             <button class="btn-primary" onclick="saveApiKey()" style="margin: 0; padding: 10px 20px;">Save Key</button>
         </div>
         <p style="font-size: 0.85em; color: #aaa; margin-top: 5px;">Your key is stored 100% locally in your browser.</p>
