@@ -8,28 +8,13 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         body {
-            background: linear-gradient(rgba(55, 60, 65, 0.88), rgba(55, 60, 65, 0.88)) fixed;
+            /* Colorful IE/Manufacturing background with a dark overlay for readability */
+            background: linear-gradient(rgba(20, 25, 35, 0.85), rgba(20, 25, 35, 0.85)), url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
             background-size: cover;
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-        }
-        
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            /* IE-themed background: blueprints and drafting tools */
-            background: url('https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1500&q=80') no-repeat center center;
-            background-size: cover; 
-            opacity: 0.18; 
-            z-index: -1; 
-            pointer-events: none;
-            filter: grayscale(100%);
         }
 
         .container {
@@ -38,8 +23,8 @@
             background: rgba(30, 30, 30, 0.85);
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
         }
 
         /* --- DSI Corporate Header --- */
@@ -340,18 +325,33 @@
         <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style/process to generate a comprehensive, multi-department global benchmark SMV breakdown (Cutting, Sewing, and Assembly) along with the standard Labor vs. Material ratio.</p>
         
         <div class="input-group" style="margin-bottom: 15px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 250px;">
-                <label style="font-weight: bold;">1. Primary Material:</label><br>
+            <div style="flex: 1; min-width: 200px;">
+                <label style="font-weight: bold;">1. Upper Material:</label><br>
                 <select id="estMaterial" style="width: 100%; border-color: #17a2b8;">
-                    <option value="Leather">Leather (Slower handling, higher material cost)</option>
-                    <option value="Synthetic / PU">Synthetic / PU (Standard handling)</option>
-                    <option value="Canvas / Textile">Canvas / Textile (Faster handling, lower material cost)</option>
-                    <option value="Mesh / Knit">Mesh / Knit (Careful alignment needed)</option>
-                    <option value="Rubber / EVA">Rubber / EVA (Bottom components)</option>
+                    <option value="Leather">Leather</option>
+                    <option value="Synthetic / PU">Synthetic / PU</option>
+                    <option value="Canvas / Textile">Canvas / Textile</option>
+                    <option value="Mesh / Knit">Mesh / Knit</option>
+                    <option value="Rubber / EVA">Rubber / EVA</option>
                 </select>
             </div>
-            <div style="flex: 1; min-width: 250px;">
-                <label style="font-weight: bold;">2. Upload Photo / Video:</label><br>
+            <div style="flex: 1; min-width: 200px;">
+                <label style="font-weight: bold;">2. Sole Type:</label><br>
+                <select id="estSoleType" style="width: 100%; border-color: #17a2b8;">
+                    <option value="EVA Injection">EVA Injection</option>
+                    <option value="PU Pouring">PU Pouring</option>
+                    <option value="Moulded PVC Sole">Moulded PVC Sole</option>
+                    <option value="Moulded PU Sole">Moulded PU Sole</option>
+                    <option value="Hot and Cold Sole">Hot and Cold Sole</option>
+                    <option value="Rubber Sole">Rubber Sole</option>
+                    <option value="EVA Sole">EVA Sole</option>
+                    <option value="TPR Sole">TPR Sole</option>
+                    <option value="Phylon Sole">Phylon Sole</option>
+                    <option value="TPU Sole">TPU Sole</option>
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <label style="font-weight: bold;">3. Upload Media:</label><br>
                 <input type="file" id="estMediaInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="width: 100%; padding: 7px; background: #222; border: 1px solid #17a2b8; color: white; border-radius: 6px;">
             </div>
         </div>
@@ -540,7 +540,7 @@
         <div class="help-guide-section">
             <h4 style="color: #17a2b8;">🌐 2. AI SMV Estimator</h4>
             <ul>
-                <li><strong>Global Benchmark Breakdown:</strong> Select a material, upload a photo or video of a new style/process, and generate a comprehensive SMV breakdown for Cutting, Sewing, and Assembly.</li>
+                <li><strong>Global Benchmark Breakdown:</strong> Select upper and sole materials, upload a photo or video of a new style/process, and generate a comprehensive SMV breakdown for Cutting, Sewing, and Assembly.</li>
                 <li><strong>Cost Ratios & Print:</strong> View the estimated Labor vs. Material ratio and click <em>Print Costing Sheet</em> to export an executive summary.</li>
             </ul>
         </div>
@@ -833,6 +833,7 @@
         if (!apiKey) return alert("⚠️ No API Key found.");
 
         const material = document.getElementById("estMaterial").value;
+        const soleType = document.getElementById("estSoleType").value;
         const loadingMsg = document.getElementById("estLoadingMsg");
         
         loadingMsg.style.display = "block";
@@ -868,7 +869,7 @@
                     });
                 }
                 URL.revokeObjectURL(fileURL);
-                runGlobalAIAnalysis(imageParts, material, apiKey);
+                runGlobalAIAnalysis(imageParts, material, soleType, apiKey);
             };
             video.onerror = () => {
                 alert("⚠️ Unable to process video format.");
@@ -879,21 +880,21 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const base64String = e.target.result.split(',')[1];
-                runGlobalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], material, apiKey);
+                runGlobalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], material, soleType, apiKey);
             };
             reader.readAsDataURL(file);
         }
     }
 
-    async function runGlobalAIAnalysis(mediaParts, material, apiKey) {
-        const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style, sample, or process. The primary material is: ${material}.
+    async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey) {
+        const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style, sample, or process. The primary upper material is: ${material} and the sole type is: ${soleType}.
         Based on the style and complexity of the footwear shown, provide a highly detailed, comprehensive global benchmark SMV breakdown for the ENTIRE footwear manufacturing process.
         
         Output ONLY raw HTML (no markdown code blocks, do not wrap in \`\`\`html) with the following exact structure to ensure perfect tabular alignment:
         
         <div style="background: #111; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
             <h4 style="color:#007bff; margin-top:0;">Footwear Style & Operation Overview</h4>
-            <p style="margin-bottom:0; color:#ddd;">[Write 2 sentences describing the shoe style, construction type, complexity, and overall manufacturing requirements]</p>
+            <p style="margin-bottom:0; color:#ddd;">[Write 2 sentences describing the shoe style, construction type, complexity, and overall manufacturing requirements based on the upper material and sole type]</p>
         </div>
         
         <h3 style="color:#ffc107; margin-bottom: 10px;">✂️ Cutting Process (Component-Wise)</h3>
@@ -921,7 +922,7 @@
             <thead><tr><th>Operation Name</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
             <tbody>
                 <tr><td>[Operation 1]</td><td style="text-align: right; color:#00ffff; font-family: monospace; font-size:1.1em;">[0.00]</td></tr>
-                [Add 3-5 more assembly operations]
+                [Add 3-5 more assembly operations specific to ${soleType}]
             </tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Assembly Subtotal:</td><td style="text-align: right; color:#ffc107; font-family: monospace;">[0.00]</td></tr></tfoot>
         </table>
