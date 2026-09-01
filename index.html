@@ -518,7 +518,7 @@
                 🤖 AI is scanning your media... Please wait...
             </div>
 
-            <!-- BUG FIX: Inline display property removed entirely so it properly hides on load -->
+            <!-- Fix: Inline display removed so it properly hides on load -->
             <div id="aiResultContainer" style="display:none; color: #fff; background: #198754; font-weight: bold; margin-bottom: 15px; padding: 10px; border-radius: 6px; border: 1px solid #218838; justify-content: space-between; align-items: center;">
                 <span id="aiResultText">✅ AI Scan Complete! Check the list below.</span>
                 <button onclick="clearAIFilter()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Clear Filter</button>
@@ -537,7 +537,6 @@
                         </tr>
                     </thead>
                     <tbody id="bulletinSelectionListBody">
-                        <!-- Dynamically filled with javascript -->
                     </tbody>
                 </table>
             </div>
@@ -559,10 +558,8 @@
                     </tr>
                 </thead>
                 <tbody id="bulletinTableBody">
-                    <!-- Populated by JS -->
                 </tbody>
                 <tfoot id="bulletinTableFooter">
-                    <!-- Populated by JS -->
                 </tfoot>
             </table>
 
@@ -652,7 +649,6 @@
     <div class="modal-content" style="border-color: #17a2b8;">
         <h3 style="margin-top: 0; color: #17a2b8;">🌐 Global Similarity Search Results</h3>
         <div id="webResultBody" style="color: #fff; line-height: 1.6; padding: 15px; background: #222; border-radius: 6px;">
-            <!-- Populated by JS -->
         </div>
         <button class="modal-close" onclick="closeWebResultModal()" style="background: #333; border: 1px solid #17a2b8; color: #17a2b8;">Close</button>
     </div>
@@ -1061,11 +1057,9 @@
         
         Additionally, estimate the global market retail price for this type of shoe in USD and its equivalent in LKR (assuming 1 USD = 328 LKR).
         
-        You will also generate exactly 5 distinct AI-generated mockup images of competitor shoes that are *visually similar* in construction and aesthetic to the one uploaded. 
-        
-        CRITICAL RULE FOR IMAGES: You MUST write your visual description using ONLY UNDERSCORES instead of spaces. Do not use spaces in the image URL. Example: brown_leather_flat_sandal_with_pvc_sole
+        You will also generate 5 similar market competitor items. 
 
-        Output ONLY raw HTML (no markdown code blocks) with the following exact structure. Ensure perfect tabular alignment and use unique data for all parts.
+        Output ONLY raw HTML (no markdown code blocks) with the following exact structure. Ensure perfect tabular alignment and use unique data for all parts. Note that the image "src" attributes are deliberately left blank.
 
         <div style="background: #111; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
             <h4 style="color:#007bff; margin-top:0;">Footwear Style & Operation Overview</h4>
@@ -1113,38 +1107,33 @@
         <p style="color: #ddd;">Estimated Global Retail Price Range: <strong style="color: #28a745;">$[Min USD] - $[Max USD]</strong> (Approx. <strong style="color: #ffc107;">LKR [Min LKR] - LKR [Max LKR]</strong>)</p>
         <p style="font-size: 0.9em; color: #aaa; margin-top: 5px;">*Images below are AI mockups of visually similar styles generated from visual analysis.</p>
         <div class="competitor-grid">
-            <!-- Competitor Card 1 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/[WRITE_DESCRIPTION_USING_ONLY_UNDERSCORES_NO_SPACES]?width=400&height=300&nologo=true&seed=1" alt="Competitor 1"></div>
-                <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 1]</div>
+                <div class="img-container"><img src="" alt="Competitor 1"></div>
+                <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 1]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
-            <!-- Competitor Card 2 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/[WRITE_DESCRIPTION_USING_ONLY_UNDERSCORES_NO_SPACES]?width=400&height=300&nologo=true&seed=2" alt="Competitor 2"></div>
-                <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 2]</div>
+                <div class="img-container"><img src="" alt="Competitor 2"></div>
+                <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 2]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
-            <!-- Competitor Card 3 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/[WRITE_DESCRIPTION_USING_ONLY_UNDERSCORES_NO_SPACES]?width=400&height=300&nologo=true&seed=3" alt="Competitor 3"></div>
-                <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 3]</div>
+                <div class="img-container"><img src="" alt="Competitor 3"></div>
+                <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 3]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
-            <!-- Competitor Card 4 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/[WRITE_DESCRIPTION_USING_ONLY_UNDERSCORES_NO_SPACES]?width=400&height=300&nologo=true&seed=4" alt="Competitor 4"></div>
-                <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 4]</div>
+                <div class="img-container"><img src="" alt="Competitor 4"></div>
+                <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 4]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
-            <!-- Competitor Card 5 -->
             <div class="competitor-card">
-                <div class="img-container"><img src="https://image.pollinations.ai/prompt/[WRITE_DESCRIPTION_USING_ONLY_UNDERSCORES_NO_SPACES]?width=400&height=300&nologo=true&seed=5" alt="Competitor 5"></div>
-                <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 5]</div>
+                <div class="img-container"><img src="" alt="Competitor 5"></div>
+                <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 5]</div>
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
@@ -1163,10 +1152,24 @@
 
             if (data.candidates && data.candidates[0]) {
                 let aiText = data.candidates[0].content.parts[0].text;
-                // Remove potential markdown code blocks and trim
                 aiText = aiText.replace(/```html/g, "").replace(/```/g, "").trim();
                 
                 document.getElementById("estAiOutput").innerHTML = aiText;
+
+                // --- JAVASCRIPT IMAGE FIX ---
+                // This forces the browser to properly encode the AI's titles into URLs 
+                // so the images never break due to spaces or commas.
+                const compCards = document.querySelectorAll('#estAiOutput .competitor-card');
+                compCards.forEach((card, index) => {
+                    const titleElement = card.querySelector('.comp-title');
+                    const imgElement = card.querySelector('img');
+                    if (titleElement && imgElement) {
+                        const rawTitle = titleElement.innerText.trim();
+                        const safeUrlTitle = encodeURIComponent(rawTitle);
+                        imgElement.src = `https://image.pollinations.ai/prompt/professional_product_photography_of_shoe_brand_model_${safeUrlTitle}?width=400&height=300&nologo=true&seed=${index + 1}`;
+                    }
+                });
+
                 document.getElementById("estResultArea").style.display = "block";
             }
         } catch (error) {
