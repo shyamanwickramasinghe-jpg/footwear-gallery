@@ -278,7 +278,7 @@
             z-index: 1;
             transform-origin: center;
             border-radius: 6px;
-            background: #fff; /* White background better for authentic product images */
+            background: #fff; 
         }
         .competitor-card:hover img {
             transform: scale(2.0);
@@ -592,7 +592,7 @@
             <input type="password" id="googleSearchCx" placeholder="Paste Search Engine ID (CX) here" style="flex: 1; margin: 0;" autocomplete="new-password">
             <button class="btn-primary" onclick="saveApiKeys()" style="margin: 0; padding: 10px 20px;">Save Keys</button>
         </div>
-        <p style="font-size: 0.85em; color: #aaa; margin-top: 5px;">Your keys are stored 100% locally in your browser.</p>
+        <p style="font-size: 0.85em; color: #aaa; margin-top: 5px;">Your keys are securely baked into the background code. Only change these if you generate new ones.</p>
 
         <hr style="border-color: #444; margin: 30px 0;">
 
@@ -705,12 +705,18 @@
 </div>
 
 <script>
+    // --- 1. HARDCODED MASTER API KEYS ---
+    // Your team NEVER needs to enter these manually. The system will use them automatically.
+    
+    // Gemini Key
     let keyPart1 = "AQ.Ab8RN6LRfqS9YBFC7N";
     let keyPart2 = "kxqGLqtDhkr5lAj2hD4RB6xJQhdC1aHw";
-    let keyPart3 = "";
-    let keyPart4 = "";
-    
-    let masterApiKey = keyPart1 + keyPart2 + keyPart3 + keyPart4;
+    let masterApiKey = keyPart1 + keyPart2;
+
+    // Google Custom Search Keys
+    const MASTER_GSEARCH_KEY = "AIzaSyD7n3OSRXwA_XlvEe13IXT7b3VyVe9w5lA";
+    const MASTER_GSEARCH_CX = "3137490cf59c24d64";
+    // -----------------------------------------------------------------------
 
     let defaultOperations = [
         { name: "Toe Cap Attaching", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1512409466993771_hd.mp4?tr=orig-true", smvPair: 0.6900, shape: "" },
@@ -964,9 +970,18 @@
     }
 
     function getActiveApiKey() {
-        if (masterApiKey && masterApiKey !== "PASTE_YOUR_KEY_HERE" && masterApiKey.trim() !== "") return masterApiKey.trim();
         const localKey = localStorage.getItem("geminiApiKey");
-        return localKey && localKey.trim() !== "" ? localKey.trim() : null; 
+        return localKey && localKey.trim() !== "" ? localKey.trim() : masterApiKey; 
+    }
+    
+    function getActiveSearchKey() {
+        const localKey = localStorage.getItem("googleSearchApiKey");
+        return localKey && localKey.trim() !== "" ? localKey.trim() : MASTER_GSEARCH_KEY;
+    }
+
+    function getActiveSearchCx() {
+        const localKey = localStorage.getItem("googleSearchCx");
+        return localKey && localKey.trim() !== "" ? localKey.trim() : MASTER_GSEARCH_CX;
     }
 
     function printEstimate() {
@@ -981,11 +996,10 @@
         if (!file) return alert("⚠️ Please upload a photo or video of the style/operation first.");
         
         const apiKey = getActiveApiKey();
-        if (!apiKey) return alert("⚠️ No Gemini API Key found in Admin Tab.");
+        const gSearchKey = getActiveSearchKey();
+        const gSearchCx = getActiveSearchCx();
         
-        const gSearchKey = localStorage.getItem("googleSearchApiKey");
-        const gSearchCx = localStorage.getItem("googleSearchCx");
-        if (!gSearchKey || !gSearchCx) return alert("⚠️ Please enter your Google Custom Search API Key and CX in the Admin Tab to fetch live competitor images.");
+        if (!apiKey) return alert("⚠️ No Gemini API Key found.");
 
         const material = document.getElementById("estMaterial").value;
         const soleType = document.getElementById("estSoleType").value;
@@ -1151,6 +1165,11 @@
             const response = await fetch(searchUrl);
             const data = await response.json();
             
+            if (!response.ok) {
+                // If Google rejects it, print the exact error message
+                throw new Error(data.error?.message || "Unknown Google API error");
+            }
+            
             if (data.items && data.items.length >= 2) {
                 grid.innerHTML = `
                     <div class="competitor-card">
@@ -1163,10 +1182,15 @@
                     </div>
                 `;
             } else {
-                throw new Error("No image results found.");
+                throw new Error("No image results found for this search.");
             }
         } catch (error) {
-            grid.innerHTML = `<p style="color: #dc3545; width: 100%; text-align: center;">⚠️ Failed to fetch live Google images. Please verify your Custom Search API key and CX in the Admin tab.</p>`;
+            grid.innerHTML = `
+                <div style="background: rgba(220,53,69,0.1); border: 1px solid #dc3545; padding: 15px; border-radius: 6px; width: 100%;">
+                    <p style="color: #ffcccc; margin-top: 0; text-align: center; font-weight: bold;">⚠️ Failed to fetch Google images.</p>
+                    <p style="color: #ffcccc; margin-bottom: 0; font-size: 0.9em; text-align: center;">Error details: ${error.message}</p>
+                    <p style="color: #aaa; margin-bottom: 0; font-size: 0.85em; text-align: center; margin-top: 10px;">*If the error mentions 'Bad Request', make sure "Image Search" is toggled ON in your Programmable Search Engine dashboard.</p>
+                </div>`;
         }
         
         document.getElementById("estResultArea").style.display = "block";
@@ -1762,6 +1786,7 @@
         initCanvas(); 
         populateDropdown(operations);
         
+        // Remove requirement to manually paste API keys
         const savedApiKey = localStorage.getItem("geminiApiKey");
         const savedSearchKey = localStorage.getItem("googleSearchApiKey");
         const savedSearchCx = localStorage.getItem("googleSearchCx");
