@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
-    <title>DSI FOOTTECH: AI Labor Estimator & Social Media Trending Operations</title>
+    <title>DSI FOOTTECH: AI SMV Estimator & Social Media Trending Operations</title>
     <!-- Load YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
@@ -289,7 +289,7 @@
                 </text>
                 <path d="M 160 380 Q 250 410 340 380" stroke="#e30613" stroke-width="12" stroke-linecap="round" fill="none" />
             </svg>
-            <h2 style="color: #17a2b8;">AI Labor Estimator & Social Media Trending Operations</h2>
+            <h2 style="color: #17a2b8;">AI SMV Estimator & Social Media Trending Operations</h2>
         </div>
         <button class="help-btn" onclick="openHelpModal()">📖 How to Use</button>
     </div>
@@ -302,7 +302,7 @@
     </div>
 
     <!-- Tab 1: Video Viewer -->
-    <div id="viewer" class="tab-content active">
+    <div id="viewer" class="tab-content">
         <label>Search operation:</label><br>
         <input type="search" id="searchInput" name="app_search_query_no_autofill" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other" onkeyup="filterOperations()" placeholder="Type to filter existing operations..." style="width: 100%;"><br>
 
@@ -367,7 +367,7 @@
     </div>
 
     <!-- Tab 2: Global AI SMV Estimator -->
-    <div id="estimator" class="tab-content">
+    <div id="estimator" class="tab-content active">
         <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI SMV Estimator</h3>
         <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style to generate preliminary, multi-department global benchmark SMVs and estimated Labor vs. Material ratios.<br><br><i style="color: #ffc107;">*Note: The AI now accounts for deep internal sub-assembly, handling delays, and finishing operations to push baselines closer to real-world floor conditions.</i></p>
         
@@ -968,10 +968,12 @@
     async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey) {
         const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style. Upper material: ${material}. Sole type: ${soleType}.
         
-        CRITICAL INSTRUCTION: Your baseline estimates must account for heavy real-world factory floor conditions, pushing the final SMV significantly higher than theoretical minimums. 
-        - Include all hidden internal operations (lining preparation, internal reinforcements, stiffeners, insole patches).
-        - Include all micro-operations (handling time between stations, thread trimming, marking, skiving, sorting, bundling, and in-line quality checking).
-        - Assume a high level of manual handling and explicitly double the standard allowances for fatigue and bundling.
+        CRITICAL INSTRUCTION: Your baseline estimates must reflect lean, real-world factory floor conditions. 
+        - Include necessary hidden internal operations (lining preparation, reinforcements) ONLY if the specific style actually requires them.
+        - Group essential micro-operations (handling, thread trimming) logically to avoid listing unnecessary or redundant steps.
+        - Apply a strict 10% to 15% standard allowance for fatigue and manual handling. Do NOT double or artificially inflate the times.
+        - Eliminate any operations that do not directly apply to the exact shoe design shown in the media.
+        - Open-toe sandals and slippers must naturally fall between 18 to 25 minutes total SMV.
         
         Estimate the global market retail price for this type of shoe in USD and LKR (assuming 1 USD = 328 LKR).
         Generate a highly specific 3-5 word search query describing the shoe.
@@ -986,35 +988,35 @@
         <h3 style="color:#ffc107; margin-bottom: 10px;">✂️ 1. Cutting & Preparation</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Include Skiving/Marking)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>[Add 6-10 realistic operations]</tbody>
+            <tbody>[Add realistic operations]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
 
         <h3 style="color:#ffc107; margin-bottom: 10px;">🧵 2. Pre-Stitching & Sub-Assembly</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Include Lining/Handling)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>[Add 6-10 operations]</tbody>
+            <tbody>[Add operations]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
 
         <h3 style="color:#ffc107; margin-bottom: 10px;">🪡 3. Sewing & Stitching</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Include Trimming/Checking)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>[Add 12-18 operations]</tbody>
+            <tbody>[Add operations]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
 
         <h3 style="color:#ffc107; margin-bottom: 10px;">🔨 4. Lasting & Bottoming</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Specific to ${soleType})</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>[Add 10-15 operations]</tbody>
+            <tbody>[Add operations]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
 
         <h3 style="color:#ffc107; margin-bottom: 10px;">📦 5. Finishing & Packing</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Include Cleaning/Insock/Box)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>[Add 8-12 operations]</tbody>
+            <tbody>[Add operations]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
 
@@ -1025,7 +1027,7 @@
 
         <div style="background: #222; border-left: 4px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 4px;">
             <h4 style="color:#ffc107; margin-top:0;">Standard Labor vs. Material Cost Ratio</h4>
-            <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the realistic Labor % vs Material % for this specific material and style, factoring in the high manual labor allowances]</p>
+            <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the realistic Labor % vs Material % for this specific material and style, factoring in standard manual labor allowances]</p>
         </div>
         
         <div id="ai-search-data" data-query="[YOUR_SPECIFIC_SEARCH_QUERY]" data-usd="$[Min] - $[Max]" data-lkr="LKR [Min] - LKR [Max]" style="display:none;"></div>`;
