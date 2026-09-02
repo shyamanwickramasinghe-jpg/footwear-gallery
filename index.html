@@ -255,7 +255,7 @@
             border-radius: 8px;
             padding: 10px;
             flex: 1;
-            min-width: 150px;
+            min-width: 200px;
             text-align: center;
         }
         .competitor-card .img-container {
@@ -264,24 +264,24 @@
             border: 1px solid #333;
             position: relative;
             background: #222; 
-            min-height: 110px;
+            min-height: 150px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .competitor-card img {
             width: 100%;
-            height: 110px;
-            object-fit: cover;
+            height: 150px;
+            object-fit: contain;
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
             position: relative;
             z-index: 1;
             transform-origin: center;
             border-radius: 6px;
-            background: #000;
+            background: #fff; /* White background better for authentic product images */
         }
         .competitor-card:hover img {
-            transform: scale(2.5);
+            transform: scale(2.0);
             z-index: 9999;
             box-shadow: 0 15px 35px rgba(0,0,0,0.9);
             border: 2px solid #007bff;
@@ -289,15 +289,14 @@
         .competitor-price {
             color: #28a745;
             font-weight: bold;
-            font-size: 1.1em;
+            font-size: 1.2em;
         }
         .competitor-lkr {
             color: #ffc107;
-            font-size: 0.85em;
+            font-size: 0.9em;
             margin-top: 3px;
         }
 
-        /* --- PRINT PDF STYLES --- */
         @media print {
             body { background: #fff !important; color: #000 !important; }
             .tabs, .dsi-header, .header-flex, .bulletin-creation-tools, .bulletin-list, .modal-overlay, #unifiedPlayerContainer { display: none !important; }
@@ -474,7 +473,7 @@
         <button class="btn-info" onclick="generateGlobalEstimate()" style="width: 100%; padding: 12px; font-size: 1.1em; background: #17a2b8;">🧠 Generate Global Benchmark Estimate</button>
 
         <div id="estLoadingMsg" style="display:none; color: #17a2b8; font-weight: bold; margin-top: 15px; text-align: center; background: #222; padding: 10px; border-radius: 6px; border: 1px solid #17a2b8;">
-            🧠 Analyzing material and structuring IE Data Tables... Please wait...
+            🧠 Analyzing material and fetching live Google search data... Please wait...
         </div>
 
         <div id="estResultArea" style="display:none; margin-top: 20px; background: #1a1a1a; border: 1px solid #444; padding: 20px; border-radius: 8px;">
@@ -484,6 +483,15 @@
                     <h3 style="margin: 0; text-transform: uppercase; font-size: 1.2em;">Global Costing Estimate Report</h3>
                 </div>
                 <div id="estAiOutput" style="line-height: 1.6; color: #ddd;"></div>
+                
+                <!-- DYNAMIC GOOGLE SEARCH RESULTS INJECTED HERE -->
+                <h3 style="color:#17a2b8; margin-top: 30px; border-bottom: 1px solid #444; padding-bottom: 10px;">💰 Global Market Benchmarks & Competitors</h3>
+                <p style="color: #ddd;">Estimated Global Retail Price Range: <strong style="color: #28a745;" id="dynamicUsdPrice">--</strong> (Approx. <strong style="color: #ffc107;" id="dynamicLkrPrice">--</strong>)</p>
+                <p style="font-size: 0.9em; color: #aaa; margin-top: 5px;">*Images below are real competitive market benchmarks pulled live from Google Search.</p>
+                <div class="competitor-grid" id="dynamicCompetitorGrid">
+                    <!-- Cards will be populated by JS -->
+                </div>
+
             </div>
             <button class="btn-warning" onclick="printEstimate()" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 1.1em; color: black;">🖨️ Print Costing Sheet</button>
         </div>
@@ -570,13 +578,21 @@
             <p><strong>TEAM MEMBERS SHOULD NOT USE THIS TAB.</strong> This section is exclusively for managing the master database. Changes made here will not be saved permanently until you click "Generate Code for GitHub" and update the master index.html file.</p>
         </div>
         
-        <h3 style="color: #ffc107;">🤖 AI Visual Costing Setup</h3>
-        <label>Google Gemini API Key:</label><br>
+        <!-- API KEYS SECTION -->
+        <h3 style="color: #ffc107;">🤖 AI & External API Configuration</h3>
+        
+        <label>Google Gemini API Key (For AI Analysis):</label><br>
+        <input type="password" id="geminiApiKeyInput" placeholder="Paste Gemini API key here" style="width: 100%;" autocomplete="new-password">
+        
+        <label style="margin-top: 10px; display: block;">Google Custom Search API Key (For Competitor Images):</label>
+        <input type="password" id="googleSearchApiKey" placeholder="Paste Google Search API key here" style="width: 100%;" autocomplete="new-password">
+        
+        <label style="margin-top: 10px; display: block;">Google Search Engine ID (CX):</label>
         <div style="display: flex; gap: 10px; align-items: flex-start;">
-            <input type="password" id="geminiApiKeyInput" placeholder="Paste your API key here" style="flex: 1; margin: 0;" autocomplete="new-password">
-            <button class="btn-primary" onclick="saveApiKey()" style="margin: 0; padding: 10px 20px;">Save Key</button>
+            <input type="password" id="googleSearchCx" placeholder="Paste Search Engine ID (CX) here" style="flex: 1; margin: 0;" autocomplete="new-password">
+            <button class="btn-primary" onclick="saveApiKeys()" style="margin: 0; padding: 10px 20px;">Save Keys</button>
         </div>
-        <p style="font-size: 0.85em; color: #aaa; margin-top: 5px;">Your key is stored 100% locally in your browser.</p>
+        <p style="font-size: 0.85em; color: #aaa; margin-top: 5px;">Your keys are stored 100% locally in your browser.</p>
 
         <hr style="border-color: #444; margin: 30px 0;">
 
@@ -935,25 +951,22 @@
     function openHelpModal() { document.getElementById("helpModal").style.display = "flex"; }
     function closeHelpModal() { document.getElementById("helpModal").style.display = "none"; }
 
-    function saveApiKey() {
-        const key = document.getElementById("geminiApiKeyInput").value.trim();
-        if (key) {
-            localStorage.setItem("geminiApiKey", key);
-            alert("API Key saved securely to your browser!");
-        } else {
-            alert("⚠️ Please enter a valid API key.");
-        }
+    function saveApiKeys() {
+        const geminiKey = document.getElementById("geminiApiKeyInput").value.trim();
+        const searchKey = document.getElementById("googleSearchApiKey").value.trim();
+        const searchCx = document.getElementById("googleSearchCx").value.trim();
+        
+        if (geminiKey) localStorage.setItem("geminiApiKey", geminiKey);
+        if (searchKey) localStorage.setItem("googleSearchApiKey", searchKey);
+        if (searchCx) localStorage.setItem("googleSearchCx", searchCx);
+        
+        alert("API Keys saved securely to your browser!");
     }
 
     function getActiveApiKey() {
-        if (masterApiKey && masterApiKey !== "PASTE_YOUR_KEY_HERE" && masterApiKey.trim() !== "") {
-            return masterApiKey.trim();
-        }
+        if (masterApiKey && masterApiKey !== "PASTE_YOUR_KEY_HERE" && masterApiKey.trim() !== "") return masterApiKey.trim();
         const localKey = localStorage.getItem("geminiApiKey");
-        if (localKey && localKey.trim() !== "") {
-            return localKey.trim();
-        }
-        return null; 
+        return localKey && localKey.trim() !== "" ? localKey.trim() : null; 
     }
 
     function printEstimate() {
@@ -968,7 +981,11 @@
         if (!file) return alert("⚠️ Please upload a photo or video of the style/operation first.");
         
         const apiKey = getActiveApiKey();
-        if (!apiKey) return alert("⚠️ No API Key found.");
+        if (!apiKey) return alert("⚠️ No Gemini API Key found in Admin Tab.");
+        
+        const gSearchKey = localStorage.getItem("googleSearchApiKey");
+        const gSearchCx = localStorage.getItem("googleSearchCx");
+        if (!gSearchKey || !gSearchCx) return alert("⚠️ Please enter your Google Custom Search API Key and CX in the Admin Tab to fetch live competitor images.");
 
         const material = document.getElementById("estMaterial").value;
         const soleType = document.getElementById("estSoleType").value;
@@ -1007,7 +1024,7 @@
                     });
                 }
                 URL.revokeObjectURL(fileURL);
-                runGlobalAIAnalysis(imageParts, material, soleType, apiKey);
+                runGlobalAIAnalysis(imageParts, material, soleType, apiKey, gSearchKey, gSearchCx);
             };
             video.onerror = () => {
                 alert("⚠️ Unable to process video format.");
@@ -1018,24 +1035,24 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const base64String = e.target.result.split(',')[1];
-                runGlobalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], material, soleType, apiKey);
+                runGlobalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], material, soleType, apiKey, gSearchKey, gSearchCx);
             };
             reader.readAsDataURL(file);
         }
     }
 
-    async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey) {
+    async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey, gSearchKey, gSearchCx) {
         const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style, sample, or process. The primary upper material is: ${material} and the sole type is: ${soleType}.
         
         Based on the style and complexity of the footwear shown, provide a highly detailed, comprehensive global benchmark SMV breakdown for the ENTIRE footwear manufacturing process (Cutting, Sewing, Assembly).
         
         Crucially, carefully analyze the visual appearance of the *user's specific uploaded footwear* (its primary color, secondary accent colors, unique stitching patterns, unique shape details, texture, etc.).
         
-        Additionally, estimate the global market retail price for this type of shoe in USD and its equivalent in LKR (assuming 1 USD = 328 LKR).
+        Estimate the global market retail price for this type of shoe in USD and its equivalent in LKR (assuming 1 USD = 328 LKR).
         
-        You will generate exactly 2 similar market competitor items. DO NOT write image URLs. ONLY write a short, simple, 5-word visual description of the shoe inside the 'data-desc' attribute as instructed below.
+        Generate a highly specific 3-5 word search query that describes the shoe shown (e.g. "Clarks Mens Leather Oxford Shoe" or "Bata Comfit Wedge Sandal").
         
-        Output ONLY raw HTML (no markdown code blocks) with the following exact structure. Ensure perfect tabular alignment and use unique data for all parts.
+        Output ONLY raw HTML (no markdown code blocks) exactly matching this structure. Do NOT output the competitor grid HTML. 
 
         <div style="background: #111; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
             <h4 style="color:#007bff; margin-top:0;">Footwear Style & Operation Overview</h4>
@@ -1078,24 +1095,8 @@
             <h4 style="color:#ffc107; margin-top:0;">Standard Labor vs. Material Cost Ratio</h4>
             <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the realistic Labor % vs Material % for this specific material and style]</p>
         </div>
-
-        <h3 style="color:#17a2b8; margin-top: 30px; border-bottom: 1px solid #444; padding-bottom: 10px;">💰 Global Market Benchmarks & Competitors</h3>
-        <p style="color: #ddd;">Estimated Global Retail Price Range: <strong style="color: #28a745;">$[Min USD] - $[Max USD]</strong> (Approx. <strong style="color: #ffc107;">LKR [Min LKR] - LKR [Max LKR]</strong>)</p>
-        <p style="font-size: 0.9em; color: #aaa; margin-top: 5px;">*Images below are AI mockups of visually similar styles generated from visual analysis.</p>
-        <div class="competitor-grid">
-            <div class="competitor-card">
-                <div class="img-container"><img src="" class="dynamic-comp-img" data-desc="[WRITE_SHORT_VISUAL_DESCRIPTION_HERE]" alt="Competitor 1"></div>
-                <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 1]</div>
-                <div class="competitor-price">$[USD Price]</div>
-                <div class="competitor-lkr">LKR [LKR Price]</div>
-            </div>
-            <div class="competitor-card">
-                <div class="img-container"><img src="" class="dynamic-comp-img" data-desc="[WRITE_SHORT_VISUAL_DESCRIPTION_HERE]" alt="Competitor 2"></div>
-                <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 2]</div>
-                <div class="competitor-price">$[USD Price]</div>
-                <div class="competitor-lkr">LKR [LKR Price]</div>
-            </div>
-        </div>`;
+        
+        <div id="ai-search-data" data-query="[YOUR_SPECIFIC_SEARCH_QUERY]" data-usd="$[Min] - $[Max]" data-lkr="LKR [Min] - LKR [Max]" style="display:none;"></div>`;
 
         try {
             const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
@@ -1106,40 +1107,69 @@
             });
 
             const data = await response.json();
-            if (!response.ok) return alert(`⚠️ API Error: ${data.error.message}`);
+            if (!response.ok) return alert(`⚠️ Gemini API Error: ${data.error.message}`);
 
             if (data.candidates && data.candidates[0]) {
                 let aiText = data.candidates[0].content.parts[0].text;
                 aiText = aiText.replace(/```html/g, "").replace(/```/g, "").trim();
                 
                 document.getElementById("estAiOutput").innerHTML = aiText;
+                
+                // Extract hidden search data generated by Gemini
+                const searchDataEl = document.getElementById('ai-search-data');
+                let searchQuery = "footwear";
+                let usdPrice = "$20 - $40";
+                let lkrPrice = "LKR 6,560 - LKR 13,120";
+                
+                if (searchDataEl) {
+                    searchQuery = searchDataEl.getAttribute('data-query') || searchQuery;
+                    usdPrice = searchDataEl.getAttribute('data-usd') || usdPrice;
+                    lkrPrice = searchDataEl.getAttribute('data-lkr') || lkrPrice;
+                }
+                
+                document.getElementById('dynamicUsdPrice').innerText = usdPrice;
+                document.getElementById('dynamicLkrPrice').innerText = lkrPrice;
+                
+                // Fetch real images from Google Custom Search
+                await fetchGoogleImages(searchQuery, gSearchKey, gSearchCx);
 
-                const compImages = document.querySelectorAll('#estAiOutput .dynamic-comp-img');
-                compImages.forEach((img, index) => {
-                    let rawDesc = img.getAttribute('data-desc') || "generic shoe";
-                    const safeUrlDesc = encodeURIComponent(rawDesc.trim());
-                    
-                    img.alt = `Loading Competitor ${index + 1}...`;
-                    
-                    img.onerror = function() {
-                        this.onerror = null; 
-                        this.src = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=300&fit=crop"; 
-                        this.alt = "Competitor Placeholder (AI Server Busy)";
-                    };
-                    
-                    setTimeout(() => {
-                        img.src = `https://image.pollinations.ai/prompt/professional_product_photography_of_shoe_${safeUrlDesc}?width=400&height=300&nologo=true&seed=${index + 1}`;
-                    }, index * 2500);
-                });
-
-                document.getElementById("estResultArea").style.display = "block";
             }
         } catch (error) {
-            alert("⚠️ Network Error.");
+            alert("⚠️ Network Error during AI Analysis.");
         } finally {
             document.getElementById("estLoadingMsg").style.display = "none";
             document.getElementById("estMediaInput").value = ""; 
         }
+    }
+    
+    async function fetchGoogleImages(query, apiKey, cx) {
+        const grid = document.getElementById("dynamicCompetitorGrid");
+        grid.innerHTML = `<p style="color: #17a2b8; width: 100%; text-align: center;">Fetching live market data for "${query}"...</p>`;
+        
+        try {
+            const searchUrl = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&cx=${cx}&key=${apiKey}&searchType=image&num=2`;
+            const response = await fetch(searchUrl);
+            const data = await response.json();
+            
+            if (data.items && data.items.length >= 2) {
+                grid.innerHTML = `
+                    <div class="competitor-card">
+                        <div class="img-container"><img src="${data.items[0].link}" alt="Competitor 1"></div>
+                        <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">${data.items[0].title}</div>
+                    </div>
+                    <div class="competitor-card">
+                        <div class="img-container"><img src="${data.items[1].link}" alt="Competitor 2"></div>
+                        <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">${data.items[1].title}</div>
+                    </div>
+                `;
+            } else {
+                throw new Error("No image results found.");
+            }
+        } catch (error) {
+            grid.innerHTML = `<p style="color: #dc3545; width: 100%; text-align: center;">⚠️ Failed to fetch live Google images. Please verify your Custom Search API key and CX in the Admin tab.</p>`;
+        }
+        
+        document.getElementById("estResultArea").style.display = "block";
     }
 
     async function handleAIScan(event) {
@@ -1733,9 +1763,12 @@
         populateDropdown(operations);
         
         const savedApiKey = localStorage.getItem("geminiApiKey");
-        if (savedApiKey) {
-            document.getElementById("geminiApiKeyInput").value = savedApiKey;
-        }
+        const savedSearchKey = localStorage.getItem("googleSearchApiKey");
+        const savedSearchCx = localStorage.getItem("googleSearchCx");
+        
+        if (savedApiKey) document.getElementById("geminiApiKeyInput").value = savedApiKey;
+        if (savedSearchKey) document.getElementById("googleSearchApiKey").value = savedSearchKey;
+        if (savedSearchCx) document.getElementById("googleSearchCx").value = savedSearchCx;
         
         const urlParams = new URLSearchParams(window.location.search);
         const sharedIds = urlParams.get('b');
