@@ -263,7 +263,7 @@
             margin-bottom: 10px;
             border: 1px solid #333;
             position: relative;
-            background: #222; /* Add dark background while loading */
+            background: #222; 
             min-height: 110px;
             display: flex;
             align-items: center;
@@ -352,13 +352,13 @@
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab('viewer', event)">Video Viewer</button>
         <button class="tab-btn" onclick="openTab('estimator', event)">AI SMV Estimator</button>
-        <button class="tab-btn" onclick="openTab('bulletin', event)">Operation Bulletin</button>
+        <button class="tab-btn" onclick="openTab('bulletin', event)">Social Media OP Bulletin</button>
         <button class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d;">Manage (Admin)</button>
     </div>
 
     <!-- Tab 1: Video Viewer -->
     <div id="viewer" class="tab-content active">
-        <label>Search Local Master Database:</label><br>
+        <label>Search operation:</label><br>
         <input type="search" id="searchInput" name="app_search_query_no_autofill" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other" onkeyup="filterOperations()" placeholder="Type to filter existing operations..." style="width: 100%;"><br>
 
         <label>Select Operation:</label><br>
@@ -424,7 +424,7 @@
     <!-- Tab 2: Global AI SMV Estimator -->
     <div id="estimator" class="tab-content">
         <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI SMV Estimator</h3>
-        <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style/process to generate a comprehensive, multi-department global benchmark SMV breakdown (Cutting, Sewing, and Assembly) along with the standard Labor vs. Material ratio.</p>
+        <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style to generate preliminary, multi-department global benchmark SMVs (Cutting, Sewing, and Assembly) and estimated Labor vs. Material ratios.<br><br><i style="color: #ffc107;">*Note: Because external media cannot verify hidden internal construction details (such as stiffeners, reinforcers, shank placement, and internal padding), these figures serve as baseline estimates rather than finalized production standards.</i></p>
         
         <img src="https://ik.imagekit.io/qegfiwkq6/Bgrd%20image.jpg" alt="AI Footwear Robotics" style="width: 50%; height: 125px; object-fit: cover; border-radius: 8px; margin-bottom: 25px; border: 2px solid #17a2b8; display: block;">
         
@@ -489,7 +489,7 @@
         </div>
     </div>
 
-    <!-- Tab 3: Operation Bulletin -->
+    <!-- Tab 3: Social Media OP Bulletin -->
     <div id="bulletin" class="tab-content">
         <div class="shared-header">👟 IE Operations Guide</div>
         
@@ -570,7 +570,6 @@
             <p><strong>TEAM MEMBERS SHOULD NOT USE THIS TAB.</strong> This section is exclusively for managing the master database. Changes made here will not be saved permanently until you click "Generate Code for GitHub" and update the master index.html file.</p>
         </div>
         
-        <!-- AI API KEY SECTION -->
         <h3 style="color: #ffc107;">🤖 AI Visual Costing Setup</h3>
         <label>Google Gemini API Key:</label><br>
         <div style="display: flex; gap: 10px; align-items: flex-start;">
@@ -588,7 +587,6 @@
         <label style="color: #007bff; font-weight:bold;">Video Link (ImageKit or YouTube):</label><br>
         <input type="text" id="newFileName" placeholder="e.g. https://ik.imagekit.io/... or https://youtube.com/..." style="width: 100%; border: 1px solid #007bff;"><br>
 
-        <!-- ENLARGED SNAP-TO-GRID CANVAS SECTION -->
         <div class="canvas-container">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Vector Template Shape:</label>
@@ -669,7 +667,7 @@
         </div>
 
         <div class="help-guide-section">
-            <h4>📋 3. Operation Bulletin (Sharing & Matching)</h4>
+            <h4>📋 3. Social Media OP Bulletin (Sharing & Matching)</h4>
             <ul>
                 <li><strong>📸 AI Visual Scan:</strong> Take a photo of a shoe sample from your phone and upload it here to find matching operations from our local database.</li>
                 <li><strong>🌐 Web Match:</strong> Upload a photo of unknown machinery. The AI will generate direct YouTube search links to find global tutorials.</li>
@@ -691,16 +689,13 @@
 </div>
 
 <script>
-    // --- 1. MASTER API KEY ---
     let keyPart1 = "AQ.Ab8RN6LRfqS9YBFC7N";
     let keyPart2 = "kxqGLqtDhkr5lAj2hD4RB6xJQhdC1aHw";
     let keyPart3 = "";
     let keyPart4 = "";
     
     let masterApiKey = keyPart1 + keyPart2 + keyPart3 + keyPart4;
-    // -----------------------------------------------------------------------
 
-    // --- THIS IS YOUR MASTER LIST. ONLY YOU EDIT THIS IN GITHUB! ---
     let defaultOperations = [
         { name: "Toe Cap Attaching", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1512409466993771_hd.mp4?tr=orig-true", smvPair: 0.6900, shape: "" },
         { name: "Insole Mounting", file: "https://ik.imagekit.io/qegfiwkq6/snapsave-app_1279161734388912_hd.mp4?tr=orig-true", smvPair: 0.1530, shape: "" },
@@ -738,7 +733,6 @@
         { name: "Quarter Large Deco Attaching - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Quarter%20Large%20Deco%20Attaching%20-%20SNPB.mp4?tr=orig-true", smvPair: 2.3767, shape: "" },
         { name: "Back lining attaching - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Back%20lining%20attaching%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.4792, shape: "" }
     ];
-    // ---------------------------------------------------------------
 
     let savedData = localStorage.getItem("footwearOperations");
     let operations = savedData ? JSON.parse(savedData) : defaultOperations;
@@ -1039,7 +1033,7 @@
         
         Additionally, estimate the global market retail price for this type of shoe in USD and its equivalent in LKR (assuming 1 USD = 328 LKR).
         
-        You will generate 5 similar market competitor items. DO NOT write image URLs. ONLY write a short, simple, 5-word visual description of the shoe inside the 'data-desc' attribute as instructed below.
+        You will generate exactly 2 similar market competitor items. DO NOT write image URLs. ONLY write a short, simple, 5-word visual description of the shoe inside the 'data-desc' attribute as instructed below.
         
         Output ONLY raw HTML (no markdown code blocks) with the following exact structure. Ensure perfect tabular alignment and use unique data for all parts.
 
@@ -1101,24 +1095,6 @@
                 <div class="competitor-price">$[USD Price]</div>
                 <div class="competitor-lkr">LKR [LKR Price]</div>
             </div>
-            <div class="competitor-card">
-                <div class="img-container"><img src="" class="dynamic-comp-img" data-desc="[WRITE_SHORT_VISUAL_DESCRIPTION_HERE]" alt="Competitor 3"></div>
-                <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 3]</div>
-                <div class="competitor-price">$[USD Price]</div>
-                <div class="competitor-lkr">LKR [LKR Price]</div>
-            </div>
-            <div class="competitor-card">
-                <div class="img-container"><img src="" class="dynamic-comp-img" data-desc="[WRITE_SHORT_VISUAL_DESCRIPTION_HERE]" alt="Competitor 4"></div>
-                <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 4]</div>
-                <div class="competitor-price">$[USD Price]</div>
-                <div class="competitor-lkr">LKR [LKR Price]</div>
-            </div>
-            <div class="competitor-card">
-                <div class="img-container"><img src="" class="dynamic-comp-img" data-desc="[WRITE_SHORT_VISUAL_DESCRIPTION_HERE]" alt="Competitor 5"></div>
-                <div class="comp-title" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">[Competitor Brand/Model 5]</div>
-                <div class="competitor-price">$[USD Price]</div>
-                <div class="competitor-lkr">LKR [LKR Price]</div>
-            </div>
         </div>`;
 
         try {
@@ -1138,7 +1114,6 @@
                 
                 document.getElementById("estAiOutput").innerHTML = aiText;
 
-                // --- STAGGERED LOADING WITH FALLBACK ---
                 const compImages = document.querySelectorAll('#estAiOutput .dynamic-comp-img');
                 compImages.forEach((img, index) => {
                     let rawDesc = img.getAttribute('data-desc') || "generic shoe";
@@ -1146,17 +1121,15 @@
                     
                     img.alt = `Loading Competitor ${index + 1}...`;
                     
-                    // Fallback to static image if server rejects request
                     img.onerror = function() {
                         this.onerror = null; 
                         this.src = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=300&fit=crop"; 
                         this.alt = "Competitor Placeholder (AI Server Busy)";
                     };
                     
-                    // 4-second stagger per image
                     setTimeout(() => {
                         img.src = `https://image.pollinations.ai/prompt/professional_product_photography_of_shoe_${safeUrlDesc}?width=400&height=300&nologo=true&seed=${index + 1}`;
-                    }, index * 4000);
+                    }, index * 2500);
                 });
 
                 document.getElementById("estResultArea").style.display = "block";
