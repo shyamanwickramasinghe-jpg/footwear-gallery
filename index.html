@@ -369,7 +369,7 @@
     <!-- Tab 2: Global AI SMV Estimator -->
     <div id="estimator" class="tab-content">
         <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI SMV Estimator</h3>
-        <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style to generate preliminary, multi-department global benchmark SMVs (Cutting, Sewing, and Assembly) and estimated Labor vs. Material ratios.<br><br><i style="color: #ffc107;">*Note: Because external media cannot verify hidden internal construction details (such as stiffeners, reinforcers, shank placement, and internal padding), these figures serve as baseline estimates rather than finalized production standards.</i></p>
+        <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style to generate preliminary, multi-department global benchmark SMVs and estimated Labor vs. Material ratios.<br><br><i style="color: #ffc107;">*Note: The AI now accounts for deep internal sub-assembly, handling delays, and finishing operations to push baselines closer to real-world floor conditions.</i></p>
         
         <img src="https://ik.imagekit.io/qegfiwkq6/Bgrd%20image.jpg" alt="AI Footwear Robotics" style="width: 50%; height: 125px; object-fit: cover; border-radius: 8px; margin-bottom: 25px; border: 2px solid #17a2b8; display: block;">
         
@@ -434,7 +434,7 @@
                 <p style="color: #ddd;">Estimated Global Retail Price Range: <strong style="color: #28a745;" id="dynamicUsdPrice">--</strong> (Approx. <strong style="color: #ffc107;" id="dynamicLkrPrice">--</strong>)</p>
                 
                 <div style="margin-top: 15px; text-align: center;">
-                    <a id="shoppingBtn" href="#" target="_blank" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: background 0.3s; width: 80%;">🛍️ View Live Competitor Prices on Google</a>
+                    <a id="shoppingBtn" href="#" target="_blank" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: background 0.3s; width: 80%;">🛍️ View Live Competitor Prices on Google Shopping</a>
                 </div>
 
             </div>
@@ -966,48 +966,56 @@
     }
 
     async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey) {
-        const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style, sample, or process. The primary upper material is: ${material} and the sole type is: ${soleType}.
+        const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style. Upper material: ${material}. Sole type: ${soleType}.
         
-        Based on the style and complexity of the footwear shown, provide a highly detailed, comprehensive global benchmark SMV breakdown for the ENTIRE footwear manufacturing process (Cutting, Sewing, Assembly).
+        CRITICAL INSTRUCTION: Your baseline estimates must account for heavy real-world factory floor conditions, pushing the final SMV significantly higher than theoretical minimums. 
+        - Include all hidden internal operations (lining preparation, internal reinforcements, stiffeners, insole patches).
+        - Include all micro-operations (handling time between stations, thread trimming, marking, skiving, sorting, bundling, and in-line quality checking).
+        - Assume a high level of manual handling and explicitly double the standard allowances for fatigue and bundling.
         
-        Crucially, carefully analyze the visual appearance of the *user's specific uploaded footwear* (its primary color, secondary accent colors, unique stitching patterns, unique shape details, texture, etc.).
+        Estimate the global market retail price for this type of shoe in USD and LKR (assuming 1 USD = 328 LKR).
+        Generate a highly specific 3-5 word search query describing the shoe.
         
-        Estimate the global market retail price for this type of shoe in USD and its equivalent in LKR (assuming 1 USD = 328 LKR).
-        
-        Generate a highly specific 3-5 word search query that describes the shoe shown (e.g. "Clarks Mens Leather Oxford Shoe" or "Bata Comfit Wedge Sandal").
-        
-        Output ONLY raw HTML (no markdown code blocks) exactly matching this structure. Do NOT output the competitor grid HTML. 
+        Output ONLY raw HTML exactly matching this structure. 
 
         <div style="background: #111; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
             <h4 style="color:#007bff; margin-top:0;">Footwear Style & Operation Overview</h4>
-            <p style="margin-bottom:0; color:#ddd;">[Write 2 sentences describing the specific visual style, colors, complexity, and manufacturing requirements based on your visual analysis]</p>
+            <p style="margin-bottom:0; color:#ddd;">[Write 2 sentences describing the specific visual style, internal hidden complexities, and manual handling requirements based on your visual analysis]</p>
         </div>
         
-        <h3 style="color:#ffc107; margin-bottom: 10px;">✂️ Cutting Process (Component-Wise)</h3>
+        <h3 style="color:#ffc107; margin-bottom: 10px;">✂️ 1. Cutting & Preparation</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
-            <thead><tr><th>Component Name</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>
-                [Add 5-7 key components with their realistic benchmark SMV times]
-            </tbody>
-            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Cutting Subtotal:</td><td style="text-align: right; color:#ffc107; font-family: monospace;">[0.00]</td></tr></tfoot>
+            <thead><tr><th>Operation Name (Include Skiving/Marking)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>[Add 6-10 realistic operations]</tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
 
-        <h3 style="color:#ffc107; margin-bottom: 10px;">🪡 Sewing / Stitching Process</h3>
+        <h3 style="color:#ffc107; margin-bottom: 10px;">🧵 2. Pre-Stitching & Sub-Assembly</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
-            <thead><tr><th>Operation Name</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>
-                [List 12 to 18 highly specific sewing operations matching the style's complexity, focusing on machine types]
-            </tbody>
-            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Sewing Subtotal:</td><td style="text-align: right; color:#ffc107; font-family: monospace;">[0.00]</td></tr></tfoot>
+            <thead><tr><th>Operation Name (Include Lining/Handling)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>[Add 6-10 operations]</tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
 
-        <h3 style="color:#ffc107; margin-bottom: 10px;">🔨 Assembly / Bottoming Process</h3>
+        <h3 style="color:#ffc107; margin-bottom: 10px;">🪡 3. Sewing & Stitching</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
-            <thead><tr><th>Operation Name</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>
-                [Add 8-12 assembly operations specific to ${soleType}]
-            </tbody>
-            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Assembly Subtotal:</td><td style="text-align: right; color:#ffc107; font-family: monospace;">[0.00]</td></tr></tfoot>
+            <thead><tr><th>Operation Name (Include Trimming/Checking)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>[Add 12-18 operations]</tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
+        </table>
+
+        <h3 style="color:#ffc107; margin-bottom: 10px;">🔨 4. Lasting & Bottoming</h3>
+        <table class="bulletin-table" style="margin-bottom: 25px;">
+            <thead><tr><th>Operation Name (Specific to ${soleType})</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>[Add 10-15 operations]</tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
+        </table>
+
+        <h3 style="color:#ffc107; margin-bottom: 10px;">📦 5. Finishing & Packing</h3>
+        <table class="bulletin-table" style="margin-bottom: 25px;">
+            <thead><tr><th>Operation Name (Include Cleaning/Insock/Box)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>[Add 8-12 operations]</tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
 
         <div style="background: #198754; border: 2px solid #28a745; padding: 15px; border-radius: 8px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
@@ -1017,7 +1025,7 @@
 
         <div style="background: #222; border-left: 4px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 4px;">
             <h4 style="color:#ffc107; margin-top:0;">Standard Labor vs. Material Cost Ratio</h4>
-            <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the realistic Labor % vs Material % for this specific material and style]</p>
+            <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the realistic Labor % vs Material % for this specific material and style, factoring in the high manual labor allowances]</p>
         </div>
         
         <div id="ai-search-data" data-query="[YOUR_SPECIFIC_SEARCH_QUERY]" data-usd="$[Min] - $[Max]" data-lkr="LKR [Min] - LKR [Max]" style="display:none;"></div>`;
