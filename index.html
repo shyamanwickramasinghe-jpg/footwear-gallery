@@ -685,7 +685,7 @@ let keyPart1 = "BOTS_ARE_BLOCKED_";
         { name: "Back lining attaching - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Back%20lining%20attaching%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.4792, shape: "" }
     ];
 
-    let savedData = localStorage.getItem("footwearOperations");
+    let savedData = localStorage.getItem("footwearOperations_Final");
     let operations = savedData ? JSON.parse(savedData) : defaultOperations;
     let currentBaseSMV = 0; 
     let ytPlayerAPI_Normal, ytPlayerAPI_Slomo, modalYtAPI;
@@ -700,7 +700,7 @@ let keyPart1 = "BOTS_ARE_BLOCKED_";
     let isDragging = false;
     const gridSize = 10;
 
-    function saveToMemory() { localStorage.setItem("footwearOperations", JSON.stringify(operations)); }
+    function saveToMemory() { localStorage.setItem("footwearOperations_Final", JSON.stringify(operations)); }
 
     function toggleDropdown(optionsId) {
         const target = document.getElementById(optionsId);
