@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
     <title>DSI FOOTTECH: AI SMV Estimator & Social Media Trending Operations</title>
-    <!-- Load YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         body {
@@ -311,14 +310,14 @@
             </svg>
             <h2 style="color: #17a2b8;">AI SMV Estimator & Social Media Trending Operations</h2>
         </div>
-        <button class="help-btn" onclick="openHelpModal()">📖 How to Use</button>
+        <button type="button" class="help-btn" onclick="openHelpModal()">📖 How to Use</button>
     </div>
 
 <div class="tabs">
-        <button class="tab-btn active" onclick="openTab('estimator', event)">AI SMV Estimator</button>
-        <button class="tab-btn" onclick="openTab('viewer', event)">Social Media Operation Viewer</button>
-        <button class="tab-btn" onclick="openTab('bulletin', event)">Social Media OP Bulletin</button>
-        <button class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d;">Manage (Admin)</button>
+        <button type="button" class="tab-btn active" onclick="openTab('estimator', event)">AI SMV Estimator</button>
+        <button type="button" class="tab-btn" onclick="openTab('viewer', event)">Social Media Operation Viewer</button>
+        <button type="button" class="tab-btn" onclick="openTab('bulletin', event)">Social Media OP Bulletin</button>
+        <button type="button" class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d;">Manage (Admin)</button>
     </div>
 
     <!-- Tab 1: Video Viewer -->
@@ -442,7 +441,7 @@
             </div>
         </div>
         
-        <button class="btn-info" onclick="generateGlobalEstimate()" style="width: 100%; padding: 12px; font-size: 1.1em; background: #17a2b8;">🧠 Generate Global Benchmark Estimate</button>
+        <button type="button" class="btn-info" onclick="generateGlobalEstimate()" style="width: 100%; padding: 12px; font-size: 1.1em; background: #17a2b8;">🧠 Generate Global Benchmark Estimate</button>
 
         <div id="estLoadingMsg" style="display:none; color: #17a2b8; font-weight: bold; margin-top: 15px; text-align: center; background: #222; padding: 10px; border-radius: 6px; border: 1px solid #17a2b8;">
             🧠 Analyzing material and fetching live search data... Please wait...
@@ -464,7 +463,7 @@
                 </div>
 
             </div>
-            <button class="btn-warning" onclick="printEstimate()" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 1.1em; color: black;">🖨️ Print Costing Sheet</button>
+            <button type="button" class="btn-warning" onclick="printEstimate()" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 1.1em; color: black;">🖨️ Print Costing Sheet</button>
         </div>
     </div>
 
@@ -477,10 +476,10 @@
             
             <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
                 <input type="search" id="bulletinSearch" autocomplete="off" onkeyup="renderBulletinList()" placeholder="Search to filter..." style="flex: 1; min-width: 200px; margin: 0;">
-                <button class="btn-warning" onclick="document.getElementById('aiImageInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">📸 AI Visual Scan</button>
+                <button type="button" class="btn-warning" onclick="document.getElementById('aiImageInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">📸 AI Visual Scan</button>
                 <input type="file" id="aiImageInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleAIScan(event)">
                 
-                <button class="btn-info" onclick="document.getElementById('aiWebInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">🌐 Web & YouTube Match</button>
+                <button type="button" class="btn-info" onclick="document.getElementById('aiWebInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">🌐 Web & YouTube Match</button>
                 <input type="file" id="aiWebInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleWebScan(event)">
             </div>
             
@@ -490,7 +489,7 @@
 
             <div id="aiResultContainer" style="display:none; color: #fff; background: #198754; font-weight: bold; margin-bottom: 15px; padding: 10px; border-radius: 6px; border: 1px solid #218838; justify-content: space-between; align-items: center;">
                 <span id="aiResultText">✅ AI Scan Complete! Check the list below.</span>
-                <button onclick="clearAIFilter()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Clear Filter</button>
+                <button type="button" onclick="clearAIFilter()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Clear Filter</button>
             </div>
             
             <div class="bulletin-list" style="padding: 0;">
@@ -510,8 +509,8 @@
                 </table>
             </div>
             
-            <button class="btn-primary" onclick="generateBulletinTable()" style="width: 100%; font-size: 1.1em; padding: 12px; margin-top: 15px;">Create Bulletin List</button>
-            <button class="btn-danger" onclick="clearBulletin()" style="width: 100%; margin-top: 10px; padding: 12px; font-size: 1.1em;">Clear All Selections & Start Over</button>
+            <button type="button" class="btn-primary" onclick="generateBulletinTable()" style="width: 100%; font-size: 1.1em; padding: 12px; margin-top: 15px;">Create Bulletin List</button>
+            <button type="button" class="btn-danger" onclick="clearBulletin()" style="width: 100%; margin-top: 10px; padding: 12px; font-size: 1.1em;">Clear All Selections & Start Over</button>
         </div>
 
         <div id="bulletinResultArea" style="display: none; margin-top: 30px;">
@@ -533,10 +532,10 @@
             </table>
 
             <div class="bulletin-creation-tools" style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-                <button onclick="copyShareLink()" style="flex: 1; min-width: 150px; background: #007bff;">📋 Copy WhatsApp Link</button>
-                <button onclick="sendIEEmail()" style="flex: 1; min-width: 150px; background: #6f42c1;">📧 Send via Email</button>
-                <button onclick="downloadCSV()" style="flex: 1; min-width: 150px; background: #28a745;">⬇️ Download CSV</button>
-                <button onclick="window.print()" style="flex: 1; min-width: 150px; background: #ffc107; color: #000;">🖨️ Print PDF</button>
+                <button type="button" onclick="copyShareLink()" style="flex: 1; min-width: 150px; background: #007bff;">📋 Copy WhatsApp Link</button>
+                <button type="button" onclick="sendIEEmail()" style="flex: 1; min-width: 150px; background: #6f42c1;">📧 Send via Email</button>
+                <button type="button" onclick="downloadCSV()" style="flex: 1; min-width: 150px; background: #28a745;">⬇️ Download CSV</button>
+                <button type="button" onclick="window.print()" style="flex: 1; min-width: 150px; background: #ffc107; color: #000;">🖨️ Print PDF</button>
             </div>
         </div>
     </div>
@@ -554,7 +553,7 @@
         <label>Google Gemini API Key (For AI Analysis):</label><br>
         <div style="display: flex; gap: 10px; align-items: flex-start;">
             <input type="password" id="geminiApiKeyInput" placeholder="Paste Gemini API key here" style="flex: 1; margin: 0;" autocomplete="new-password">
-            <button class="btn-primary" onclick="saveApiKeys()" style="margin: 0; padding: 10px 20px;">Save Key</button>
+            <button type="button" class="btn-primary" onclick="saveApiKeys()" style="margin: 0; padding: 10px 20px;">Save Key</button>
         </div>
         <p style="font-size: 0.85em; color: #aaa; margin-top: 5px;">Your key is securely baked into the background code. Only change this if you generate a new one.</p>
 
@@ -572,8 +571,8 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Vector Template Shape:</label>
                 <div>
-                    <button class="btn-warning" onclick="undoCanvas()" style="padding: 4px 10px; font-size: 0.85em; margin-right: 5px; color: #000;">🔙 Undo</button>
-                    <button onclick="clearCanvas()" style="background: #555; padding: 4px 10px; font-size: 0.85em;">🗑️ Clear Sketch</button>
+                    <button type="button" class="btn-warning" onclick="undoCanvas()" style="padding: 4px 10px; font-size: 0.85em; margin-right: 5px; color: #000;">🔙 Undo</button>
+                    <button type="button" onclick="clearCanvas()" style="background: #555; padding: 4px 10px; font-size: 0.85em;">🗑️ Clear Sketch</button>
                 </div>
             </div>
             <canvas id="drawingCanvas" width="600" height="300"></canvas>
@@ -581,11 +580,11 @@
         </div>
 
         <div class="input-group">
-            <div><label>Observed Time (sec):</label><br><input type="number" step="0.1" id="obsTime" placeholder="e.g. 41.4" style="width: 100%;" required></div>
+            <div><label>Observed Time (sec):</label><br><input type="number" step="0.1" id="obsTime" placeholder="e.g. 41.4" style="width: 100%;"></div>
             <div><label>Perf. Rating (%):</label><br><input type="number" id="perfRating" value="100" style="width: 100%;"></div>
             <div><label>Allowances (%):</label><br><input type="number" id="allowance" value="15" style="width: 100%;"></div>
         </div>
-        <button onclick="addOperation()" style="margin-top: 5px; width: 100%; padding: 12px; font-size: 1.1em;">+ Add Operation to Local List</button>
+        <button type="button" onclick="addOperation()" style="margin-top: 5px; width: 100%; padding: 12px; font-size: 1.1em;">+ Add Operation to Local List</button>
 
         <hr style="border-color: #444; margin: 30px 0;">
 
@@ -594,11 +593,11 @@
             <select id="deleteSelect" style="flex: 1;">
                 <option value="">-- Select to Delete --</option>
             </select>
-            <button class="btn-danger" onclick="deleteOperation()" style="height: 42px; margin-top: 5px; padding: 0 20px;">Delete</button>
+            <button type="button" class="btn-danger" onclick="deleteOperation()" style="height: 42px; margin-top: 5px; padding: 0 20px;">Delete</button>
         </div>
 
         <hr style="border-color: #444; margin: 30px 0;">
-        <button class="btn-warning" onclick="generateCode()" style="font-size: 1.1em; padding: 12px; font-weight: bold;">Generate Code for GitHub</button>
+        <button type="button" class="btn-warning" onclick="generateCode()" style="font-size: 1.1em; padding: 12px; font-weight: bold;">Generate Code for GitHub</button>
         <textarea id="exportArea" readonly></textarea>
     </div>
 
@@ -612,7 +611,7 @@
         <div id="modalYtWrapper" style="width: 100%; height: 50vh; border-radius: 8px; display: none;">
             <div id="modalYtPlayer"></div>
         </div>
-        <button class="modal-close" onclick="closePreviewModal()">Close Preview</button>
+        <button type="button" class="modal-close" onclick="closePreviewModal()">Close Preview</button>
     </div>
 </div>
 
@@ -622,7 +621,7 @@
         <h3 style="margin-top: 0; color: #17a2b8;">🌐 Global Similarity Search Results</h3>
         <div id="webResultBody" style="color: #fff; line-height: 1.6; padding: 15px; background: #222; border-radius: 6px;">
         </div>
-        <button class="modal-close" onclick="closeWebResultModal()" style="background: #333; border: 1px solid #17a2b8; color: #17a2b8;">Close</button>
+        <button type="button" class="modal-close" onclick="closeWebResultModal()" style="background: #333; border: 1px solid #17a2b8; color: #17a2b8;">Close</button>
     </div>
 </div>
 
@@ -668,7 +667,7 @@
             </ul>
         </div>
         
-        <button class="modal-close" style="background: #333; border: 1px solid #ffc107; color: #ffc107;" onclick="closeHelpModal()">Got it, let's start!</button>
+        <button type="button" class="modal-close" style="background: #333; border: 1px solid #ffc107; color: #ffc107;" onclick="closeHelpModal()">Got it, let's start!</button>
     </div>
 </div>
 
@@ -714,475 +713,266 @@ let keyPart1 = "BOTS_ARE_BLOCKED_";
         { name: "Back lining attaching - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Back%20lining%20attaching%20-%20SNPB.mp4?tr=orig-true", smvPair: 0.4792, shape: "" },
         { name: "Counter Patch, Collar Padding Pasting & Turn - 2D Upper", file: "https://ik.imagekit.io/qegfiwkq6/Counter%20Patch,%20Collar%20Padding%20Pasting%20&%20Turn%20-%202D%20Upper.mp4?tr=orig-true", smvPair: 1.1117, shape: "" },
         { name: "Quarter Nylon Strap loop jointing - SNPB", file: "https://ik.imagekit.io/qegfiwkq6/Quarter%20Nylon%20Strap%20loop%20jointing%20-%20SNPB.mp4?tr=orig-true", smvPair: 1.6100, shape: "data:image/png;base64,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" }
-        ];
+    ];
 
-        // Store active data internally
-        let operations = defaultOperations;
-        let currentBaseSMV = 0; 
-        let ytPlayerAPI_Normal, ytPlayerAPI_Slomo, modalYtAPI;
-        let currentAiFilter = null; 
-        let checkedBulletinIndices = new Set(); 
+    let operations = defaultOperations;
+    let currentBaseSMV = 0; 
+    let ytPlayerAPI_Normal, ytPlayerAPI_Slomo, modalYtAPI;
+    let currentAiFilter = null; 
+    let checkedBulletinIndices = new Set(); 
 
-        // Vector Canvas Logic
-        let canvas, ctx;
-        let anchors = [];
-        let controls = [];
-        let draggingControlIndex = -1;
-        let draggingType = null; // 'anchor' or 'control'
-        let isDragging = false;
-        const gridSize = 10;
+    let canvas, ctx;
+    let anchors = [];
+    let controls = [];
+    let draggingControlIndex = -1;
+    let draggingType = null;
+    let isDragging = false;
+    const gridSize = 10;
 
-        function toggleDropdown(optionsId) {
-            const target = document.getElementById(optionsId);
-            const isOpen = target.classList.contains('open');
+    function toggleDropdown(optionsId) {
+        const target = document.getElementById(optionsId);
+        const isOpen = target.classList.contains('open');
+        closeAllDropdowns();
+        if (!isOpen) {
+            target.classList.add('open');
+        }
+    }
+
+    function selectDropdownOption(hiddenInputId, dropdownContainerId, value) {
+        document.getElementById(hiddenInputId).value = value;
+        const selectedDisplay = document.querySelector(`#${dropdownContainerId} .dropdown-selected`);
+        if (selectedDisplay) {
+            selectedDisplay.innerText = value;
+        }
+        closeAllDropdowns();
+    }
+
+    function closeAllDropdowns() {
+        document.querySelectorAll('.dropdown-options').forEach(el => el.classList.remove('open'));
+    }
+
+    window.addEventListener('click', function(e) {
+        if (!e.target.closest('.custom-dropdown')) {
             closeAllDropdowns();
-            if (!isOpen) {
-                target.classList.add('open');
-            }
         }
+    });
 
-        function selectDropdownOption(hiddenInputId, dropdownContainerId, value) {
-            document.getElementById(hiddenInputId).value = value;
-            const selectedDisplay = document.querySelector(`#${dropdownContainerId} .dropdown-selected`);
-            if (selectedDisplay) {
-                selectedDisplay.innerText = value;
-            }
-            closeAllDropdowns();
-        }
+    function initCanvas() {
+        canvas = document.getElementById('drawingCanvas');
+        if (!canvas) return;
+        ctx = canvas.getContext('2d');
+        
+        canvas.addEventListener('mousedown', handleGridDown);
+        canvas.addEventListener('mousemove', handleGridMove);
+        canvas.addEventListener('mouseup', handleGridUp);
+        canvas.addEventListener('mouseout', handleGridUp);
+        
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleGridDown(e); }, {passive: false});
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleGridMove(e); }, {passive: false});
+        canvas.addEventListener('touchend', handleGridUp);
 
-        function closeAllDropdowns() {
-            document.querySelectorAll('.dropdown-options').forEach(el => el.classList.remove('open'));
-        }
+        drawGrid();
+    }
 
-        window.addEventListener('click', function(e) {
-            if (!e.target.closest('.custom-dropdown')) {
-                closeAllDropdowns();
-            }
-        });
-
-        function initCanvas() {
-            canvas = document.getElementById('drawingCanvas');
-            if (!canvas) return;
-            ctx = canvas.getContext('2d');
-            
-            canvas.addEventListener('mousedown', handleGridDown);
-            canvas.addEventListener('mousemove', handleGridMove);
-            canvas.addEventListener('mouseup', handleGridUp);
-            canvas.addEventListener('mouseout', handleGridUp);
-            
-            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleGridDown(e); }, {passive: false});
-            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleGridMove(e); }, {passive: false});
-            canvas.addEventListener('touchend', handleGridUp);
-
-            drawGrid();
-        }
-
-        function drawGrid() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.fillStyle = '#666';
-            for(let x=gridSize; x<canvas.width; x+=gridSize) {
-                for(let y=gridSize; y<canvas.height; y+=gridSize) {
-                    ctx.beginPath();
-                    ctx.arc(x, y, 1.5, 0, Math.PI*2);
-                    ctx.fill();
-                }
-            }
-            
-            if (anchors.length > 0) {
+    function drawGrid() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = '#666';
+        for(let x=gridSize; x<canvas.width; x+=gridSize) {
+            for(let y=gridSize; y<canvas.height; y+=gridSize) {
                 ctx.beginPath();
-                ctx.strokeStyle = '#ffc107'; 
-                ctx.lineWidth = 3;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                
-                ctx.moveTo(anchors[0].x, anchors[0].y);
-                for(let i=1; i<anchors.length; i++) {
-                    ctx.quadraticCurveTo(controls[i-1].x, controls[i-1].y, anchors[i].x, anchors[i].y);
-                }
-                ctx.stroke();
-                
-                ctx.fillStyle = '#fff';
-                for(let i=0; i<anchors.length; i++) {
-                    ctx.beginPath();
-                    ctx.arc(anchors[i].x, anchors[i].y, 4, 0, Math.PI*2);
-                    ctx.fill();
-                }
-
-                ctx.fillStyle = '#007bff';
-                for(let i=0; i<controls.length; i++) {
-                    ctx.beginPath();
-                    ctx.arc(controls[i].x, controls[i].y, 6, 0, Math.PI*2);
-                    ctx.fill();
-                }
+                ctx.arc(x, y, 1.5, 0, Math.PI*2);
+                ctx.fill();
             }
         }
-
-        function getCleanCanvasImage() {
-            if (anchors.length === 0) return "";
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+        
+        if (anchors.length > 0) {
             ctx.beginPath();
-            ctx.strokeStyle = '#ffc107';
+            ctx.strokeStyle = '#ffc107'; 
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
+            
             ctx.moveTo(anchors[0].x, anchors[0].y);
             for(let i=1; i<anchors.length; i++) {
                 ctx.quadraticCurveTo(controls[i-1].x, controls[i-1].y, anchors[i].x, anchors[i].y);
             }
             ctx.stroke();
             
-            const dataUrl = canvas.toDataURL('image/png');
-            drawGrid(); 
-            return dataUrl;
-        }
-
-        function getPointerPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            let clientX = e.clientX;
-            let clientY = e.clientY;
-            
-            if (e.touches && e.touches.length > 0) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            }
-            
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            
-            return {
-                x: (clientX - rect.left) * scaleX,
-                y: (clientY - rect.top) * scaleY
-            };
-        }
-
-        // UPDATED: Handle Dragging for BOTH Controls and Anchors
-        function handleGridDown(e) {
-            const pos = getPointerPos(e);
-            
-            // Check controls first
-            for(let i=0; i<controls.length; i++) {
-                let dx = pos.x - controls[i].x;
-                let dy = pos.y - controls[i].y;
-                if(Math.sqrt(dx*dx + dy*dy) < 15) { 
-                    draggingControlIndex = i;
-                    draggingType = 'control';
-                    isDragging = true;
-                    return; 
-                }
-            }
-
-            // Check anchors second
+            ctx.fillStyle = '#fff';
             for(let i=0; i<anchors.length; i++) {
-                let dx = pos.x - anchors[i].x;
-                let dy = pos.y - anchors[i].y;
-                if(Math.sqrt(dx*dx + dy*dy) < 15) { 
-                    draggingControlIndex = i;
-                    draggingType = 'anchor';
-                    isDragging = true;
-                    return; 
-                }
+                ctx.beginPath();
+                ctx.arc(anchors[i].x, anchors[i].y, 4, 0, Math.PI*2);
+                ctx.fill();
             }
 
-            // If neither clicked, snap and add new point
+            ctx.fillStyle = '#007bff';
+            for(let i=0; i<controls.length; i++) {
+                ctx.beginPath();
+                ctx.arc(controls[i].x, controls[i].y, 6, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+    }
+
+    function getCleanCanvasImage() {
+        if (anchors.length === 0) return "";
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.beginPath();
+        ctx.strokeStyle = '#ffc107';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.moveTo(anchors[0].x, anchors[0].y);
+        for(let i=1; i<anchors.length; i++) {
+            ctx.quadraticCurveTo(controls[i-1].x, controls[i-1].y, anchors[i].x, anchors[i].y);
+        }
+        ctx.stroke();
+        
+        const dataUrl = canvas.toDataURL('image/png');
+        drawGrid(); 
+        return dataUrl;
+    }
+
+    function getPointerPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+        
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    function handleGridDown(e) {
+        const pos = getPointerPos(e);
+        
+        for(let i=0; i<controls.length; i++) {
+            let dx = pos.x - controls[i].x;
+            let dy = pos.y - controls[i].y;
+            if(Math.sqrt(dx*dx + dy*dy) < 15) { 
+                draggingControlIndex = i;
+                draggingType = 'control';
+                isDragging = true;
+                return; 
+            }
+        }
+
+        for(let i=0; i<anchors.length; i++) {
+            let dx = pos.x - anchors[i].x;
+            let dy = pos.y - anchors[i].y;
+            if(Math.sqrt(dx*dx + dy*dy) < 15) { 
+                draggingControlIndex = i;
+                draggingType = 'anchor';
+                isDragging = true;
+                return; 
+            }
+        }
+
+        let snappedX = Math.round(pos.x / gridSize) * gridSize;
+        let snappedY = Math.round(pos.y / gridSize) * gridSize;
+        snappedX = Math.max(0, Math.min(canvas.width, snappedX));
+        snappedY = Math.max(0, Math.min(canvas.height, snappedY));
+
+        anchors.push({x: snappedX, y: snappedY});
+        
+        if(anchors.length > 1) {
+            let prev = anchors[anchors.length - 2];
+            controls.push({
+                x: (prev.x + snappedX) / 2,
+                y: (prev.y + snappedY) / 2
+            });
+        }
+        drawGrid();
+    }
+
+    function handleGridMove(e) {
+        if(isDragging && draggingControlIndex !== -1) {
+            const pos = getPointerPos(e);
             let snappedX = Math.round(pos.x / gridSize) * gridSize;
             let snappedY = Math.round(pos.y / gridSize) * gridSize;
-            snappedX = Math.max(0, Math.min(canvas.width, snappedX));
-            snappedY = Math.max(0, Math.min(canvas.height, snappedY));
-
-            anchors.push({x: snappedX, y: snappedY});
             
-            if(anchors.length > 1) {
-                let prev = anchors[anchors.length - 2];
-                controls.push({
-                    x: (prev.x + snappedX) / 2,
-                    y: (prev.y + snappedY) / 2
-                });
+            let finalX = Math.max(0, Math.min(canvas.width, snappedX));
+            let finalY = Math.max(0, Math.min(canvas.height, snappedY));
+
+            if (draggingType === 'control') {
+                controls[draggingControlIndex] = { x: finalX, y: finalY };
+            } else if (draggingType === 'anchor') {
+                anchors[draggingControlIndex] = { x: finalX, y: finalY };
+            }
+            
+            drawGrid();
+        }
+    }
+
+    function handleGridUp(e) {
+        isDragging = false;
+        draggingControlIndex = -1;
+        draggingType = null;
+    }
+
+    function undoCanvas() {
+        if (anchors.length > 0) {
+            anchors.pop();
+            if (controls.length > 0 && controls.length >= anchors.length) {
+                controls.pop();
             }
             drawGrid();
         }
+    }
 
-        function handleGridMove(e) {
-            if(isDragging && draggingControlIndex !== -1) {
-                const pos = getPointerPos(e);
-                let snappedX = Math.round(pos.x / gridSize) * gridSize;
-                let snappedY = Math.round(pos.y / gridSize) * gridSize;
-                
-                let finalX = Math.max(0, Math.min(canvas.width, snappedX));
-                let finalY = Math.max(0, Math.min(canvas.height, snappedY));
+    function clearCanvas() {
+        anchors = [];
+        controls = [];
+        drawGrid();
+    }
 
-                if (draggingType === 'control') {
-                    controls[draggingControlIndex] = { x: finalX, y: finalY };
-                } else if (draggingType === 'anchor') {
-                    anchors[draggingControlIndex] = { x: finalX, y: finalY };
-                }
-                
-                drawGrid();
-            }
-        }
+    function openHelpModal() { document.getElementById("helpModal").style.display = "flex"; }
+    function closeHelpModal() { document.getElementById("helpModal").style.display = "none"; }
 
-        function handleGridUp(e) {
-            isDragging = false;
-            draggingControlIndex = -1;
-            draggingType = null;
-        }
+    function saveApiKeys() {
+        const geminiKey = document.getElementById("geminiApiKeyInput").value.trim();
+        if (geminiKey) localStorage.setItem("geminiApiKey", geminiKey);
+        alert("API Key saved securely to your browser!");
+    }
 
-        // UPDATED: Undo functionality
-        function undoCanvas() {
-            if (anchors.length > 0) {
-                anchors.pop();
-                if (controls.length > 0 && controls.length >= anchors.length) {
-                    controls.pop();
-                }
-                drawGrid();
-            }
-        }
+    function getActiveApiKey() {
+        const localKey = localStorage.getItem("geminiApiKey");
+        return localKey && localKey.trim() !== "" ? localKey.trim() : masterApiKey; 
+    }
 
-        function clearCanvas() {
-            anchors = [];
-            controls = [];
-            drawGrid();
-        }
+    function printEstimate() {
+        document.body.classList.add('print-estimate-only');
+        window.print();
+        setTimeout(() => document.body.classList.remove('print-estimate-only'), 500);
+    }
 
-        function openHelpModal() { document.getElementById("helpModal").style.display = "flex"; }
-        function closeHelpModal() { document.getElementById("helpModal").style.display = "none"; }
+    async function generateGlobalEstimate() {
+        const fileInput = document.getElementById("estMediaInput");
+        const file = fileInput.files[0];
+        if (!file) return alert("⚠️ Please upload a photo or video of the style/operation first.");
+        
+        const apiKey = getActiveApiKey();
+        if (!apiKey) return alert("⚠️ No Gemini API Key found.");
 
-        function saveApiKeys() {
-            const geminiKey = document.getElementById("geminiApiKeyInput").value.trim();
-            if (geminiKey) localStorage.setItem("geminiApiKey", geminiKey);
-            alert("API Key saved securely to your browser!");
-        }
+        const material = document.getElementById("estMaterial").value;
+        const soleType = document.getElementById("estSoleType").value;
+        const loadingMsg = document.getElementById("estLoadingMsg");
+        
+        loadingMsg.style.display = "block";
+        document.getElementById("estResultArea").style.display = "none";
 
-        function getActiveApiKey() {
-            const localKey = localStorage.getItem("geminiApiKey");
-            return localKey && localKey.trim() !== "" ? localKey.trim() : masterApiKey; 
-        }
-
-        function printEstimate() {
-            document.body.classList.add('print-estimate-only');
-            window.print();
-            setTimeout(() => document.body.classList.remove('print-estimate-only'), 500);
-        }
-
-        async function generateGlobalEstimate() {
-            const fileInput = document.getElementById("estMediaInput");
-            const file = fileInput.files[0];
-            if (!file) return alert("⚠️ Please upload a photo or video of the style/operation first.");
-            
-            const apiKey = getActiveApiKey();
-            if (!apiKey) return alert("⚠️ No Gemini API Key found.");
-
-            const material = document.getElementById("estMaterial").value;
-            const soleType = document.getElementById("estSoleType").value;
-            const loadingMsg = document.getElementById("estLoadingMsg");
-            
-            loadingMsg.style.display = "block";
-            document.getElementById("estResultArea").style.display = "none";
-
-            if (file.type.startsWith('video/')) {
-                const video = document.createElement('video');
-                video.preload = 'metadata';
-                video.muted = true;
-                video.playsInline = true;
-                const fileURL = URL.createObjectURL(file);
-                video.src = fileURL;
-
-                video.onloadeddata = async () => {
-                    const canvasExtract = document.createElement('canvas');
-                    const ctxExtract = canvasExtract.getContext('2d');
-                    const scale = Math.min(1, 640 / (video.videoWidth || 640));
-                    canvasExtract.width = (video.videoWidth || 640) * scale;
-                    canvasExtract.height = (video.videoHeight || 480) * scale;
-                    const duration = video.duration || 5;
-                    const timestamps = [duration * 0.2, duration * 0.5, duration * 0.8];
-                    const imageParts = [];
-
-                    for (const time of timestamps) {
-                        await new Promise((resolve) => {
-                            video.currentTime = time;
-                            video.onseeked = () => {
-                                ctxExtract.drawImage(video, 0, 0, canvasExtract.width, canvasExtract.height);
-                                const base64Data = canvasExtract.toDataURL('image/jpeg', 0.85).split(',')[1];
-                                imageParts.push({ inline_data: { mime_type: 'image/jpeg', data: base64Data } });
-                                resolve();
-                            };
-                        });
-                    }
-                    URL.revokeObjectURL(fileURL);
-                    runGlobalAIAnalysis(imageParts, material, soleType, apiKey);
-                };
-                video.onerror = () => {
-                    alert("⚠️ Unable to process video format.");
-                    loadingMsg.style.display = "none";
-                    fileInput.value = "";
-                };
-            } else {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64String = e.target.result.split(',')[1];
-                    runGlobalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], material, soleType, apiKey);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey) {
-            const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style. Upper material: ${material}. Sole type: ${soleType}.
-            
-            CRITICAL INSTRUCTION: Your baseline estimates must reflect lean, real-world factory floor conditions. 
-            - Include necessary hidden internal operations (lining preparation, reinforcements) ONLY if the specific style actually requires them.
-            - Group essential micro-operations (handling, thread trimming) logically to avoid listing unnecessary or redundant steps.
-            - Apply a strict 10% to 15% standard allowance for fatigue and manual handling. Do NOT double or artificially inflate the times.
-            - Eliminate any operations that do not directly apply to the exact shoe design shown in the media.
-            - Open-toe sandals and slippers must naturally fall between 18 to 25 minutes total SMV.
-            
-            Estimate the global market retail price for this type of shoe in USD and LKR (assuming 1 USD = 328 LKR).
-            Generate a highly specific 3-5 word search query describing the shoe.
-            
-            Output ONLY raw HTML exactly matching this structure. 
-
-            <div style="background: #111; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
-                <h4 style="color:#007bff; margin-top:0;">Footwear Style & Operation Overview</h4>
-                <p style="margin-bottom:0; color:#ddd;">[Write 2 sentences describing the specific visual style, internal hidden complexities, and manual handling requirements based on your visual analysis]</p>
-            </div>
-            
-            <h3 style="color:#ffc107; margin-bottom: 10px;">✂️ 1. Cutting & Preparation</h3>
-            <table class="bulletin-table" style="margin-bottom: 25px;">
-                <thead><tr><th>Operation Name (Include Skiving/Marking)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-                <tbody>[Add realistic operations]</tbody>
-                <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
-            </table>
-
-            <h3 style="color:#ffc107; margin-bottom: 10px;">🧵 2. Pre-Stitching & Sub-Assembly</h3>
-            <table class="bulletin-table" style="margin-bottom: 25px;">
-                <thead><tr><th>Operation Name (Include Lining/Handling)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-                <tbody>[Add operations]</tbody>
-                <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
-            </table>
-
-            <h3 style="color:#ffc107; margin-bottom: 10px;">🪡 3. Sewing & Stitching</h3>
-            <table class="bulletin-table" style="margin-bottom: 25px;">
-                <thead><tr><th>Operation Name (Include Trimming/Checking)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-                <tbody>[Add operations]</tbody>
-                <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
-            </table>
-
-            <h3 style="color:#ffc107; margin-bottom: 10px;">🔨 4. Lasting & Bottoming</h3>
-            <table class="bulletin-table" style="margin-bottom: 25px;">
-                <thead><tr><th>Operation Name (Specific to ${soleType})</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-                <tbody>[Add operations]</tbody>
-                <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
-            </table>
-
-            <h3 style="color:#ffc107; margin-bottom: 10px;">📦 5. Finishing & Packing</h3>
-            <table class="bulletin-table" style="margin-bottom: 25px;">
-                <thead><tr><th>Operation Name (Include Cleaning/Insock/Box)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-                <tbody>[Add operations]</tbody>
-                <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
-            </table>
-
-            <div style="background: #198754; border: 2px solid #28a745; padding: 15px; border-radius: 8px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin:0; color:#fff;">Total Estimated Shoe SMV:</h2>
-                <h2 style="margin:0; color:#fff; font-family: monospace;">[Total] min</h2>
-            </div>
-
-            <div style="background: #222; border-left: 4px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 4px;">
-                <h4 style="color:#ffc107; margin-top:0;">Standard Labor vs. Material Cost Ratio</h4>
-                <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the realistic Labor % vs Material % for this specific material and style, factoring in standard manual labor allowances]</p>
-            </div>
-            
-            <div id="ai-search-data" data-query="[YOUR_SPECIFIC_SEARCH_QUERY]" data-usd="$[Min] - $[Max]" data-lkr="LKR [Min] - LKR [Max]" style="display:none;"></div>`;
-
-            try {
-                const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
-                    body: JSON.stringify(requestBody)
-                });
-
-                const data = await response.json();
-                if (!response.ok) return alert(`⚠️ Gemini API Error: ${data.error.message}`);
-
-                if (data.candidates && data.candidates[0]) {
-                    let aiText = data.candidates[0].content.parts[0].text;
-                    aiText = aiText.replace(/```html/g, "").replace(/```/g, "").trim();
-                    
-                    document.getElementById("estAiOutput").innerHTML = aiText;
-                    
-                    // Extract hidden search data generated by Gemini
-                    const searchDataEl = document.getElementById('ai-search-data');
-                    let searchQuery = "footwear";
-                    let usdPrice = "$20 - $40";
-                    let lkrPrice = "LKR 6,560 - LKR 13,120";
-                    
-                    if (searchDataEl) {
-                        searchQuery = searchDataEl.getAttribute('data-query') || searchQuery;
-                        usdPrice = searchDataEl.getAttribute('data-usd') || usdPrice;
-                        lkrPrice = searchDataEl.getAttribute('data-lkr') || lkrPrice;
-                    }
-                    
-                    document.getElementById('dynamicUsdPrice').innerText = usdPrice;
-                    document.getElementById('dynamicLkrPrice').innerText = lkrPrice;
-                    
-                    // Setup Google Shopping link
-                    document.getElementById('shoppingBtn').href = 'https://www.google.com/search?tbm=shop&q=' + encodeURIComponent(searchQuery);
-                    
-                    document.getElementById("estResultArea").style.display = "block";
-                }
-            } catch (error) {
-                alert("⚠️ Network Error during AI Analysis.");
-            } finally {
-                document.getElementById("estLoadingMsg").style.display = "none";
-                document.getElementById("estMediaInput").value = ""; 
-            }
-        }
-
-        async function handleAIScan(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const apiKey = getActiveApiKey();
-            if (!apiKey) return alert("⚠️ No API Key found.");
-            const loadingMsg = document.getElementById("aiLoadingMsg");
-            loadingMsg.innerText = "🤖 AI is scanning your media for local matches... Please wait...";
-            loadingMsg.style.display = "block";
-            document.getElementById("aiResultContainer").style.display = "none";
-
-            if (file.type.startsWith('video/')) {
-                processLocalVideoFile(file, apiKey, false);
-            } else {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64String = e.target.result.split(',')[1];
-                    runLocalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        async function handleWebScan(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const apiKey = getActiveApiKey();
-            if (!apiKey) return alert("⚠️ No API Key found.");
-            const loadingMsg = document.getElementById("aiLoadingMsg");
-            loadingMsg.innerText = "🌐 Analyzing media and searching the global web... Please wait...";
-            loadingMsg.style.display = "block";
-
-            if (file.type.startsWith('video/')) {
-                processLocalVideoFile(file, apiKey, true);
-            } else {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64String = e.target.result.split(',')[1];
-                    runWebAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function processLocalVideoFile(file, apiKey, isWebMode) {
+        if (file.type.startsWith('video/')) {
             const video = document.createElement('video');
             video.preload = 'metadata';
             video.muted = true;
@@ -1212,586 +1002,782 @@ let keyPart1 = "BOTS_ARE_BLOCKED_";
                     });
                 }
                 URL.revokeObjectURL(fileURL);
-                if (isWebMode) {
-                    runWebAnalysis(imageParts, apiKey);
-                } else {
-                    runLocalAIAnalysis(imageParts, apiKey);
-                }
+                runGlobalAIAnalysis(imageParts, material, soleType, apiKey);
             };
-
-            video.onerror = function() {
-                alert("⚠️ Unable to process video format. Try converting to a standard MP4.");
-                document.getElementById("aiLoadingMsg").style.display = "none";
-                document.getElementById("aiImageInput").value = "";
-                document.getElementById("aiWebInput").value = "";
+            video.onerror = () => {
+                alert("⚠️ Unable to process video format.");
+                loadingMsg.style.display = "none";
+                fileInput.value = "";
             };
+        } else {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result.split(',')[1];
+                runGlobalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], material, soleType, apiKey);
+            };
+            reader.readAsDataURL(file);
         }
+    }
 
-        async function runLocalAIAnalysis(mediaParts, apiKey) {
-            const listText = operations.map((op, i) => `${i}: ${op.name}`).join("\n");
-            const promptText = `You are a Senior Footwear Industrial Engineer. Analyze the attached media.
-            
-            Step 1: Identify the shoe component (Toe, Heel, Tongue, Sole, etc.).
-            Step 2: Identify the specific manufacturing action (Stitching, Attaching, Punching, Skiving, etc.).
-            Step 3: Compare your findings against our database of operations:
-            ${listText}
-            
-            CRITICAL: Reply ONLY with a valid JSON object using this exact structure. Do not use markdown code blocks like \`\`\`json.
-            {
-              "analysis": "Briefly describe the shoe part and machine action.",
-              "matching_ids": [List the top 2 to 4 index numbers that best match]
-            }`;
-
-            try {
-                const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
-                    body: JSON.stringify(requestBody)
-                });
-
-                const data = await response.json();
-                if (!response.ok) return alert(`⚠️ API Error: ${data.error.message}`);
-
-                let matchedIndices = [];
-                if (data.candidates && data.candidates[0]) {
-                    let aiText = data.candidates[0].content.parts[0].text;
-                    // Clean up any markdown the AI accidentally includes
-                    aiText = aiText.replace(/```json/g, "").replace(/```/g, "").trim();
-                    
-                    try {
-                        const result = JSON.parse(aiText);
-                        if (result.matching_ids && Array.isArray(result.matching_ids)) {
-                            result.matching_ids.forEach(num => {
-                                if (operations[num] !== undefined) matchedIndices.push(num);
-                            });
-                        }
-                    } catch (parseError) {
-                        console.error("AI JSON Parse Error:", aiText);
-                        return alert("⚠️ AI returned an invalid format. Please try scanning again.");
-                    }
-                }
-
-                if (matchedIndices.length === 0) return alert("AI could not find local matches.");
-                currentAiFilter = [...new Set(matchedIndices)]; 
-                document.getElementById("aiResultContainer").style.display = "flex";
-                document.getElementById("aiResultText").innerText = `✅ AI Scan Complete! Filtered list below to show ${currentAiFilter.length} suggested operation(s).`;
-                renderBulletinList();
-            } catch (error) {
-                alert("⚠️ Network Error.");
-            } finally {
-                document.getElementById("aiLoadingMsg").style.display = "none";
-                document.getElementById("aiImageInput").value = ""; 
-            }
-        }
-
-        async function runWebAnalysis(mediaParts, apiKey) {
-            const promptText = `Identify the footwear manufacturing machine, process, or operation shown in this image/video frame. Provide a brief 1-2 sentence description. Then, provide exactly 3 highly specific search terms that a user could type into YouTube to find similar tutorial videos or machine demonstrations worldwide. Format your reply with the description first, followed by a bulleted list of the 3 search terms. Do not use markdown bolding.`;
-
-            try {
-                const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
-                    body: JSON.stringify(requestBody)
-                });
-
-                const data = await response.json();
-                if (!response.ok) return alert(`⚠️ API Error: ${data.error.message}`);
-
-                if (data.candidates && data.candidates[0]) {
-                    let aiText = data.candidates[0].content.parts[0].text;
-                    let formattedHtml = "<p><strong>AI Identification:</strong></p>";
-                    
-                    const lines = aiText.split('\n');
-                    lines.forEach(line => {
-                        if (line.trim().startsWith('*') || line.trim().startsWith('-')) {
-                            let term = line.replace(/^[*\-\s]+/, '').trim();
-                            let ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(term)}`;
-                            formattedHtml += `<div style="margin-top: 10px;"><a href="${ytUrl}" target="_blank" style="color: #00ffff; text-decoration: none; display: flex; align-items: center; gap: 8px;">▶️ Search YouTube: <em>${term}</em></a></div>`;
-                        } else if (line.trim() !== '') {
-                            formattedHtml += `<p style="margin-bottom: 5px;">${line}</p>`;
-                        }
-                    });
-
-                    document.getElementById("webResultBody").innerHTML = formattedHtml;
-                    document.getElementById("webResultModal").style.display = "flex";
-                }
-            } catch (error) {
-                alert("⚠️ Network Error.");
-            } finally {
-                document.getElementById("aiLoadingMsg").style.display = "none";
-                document.getElementById("aiWebInput").value = ""; 
-            }
-        }
-
-        function closeWebResultModal() {
-            document.getElementById("webResultModal").style.display = "none";
-        }
+    async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey) {
+        const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style. Upper material: ${material}. Sole type: ${soleType}.
         
-        function clearAIFilter() {
-            currentAiFilter = null;
-            document.getElementById("aiResultContainer").style.display = "none";
-            renderBulletinList(); 
-        }
+        CRITICAL INSTRUCTION: Your baseline estimates must reflect lean, real-world factory floor conditions. 
+        - Include necessary hidden internal operations (lining preparation, reinforcements) ONLY if the specific style actually requires them.
+        - Group essential micro-operations (handling, thread trimming) logically to avoid listing unnecessary or redundant steps.
+        - Apply a strict 10% to 15% standard allowance for fatigue and manual handling. Do NOT double or artificially inflate the times.
+        - Eliminate any operations that do not directly apply to the exact shoe design shown in the media.
+        - Open-toe sandals and slippers must naturally fall between 18 to 25 minutes total SMV.
+        
+        Estimate the global market retail price for this type of shoe in USD and LKR (assuming 1 USD = 328 LKR).
+        Generate a highly specific 3-5 word search query describing the shoe.
+        
+        Output ONLY raw HTML exactly matching this structure. 
 
-        function handleCheckboxChange(checkbox, index) {
-            if (checkbox.checked) {
-                checkedBulletinIndices.add(index);
-            } else {
-                checkedBulletinIndices.delete(index);
-            }
-        }
+        <div style="background: #111; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+            <h4 style="color:#007bff; margin-top:0;">Footwear Style & Operation Overview</h4>
+            <p style="margin-bottom:0; color:#ddd;">[Write 2 sentences describing the specific visual style, internal hidden complexities, and manual handling requirements based on your visual analysis]</p>
+        </div>
+        
+        <h3 style="color:#ffc107; margin-bottom: 10px;">✂️ 1. Cutting & Preparation</h3>
+        <table class="bulletin-table" style="margin-bottom: 25px;">
+            <thead><tr><th>Operation Name (Include Skiving/Marking)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>[Add realistic operations]</tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
+        </table>
 
-        function getYouTubeID(url) {
-            let video_id = url.split('v=')[1];
-            if (!video_id) video_id = url.split('youtu.be/')[1];
-            if (!video_id) video_id = url.split('shorts/')[1]; 
-            if (video_id) {
-                let ampersandPosition = video_id.indexOf('&');
-                if(ampersandPosition !== -1) video_id = video_id.substring(0, ampersandPosition);
-                let questionPosition = video_id.indexOf('?');
-                if(questionPosition !== -1) video_id = video_id.substring(0, questionPosition);
-                return video_id.trim();
-            }
-            return url;
-        }
+        <h3 style="color:#ffc107; margin-bottom: 10px;">🧵 2. Pre-Stitching & Sub-Assembly</h3>
+        <table class="bulletin-table" style="margin-bottom: 25px;">
+            <thead><tr><th>Operation Name (Include Lining/Handling)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>[Add operations]</tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
+        </table>
 
-        function getThumbnailHtml(url) {
-            if (!url) return "";
-            if (url.includes("youtube.com") || url.includes("youtu.be")) {
-                return `<img src="https://img.youtube.com/vi/${getYouTubeID(url)}/mqdefault.jpg" class="bulletin-thumb" alt="YouTube Thumbnail">`;
-            } else {
-                return `<video class="bulletin-thumb" src="${url}#t=3" preload="metadata" muted playsinline onmouseover="this.play()" onmouseout="this.pause(); this.currentTime=3;"></video>`;
-            }
-        }
+        <h3 style="color:#ffc107; margin-bottom: 10px;">🪡 3. Sewing & Stitching</h3>
+        <table class="bulletin-table" style="margin-bottom: 25px;">
+            <thead><tr><th>Operation Name (Include Trimming/Checking)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>[Add operations]</tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
+        </table>
 
-        function populateDropdown(list) {
-            const videoSelect = document.getElementById("videoSelect");
-            const deleteSelect = document.getElementById("deleteSelect"); 
-            
-            videoSelect.innerHTML = '<option value="">-- Choose Operation --</option>';
-            if(deleteSelect) deleteSelect.innerHTML = '<option value="">-- Select to Delete --</option>';
-            
-            list.forEach((op, index) => {
-                const option = document.createElement("option");
-                option.value = op.file;
-                option.text = op.name;
-                option.dataset.index = operations.indexOf(op); 
-                videoSelect.add(option);
-                
-                if(deleteSelect) {
-                    const delOption = option.cloneNode(true);
-                    delOption.dataset.index = operations.indexOf(op);
-                    deleteSelect.add(delOption);
-                }
+        <h3 style="color:#ffc107; margin-bottom: 10px;">🔨 4. Lasting & Bottoming</h3>
+        <table class="bulletin-table" style="margin-bottom: 25px;">
+            <thead><tr><th>Operation Name (Specific to ${soleType})</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>[Add operations]</tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
+        </table>
+
+        <h3 style="color:#ffc107; margin-bottom: 10px;">📦 5. Finishing & Packing</h3>
+        <table class="bulletin-table" style="margin-bottom: 25px;">
+            <thead><tr><th>Operation Name (Include Cleaning/Insock/Box)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>[Add operations]</tbody>
+            <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
+        </table>
+
+        <div style="background: #198754; border: 2px solid #28a745; padding: 15px; border-radius: 8px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin:0; color:#fff;">Total Estimated Shoe SMV:</h2>
+            <h2 style="margin:0; color:#fff; font-family: monospace;">[Total] min</h2>
+        </div>
+
+        <div style="background: #222; border-left: 4px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 4px;">
+            <h4 style="color:#ffc107; margin-top:0;">Standard Labor vs. Material Cost Ratio</h4>
+            <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the realistic Labor % vs Material % for this specific material and style, factoring in standard manual labor allowances]</p>
+        </div>
+        
+        <div id="ai-search-data" data-query="[YOUR_SPECIFIC_SEARCH_QUERY]" data-usd="$[Min] - $[Max]" data-lkr="LKR [Min] - LKR [Max]" style="display:none;"></div>`;
+
+        try {
+            const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
+                body: JSON.stringify(requestBody)
             });
-        }
 
-        function openTab(tabId, evt) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            if(evt) evt.target.classList.add('active');
-            
-            if (tabId === 'bulletin') renderBulletinList();
-        }
+            const data = await response.json();
+            if (!response.ok) return alert(`⚠️ Gemini API Error: ${data.error.message}`);
 
-        function filterOperations() {
-            const query = document.getElementById("searchInput").value.toLowerCase();
-            const filtered = operations.filter(op => op.name.toLowerCase().includes(query));
-            populateDropdown(filtered);
-            const select = document.getElementById("videoSelect");
-            select.size = query.length > 0 ? (filtered.length > 0 ? Math.min(filtered.length + 1, 6) : 2) : 1;
-        }
-
-        function changeUnifiedSlomoSpeed() {
-            const selectedSpeed = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
-            document.getElementById("slomoPlayer").playbackRate = selectedSpeed;
-            if (ytPlayerAPI_Slomo && typeof ytPlayerAPI_Slomo.setPlaybackRate === 'function') {
-                ytPlayerAPI_Slomo.setPlaybackRate(selectedSpeed);
-            }
-        }
-
-        function initYouTubePlayers(videoId) {
-            ytPlayerAPI_Normal = new YT.Player('ytPlayerNormal', {
-                videoId: videoId,
-                playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
-                events: { 'onReady': e => e.target.playVideo(), 'onStateChange': e => { if(e.data===0) e.target.playVideo(); } }
-            });
-            ytPlayerAPI_Slomo = new YT.Player('ytPlayerSlomo', {
-                videoId: videoId,
-                playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'mute': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
-                events: {
-                    'onReady': e => { e.target.mute(); e.target.setPlaybackRate(parseFloat(document.getElementById("unifiedSlomoSpeed").value)); e.target.playVideo(); },
-                    'onStateChange': e => { if(e.data===1) e.target.setPlaybackRate(parseFloat(document.getElementById("unifiedSlomoSpeed").value)); if(e.data===0) e.target.playVideo(); }
+            if (data.candidates && data.candidates[0]) {
+                let aiText = data.candidates[0].content.parts[0].text;
+                aiText = aiText.replace(/```html/g, "").replace(/```/g, "").trim();
+                
+                document.getElementById("estAiOutput").innerHTML = aiText;
+                
+                const searchDataEl = document.getElementById('ai-search-data');
+                let searchQuery = "footwear";
+                let usdPrice = "$20 - $40";
+                let lkrPrice = "LKR 6,560 - LKR 13,120";
+                
+                if (searchDataEl) {
+                    searchQuery = searchDataEl.getAttribute('data-query') || searchQuery;
+                    usdPrice = searchDataEl.getAttribute('data-usd') || usdPrice;
+                    lkrPrice = searchDataEl.getAttribute('data-lkr') || lkrPrice;
                 }
-            });
-        }
-
-        function playVideo() {
-            const select = document.getElementById("videoSelect");
-            select.size = 1; document.getElementById("searchInput").value = ""; 
-            const smvCard = document.getElementById("smvCard");
-            const unifiedPlayerContainer = document.getElementById("unifiedPlayerContainer");
-
-            if (select.selectedIndex > 0) {
-                const op = operations[select.options[select.selectedIndex].dataset.index];
-                currentBaseSMV = op.smvPair || 0;
-                unifiedPlayerContainer.style.display = "flex";
-
-                // UPDATED: Show the sketch if it exists
-                if (op.shape && op.shape.startsWith('data:image')) {
-                    document.getElementById("viewerShape").src = op.shape;
-                    document.getElementById("viewerShapeContainer").style.display = "block";
-                } else {
-                    document.getElementById("viewerShapeContainer").style.display = "none";
-                    document.getElementById("viewerShape").src = "";
-                }
-
-                if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
-                    const ytId = getYouTubeID(op.file);
-                    document.getElementById("videoPlayer").style.display = "none";
-                    document.getElementById("slomoPlayer").style.display = "none";
-                    document.getElementById("videoPlayer").pause();
-                    document.getElementById("slomoPlayer").pause();
-                    document.getElementById("ytWrapperNormal").style.display = "block";
-                    document.getElementById("ytWrapperSlomo").style.display = "block";
-                    document.getElementById("ytWrapperNormal").innerHTML = '<div id="ytPlayerNormal"></div>';
-                    document.getElementById("ytWrapperSlomo").innerHTML = '<div id="ytPlayerSlomo"></div>';
-                    initYouTubePlayers(ytId);
-                } else {
-                    document.getElementById("ytWrapperNormal").style.display = "none";
-                    document.getElementById("ytWrapperSlomo").style.display = "none";
-                    document.getElementById("videoPlayer").style.display = "block";
-                    document.getElementById("slomoPlayer").style.display = "block";
-                    if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
-                    if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
-                    document.getElementById("videoSource").src = op.file;
-                    document.getElementById("videoPlayer").load();
-                    document.getElementById("videoPlayer").play();
-                    document.getElementById("slomoSource").src = op.file;
-                    document.getElementById("slomoPlayer").load();
-                    document.getElementById("slomoPlayer").playbackRate = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
-                    document.getElementById("slomoPlayer").play();
-                }
-                document.getElementById("perfSlider").value = 100; document.getElementById("allowSlider").value = 15;
-                updateSMV(); smvCard.style.display = "flex";
-            } else {
-                smvCard.style.display = "none"; unifiedPlayerContainer.style.display = "none";
-                document.getElementById("viewerShapeContainer").style.display = "none";
-                document.getElementById("videoPlayer").pause(); document.getElementById("slomoPlayer").pause(); 
-                if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
-                if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+                
+                document.getElementById('dynamicUsdPrice').innerText = usdPrice;
+                document.getElementById('dynamicLkrPrice').innerText = lkrPrice;
+                
+                document.getElementById('shoppingBtn').href = 'https://www.google.com/search?tbm=shop&q=' + encodeURIComponent(searchQuery);
+                
+                document.getElementById("estResultArea").style.display = "block";
             }
+        } catch (error) {
+            alert("⚠️ Network Error during AI Analysis.");
+        } finally {
+            document.getElementById("estLoadingMsg").style.display = "none";
+            document.getElementById("estMediaInput").value = ""; 
         }
+    }
 
-        function updateSMV() {
-            if (!currentBaseSMV) return;
-            const perf = parseInt(document.getElementById("perfSlider").value);
-            const allow = parseInt(document.getElementById("allowSlider").value);
-            const baseTimeWithoutAllowance = currentBaseSMV / 1.15;
-            const rawSMV = (baseTimeWithoutAllowance * (perf / 100) * (1 + (allow / 100)));
-            document.getElementById("perfLabel").innerText = perf + "%";
-            document.getElementById("allowLabel").innerText = allow + "%";
-            document.getElementById("smvValue").innerText = rawSMV.toFixed(4) + " min";
-            document.getElementById("targetValue").innerText = rawSMV > 0 ? Math.floor(60 / rawSMV) : 0 + " pairs";
+    async function handleAIScan(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const apiKey = getActiveApiKey();
+        if (!apiKey) return alert("⚠️ No API Key found.");
+        const loadingMsg = document.getElementById("aiLoadingMsg");
+        loadingMsg.innerText = "🤖 AI is scanning your media for local matches... Please wait...";
+        loadingMsg.style.display = "block";
+        document.getElementById("aiResultContainer").style.display = "none";
+
+        if (file.type.startsWith('video/')) {
+            processLocalVideoFile(file, apiKey, false);
+        } else {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result.split(',')[1];
+                runLocalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
+            };
+            reader.readAsDataURL(file);
         }
+    }
 
-        function addOperation() {
-            const n = document.getElementById("newOpName").value.trim();
-            let f = document.getElementById("newFileName").value.trim();
-            const t = parseFloat(document.getElementById("obsTime").value);
-            
-            let s = getCleanCanvasImage();
-            
-            if (!n || !f || isNaN(t) || t <= 0) return alert("Fill Name, File Name/Link, and Time correctly.");
-            
-            if (f.includes("ik.imagekit.io")) {
-                if (f.includes("?")) {
-                    f = f.split("?")[0]; 
-                }
-                f = f + "?tr=orig-true";
-            }
+    async function handleWebScan(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const apiKey = getActiveApiKey();
+        if (!apiKey) return alert("⚠️ No API Key found.");
+        const loadingMsg = document.getElementById("aiLoadingMsg");
+        loadingMsg.innerText = "🌐 Analyzing media and searching the global web... Please wait...";
+        loadingMsg.style.display = "block";
 
-            const calc = ((t * (parseFloat(document.getElementById("perfRating").value)||100)/100) * (1 + ((parseFloat(document.getElementById("allowance").value)||15)/100))) / 60;
-            
-            // Add new operation to live array
-            operations.push({ name: n, file: f, smvPair: parseFloat(calc.toFixed(4)), shape: s });
-            
-            saveToMemory(); populateDropdown(operations); renderBulletinList();
-            
-            document.getElementById("newOpName").value = ""; 
-            document.getElementById("newFileName").value = ""; 
-            document.getElementById("obsTime").value = "";
-            clearCanvas();
-            
-            alert("Added Locally! Remember to click 'Generate Code' when you are done to get the master list for GitHub.");
+        if (file.type.startsWith('video/')) {
+            processLocalVideoFile(file, apiKey, true);
+        } else {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result.split(',')[1];
+                runWebAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], apiKey);
+            };
+            reader.readAsDataURL(file);
         }
+    }
 
-        function deleteOperation() {
-            const select = document.getElementById("deleteSelect"); 
-            if (select.selectedIndex <= 0) return alert("Please select an operation to delete.");
-            
-            if (confirm("Are you sure you want to delete this operation?")) {
-                operations.splice(parseInt(select.options[select.selectedIndex].dataset.index), 1);
-                saveToMemory(); 
-                
-                document.getElementById("searchInput").value = ""; 
-                populateDropdown(operations);
-                
-                document.getElementById("smvCard").style.display = "none"; 
-                document.getElementById("unifiedPlayerContainer").style.display = "none";
-                document.getElementById("viewerShapeContainer").style.display = "none";
-                
-                document.getElementById("videoPlayer").pause(); 
-                document.getElementById("slomoPlayer").pause(); 
-                if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
-                if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
-                
-                renderBulletinList();
-                alert("Deleted Locally! Remember to click 'Generate Code' to save this change for GitHub.");
-            }
-        }
+    function processLocalVideoFile(file, apiKey, isWebMode) {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        const fileURL = URL.createObjectURL(file);
+        video.src = fileURL;
 
-        function generateCode() {
-            let codeOutput = `    let defaultOperations = [\n`;
-            operations.forEach((op, index) => {
-                codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)}, shape: "${op.shape || ''}" }`;
-                if (index < operations.length - 1) codeOutput += `,`;
-                codeOutput += `\n`;
-            });
-            codeOutput += `    ];`;
+        video.onloadeddata = async () => {
+            const canvasExtract = document.createElement('canvas');
+            const ctxExtract = canvasExtract.getContext('2d');
+            const scale = Math.min(1, 640 / (video.videoWidth || 640));
+            canvasExtract.width = (video.videoWidth || 640) * scale;
+            canvasExtract.height = (video.videoHeight || 480) * scale;
+            const duration = video.duration || 5;
+            const timestamps = [duration * 0.2, duration * 0.5, duration * 0.8];
+            const imageParts = [];
 
-            const exportArea = document.getElementById("exportArea");
-            exportArea.value = codeOutput; 
-            exportArea.style.display = "block"; 
-            exportArea.select(); 
-            document.execCommand("copy");
-            alert("Success! The code is copied to your clipboard. Paste this block directly into your index.html file on GitHub to save these changes permanently.");
-        }
-
-        function renderBulletinList() {
-            const query = document.getElementById("bulletinSearch").value.toLowerCase();
-            const tbody = document.getElementById("bulletinSelectionListBody");
-            tbody.innerHTML = "";
-            
-            operations.forEach((op, index) => {
-                if (currentAiFilter !== null && !currentAiFilter.includes(index)) return;
-                if (!op.name.toLowerCase().includes(query)) return;
-                
-                const thumbHtml = getThumbnailHtml(op.file);
-                const isChecked = checkedBulletinIndices.has(index) ? "checked" : "";
-                
-                const shapeBadge = op.shape && op.shape.startsWith('data:image') 
-                    ? `<img src="${op.shape}" class="drawn-shape" alt="Custom Shape">` 
-                    : "";
-                
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td style="text-align: center; font-weight: bold; color: #888; vertical-align: middle;">${index + 1}</td>
-                    <td style="text-align: center; vertical-align: middle;">
-                        <input type="checkbox" class="bulletin-checkbox" value="${index}" id="chk_${index}" onchange="handleCheckboxChange(this, ${index})" style="width: 18px; height: 18px; cursor: pointer;" ${isChecked}>
-                    </td>
-                    <td style="vertical-align: middle;">
-                        <label for="chk_${index}" style="font-weight: bold; font-size: 1.1em; color: #fff; cursor: pointer; display: flex; align-items: center; margin: 0;">
-                            ${op.name} ${shapeBadge}
-                        </label>
-                    </td>
-                    <td style="color: #007bff; font-weight: bold; font-size: 1.05em; vertical-align: middle;">
-                        ${op.smvPair.toFixed(4)}
-                    </td>
-                    <td style="text-align: center; vertical-align: middle;">
-                        ${thumbHtml}
-                    </td>
-                    <td style="text-align: center; vertical-align: middle;">
-                        <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 8px 15px; margin:0;">▶ Preview</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function openPreviewModal(index) {
-            const op = operations[index];
-            document.getElementById("modalTitle").innerText = op.name;
-            document.getElementById("previewModal").style.display = "flex";
-            
-            if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
-                document.getElementById("modalVideo").style.display = "none";
-                document.getElementById("modalYtWrapper").style.display = "block";
-                document.getElementById("modalYtWrapper").innerHTML = '<div id="modalYtPlayer"></div>';
-                modalYtAPI = new YT.Player('modalYtPlayer', {
-                    videoId: getYouTubeID(op.file),
-                    playerVars: { 'autoplay': 1, 'playsinline': 1 },
-                    events: { 'onReady': e => e.target.playVideo() }
+            for (const time of timestamps) {
+                await new Promise((resolve) => {
+                    video.currentTime = time;
+                    video.onseeked = () => {
+                        ctxExtract.drawImage(video, 0, 0, canvasExtract.width, canvasExtract.height);
+                        const base64Data = canvasExtract.toDataURL('image/jpeg', 0.85).split(',')[1];
+                        imageParts.push({ inline_data: { mime_type: 'image/jpeg', data: base64Data } });
+                        resolve();
+                    };
                 });
+            }
+            URL.revokeObjectURL(fileURL);
+            if (isWebMode) {
+                runWebAnalysis(imageParts, apiKey);
             } else {
-                document.getElementById("modalYtWrapper").style.display = "none";
-                const video = document.getElementById("modalVideo");
-                video.style.display = "block";
-                video.src = op.file;
-                video.play();
-            }
-        }
-
-        function closePreviewModal() {
-            document.getElementById("previewModal").style.display = "none";
-            document.getElementById("modalVideo").pause();
-            document.getElementById("modalVideo").src = "";
-            if (modalYtAPI) { modalYtAPI.destroy(); modalYtAPI = null; }
-        }
-
-        function generateBulletinTable() {
-            if (checkedBulletinIndices.size === 0) return alert("Please select at least one operation.");
-            
-            const tbody = document.getElementById("bulletinTableBody");
-            const tfoot = document.getElementById("bulletinTableFooter");
-            
-            tbody.innerHTML = "";
-            tfoot.innerHTML = "";
-            
-            let selectedIndices = Array.from(checkedBulletinIndices).sort((a, b) => a - b);
-            let totalSMV = 0;
-            
-            selectedIndices.forEach((index, displayCount) => {
-                const op = operations[index];
-                totalSMV += op.smvPair;
-                
-                const thumbHtml = getThumbnailHtml(op.file);
-                const shapeBadge = op.shape && op.shape.startsWith('data:image') 
-                    ? `<img src="${op.shape}" class="drawn-shape" alt="Custom Shape">` 
-                    : "";
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td style="text-align: center; font-weight: bold; color: #888; vertical-align: middle;">${displayCount + 1}</td>
-                        <td style="font-weight: bold; vertical-align: middle; display: flex; align-items: center;">
-                            ${op.name} ${shapeBadge}
-                        </td>
-                        <td style="color: #007bff; font-weight:bold; vertical-align: middle;">${op.smvPair.toFixed(4)}</td>
-                        <td style="text-align: right;">
-                            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 15px;">
-                                ${thumbHtml}
-                                <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 5px 15px; margin:0;">▶ Play</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            tfoot.innerHTML = `
-                <tr>
-                    <td colspan="2" style="text-align: right; text-transform: uppercase;">Total SMV:</td>
-                    <td style="color: #007bff;">${totalSMV.toFixed(4)}</td>
-                    <td></td>
-                </tr>
-            `;
-            
-            document.getElementById("bulletinResultArea").style.display = "block";
-            document.getElementById("bulletinResultArea").dataset.sharedIds = selectedIndices.join(",");
-        }
-
-        function clearBulletin() {
-            if (confirm("Are you sure you want to clear all selections and start over?")) {
-                currentAiFilter = null; 
-                checkedBulletinIndices.clear(); 
-                document.getElementById("bulletinResultArea").style.display = "none";
-                document.getElementById("bulletinResultArea").dataset.sharedIds = "";
-                document.getElementById("bulletinTableBody").innerHTML = "";
-                document.getElementById("bulletinTableFooter").innerHTML = "";
-                document.getElementById("aiResultContainer").style.display = "none";
-                document.getElementById("bulletinSearch").value = "";
-                renderBulletinList(); 
-            }
-        }
-
-        function getShareableURL() {
-            const ids = document.getElementById("bulletinResultArea").dataset.sharedIds;
-            return window.location.origin + window.location.pathname + "?b=" + ids;
-        }
-
-        function copyShareLink() {
-            const link = getShareableURL();
-            navigator.clipboard.writeText(link).then(() => {
-                alert("Share Link Copied! You can paste this in WhatsApp.");
-            });
-        }
-
-        function sendIEEmail() {
-            const link = getShareableURL();
-            const subject = encodeURIComponent("IE Team: New Operations Bulletin");
-            const body = encodeURIComponent("Hello IE Team,\n\nPlease review the selected operations and SMV times by clicking the link below:\n\n" + link + "\n\nRegards.");
-            window.location.href = `mailto:?subject=${subject}&body=${body}`;
-        }
-
-        function downloadCSV() {
-            if (checkedBulletinIndices.size === 0) return alert("No operations selected to download.");
-            
-            let csvContent = "data:text/csv;charset=utf-8,No.,Operation Name,Has Custom Shape,SMV (min)\n";
-            let selectedIndices = Array.from(checkedBulletinIndices).sort((a, b) => a - b);
-            let total = 0;
-            
-            selectedIndices.forEach((index, i) => {
-                const op = operations[index];
-                total += op.smvPair;
-                const hasShapeStr = (op.shape && op.shape.startsWith('data:image')) ? `"Yes"` : `"No"`;
-                csvContent += `${i + 1},"${op.name}",${hasShapeStr},${op.smvPair.toFixed(4)}\n`;
-            });
-            
-            csvContent += `,,,Total SMV:,${total.toFixed(4)}\n`;
-            
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "DSI_Operations_Targets.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        window.onload = function() {
-            initCanvas(); 
-            
-            // Pull from local storage to test newly drawn items without losing them
-            let memoryData = localStorage.getItem("footwearOperations_Final");
-            if (memoryData) {
-                try {
-                    operations = JSON.parse(memoryData);
-                } catch(e) {
-                    console.error("Local storage load error", e);
-                }
-            }
-            populateDropdown(operations);
-            
-            const savedApiKey = localStorage.getItem("geminiApiKey");
-            if (savedApiKey) document.getElementById("geminiApiKeyInput").value = savedApiKey;
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const sharedIds = urlParams.get('b');
-            
-            if (sharedIds) {
-                document.body.classList.add("shared-mode-active");
-                openTab('bulletin');
-                
-                const indices = sharedIds.split(",");
-                let foundAny = false;
-                indices.forEach(idx => {
-                    const parsedIdx = parseInt(idx);
-                    if (!isNaN(parsedIdx)) { 
-                        checkedBulletinIndices.add(parsedIdx); 
-                        foundAny = true; 
-                    }
-                });
-                
-                if(foundAny) {
-                    generateBulletinTable();
-                    document.getElementById("bulletinResultArea").style.marginTop = "0";
-                } else {
-                    document.getElementById("bulletin").innerHTML = "<h3 style='text-align:center;'>Bulletin link is invalid or expired.</h3>";
-                }
+                runLocalAIAnalysis(imageParts, apiKey);
             }
         };
-    </script>
+
+        video.onerror = function() {
+            alert("⚠️ Unable to process video format. Try converting to a standard MP4.");
+            document.getElementById("aiLoadingMsg").style.display = "none";
+            document.getElementById("aiImageInput").value = "";
+            document.getElementById("aiWebInput").value = "";
+        };
+    }
+
+    async function runLocalAIAnalysis(mediaParts, apiKey) {
+        const listText = operations.map((op, i) => `${i}: ${op.name}`).join("\n");
+        const promptText = `You are a Senior Footwear Industrial Engineer. Analyze the attached media.
+        
+        Step 1: Identify the shoe component (Toe, Heel, Tongue, Sole, etc.).
+        Step 2: Identify the specific manufacturing action (Stitching, Attaching, Punching, Skiving, etc.).
+        Step 3: Compare your findings against our database of operations:
+        ${listText}
+        
+        CRITICAL: Reply ONLY with a valid JSON object using this exact structure. Do not use markdown code blocks like \`\`\`json.
+        {
+          "analysis": "Briefly describe the shoe part and machine action.",
+          "matching_ids": [List the top 2 to 4 index numbers that best match]
+        }`;
+
+        try {
+            const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await response.json();
+            if (!response.ok) return alert(`⚠️ API Error: ${data.error.message}`);
+
+            let matchedIndices = [];
+            if (data.candidates && data.candidates[0]) {
+                let aiText = data.candidates[0].content.parts[0].text;
+                aiText = aiText.replace(/```json/g, "").replace(/```/g, "").trim();
+                
+                try {
+                    const result = JSON.parse(aiText);
+                    if (result.matching_ids && Array.isArray(result.matching_ids)) {
+                        result.matching_ids.forEach(num => {
+                            if (operations[num] !== undefined) matchedIndices.push(num);
+                        });
+                    }
+                } catch (parseError) {
+                    console.error("AI JSON Parse Error:", aiText);
+                    return alert("⚠️ AI returned an invalid format. Please try scanning again.");
+                }
+            }
+
+            if (matchedIndices.length === 0) return alert("AI could not find local matches.");
+            currentAiFilter = [...new Set(matchedIndices)]; 
+            document.getElementById("aiResultContainer").style.display = "flex";
+            document.getElementById("aiResultText").innerText = `✅ AI Scan Complete! Filtered list below to show ${currentAiFilter.length} suggested operation(s).`;
+            renderBulletinList();
+        } catch (error) {
+            alert("⚠️ Network Error.");
+        } finally {
+            document.getElementById("aiLoadingMsg").style.display = "none";
+            document.getElementById("aiImageInput").value = ""; 
+        }
+    }
+
+    async function runWebAnalysis(mediaParts, apiKey) {
+        const promptText = `Identify the footwear manufacturing machine, process, or operation shown in this image/video frame. Provide a brief 1-2 sentence description. Then, provide exactly 3 highly specific search terms that a user could type into YouTube to find similar tutorial videos or machine demonstrations worldwide. Format your reply with the description first, followed by a bulleted list of the 3 search terms. Do not use markdown bolding.`;
+
+        try {
+            const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await response.json();
+            if (!response.ok) return alert(`⚠️ API Error: ${data.error.message}`);
+
+            if (data.candidates && data.candidates[0]) {
+                let aiText = data.candidates[0].content.parts[0].text;
+                let formattedHtml = "<p><strong>AI Identification:</strong></p>";
+                
+                const lines = aiText.split('\n');
+                lines.forEach(line => {
+                    if (line.trim().startsWith('*') || line.trim().startsWith('-')) {
+                        let term = line.replace(/^[*\-\s]+/, '').trim();
+                        let ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(term)}`;
+                        formattedHtml += `<div style="margin-top: 10px;"><a href="${ytUrl}" target="_blank" style="color: #00ffff; text-decoration: none; display: flex; align-items: center; gap: 8px;">▶️ Search YouTube: <em>${term}</em></a></div>`;
+                    } else if (line.trim() !== '') {
+                        formattedHtml += `<p style="margin-bottom: 5px;">${line}</p>`;
+                    }
+                });
+
+                document.getElementById("webResultBody").innerHTML = formattedHtml;
+                document.getElementById("webResultModal").style.display = "flex";
+            }
+        } catch (error) {
+            alert("⚠️ Network Error.");
+        } finally {
+            document.getElementById("aiLoadingMsg").style.display = "none";
+            document.getElementById("aiWebInput").value = ""; 
+        }
+    }
+
+    function closeWebResultModal() {
+        document.getElementById("webResultModal").style.display = "none";
+    }
+    
+    function clearAIFilter() {
+        currentAiFilter = null;
+        document.getElementById("aiResultContainer").style.display = "none";
+        renderBulletinList(); 
+    }
+
+    function handleCheckboxChange(checkbox, index) {
+        if (checkbox.checked) {
+            checkedBulletinIndices.add(index);
+        } else {
+            checkedBulletinIndices.delete(index);
+        }
+    }
+
+    function getYouTubeID(url) {
+        let video_id = url.split('v=')[1];
+        if (!video_id) video_id = url.split('youtu.be/')[1];
+        if (!video_id) video_id = url.split('shorts/')[1]; 
+        if (video_id) {
+            let ampersandPosition = video_id.indexOf('&');
+            if(ampersandPosition !== -1) video_id = video_id.substring(0, ampersandPosition);
+            let questionPosition = video_id.indexOf('?');
+            if(questionPosition !== -1) video_id = video_id.substring(0, questionPosition);
+            return video_id.trim();
+        }
+        return url;
+    }
+
+    function getThumbnailHtml(url) {
+        if (!url) return "";
+        if (url.includes("youtube.com") || url.includes("youtu.be")) {
+            return `<img src="https://img.youtube.com/vi/${getYouTubeID(url)}/mqdefault.jpg" class="bulletin-thumb" alt="YouTube Thumbnail">`;
+        } else {
+            return `<video class="bulletin-thumb" src="${url}#t=3" preload="metadata" muted playsinline onmouseover="this.play()" onmouseout="this.pause(); this.currentTime=3;"></video>`;
+        }
+    }
+
+    function populateDropdown(list) {
+        const videoSelect = document.getElementById("videoSelect");
+        const deleteSelect = document.getElementById("deleteSelect"); 
+        
+        videoSelect.innerHTML = '<option value="">-- Choose Operation --</option>';
+        if(deleteSelect) deleteSelect.innerHTML = '<option value="">-- Select to Delete --</option>';
+        
+        list.forEach((op, index) => {
+            const option = document.createElement("option");
+            option.value = op.file;
+            option.text = op.name;
+            option.dataset.index = operations.indexOf(op); 
+            videoSelect.add(option);
+            
+            if(deleteSelect) {
+                const delOption = option.cloneNode(true);
+                delOption.dataset.index = operations.indexOf(op);
+                deleteSelect.add(delOption);
+            }
+        });
+    }
+
+    function openTab(tabId, evt) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        if(evt) evt.target.classList.add('active');
+        
+        if (tabId === 'bulletin') renderBulletinList();
+    }
+
+    function filterOperations() {
+        const query = document.getElementById("searchInput").value.toLowerCase();
+        const filtered = operations.filter(op => op.name.toLowerCase().includes(query));
+        populateDropdown(filtered);
+        const select = document.getElementById("videoSelect");
+        select.size = query.length > 0 ? (filtered.length > 0 ? Math.min(filtered.length + 1, 6) : 2) : 1;
+    }
+
+    function changeUnifiedSlomoSpeed() {
+        const selectedSpeed = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
+        document.getElementById("slomoPlayer").playbackRate = selectedSpeed;
+        if (ytPlayerAPI_Slomo && typeof ytPlayerAPI_Slomo.setPlaybackRate === 'function') {
+            ytPlayerAPI_Slomo.setPlaybackRate(selectedSpeed);
+        }
+    }
+
+    function initYouTubePlayers(videoId) {
+        ytPlayerAPI_Normal = new YT.Player('ytPlayerNormal', {
+            videoId: videoId,
+            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
+            events: { 'onReady': e => e.target.playVideo(), 'onStateChange': e => { if(e.data===0) e.target.playVideo(); } }
+        });
+        ytPlayerAPI_Slomo = new YT.Player('ytPlayerSlomo', {
+            videoId: videoId,
+            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'mute': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
+            events: {
+                'onReady': e => { e.target.mute(); e.target.setPlaybackRate(parseFloat(document.getElementById("unifiedSlomoSpeed").value)); e.target.playVideo(); },
+                'onStateChange': e => { if(e.data===1) e.target.setPlaybackRate(parseFloat(document.getElementById("unifiedSlomoSpeed").value)); if(e.data===0) e.target.playVideo(); }
+            }
+        });
+    }
+
+    function playVideo() {
+        const select = document.getElementById("videoSelect");
+        select.size = 1; document.getElementById("searchInput").value = ""; 
+        const smvCard = document.getElementById("smvCard");
+        const unifiedPlayerContainer = document.getElementById("unifiedPlayerContainer");
+
+        if (select.selectedIndex > 0) {
+            const op = operations[select.options[select.selectedIndex].dataset.index];
+            currentBaseSMV = op.smvPair || 0;
+            unifiedPlayerContainer.style.display = "flex";
+
+            if (op.shape && op.shape.startsWith('data:image')) {
+                document.getElementById("viewerShape").src = op.shape;
+                document.getElementById("viewerShapeContainer").style.display = "block";
+            } else {
+                document.getElementById("viewerShapeContainer").style.display = "none";
+                document.getElementById("viewerShape").src = "";
+            }
+
+            if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
+                const ytId = getYouTubeID(op.file);
+                document.getElementById("videoPlayer").style.display = "none";
+                document.getElementById("slomoPlayer").style.display = "none";
+                document.getElementById("videoPlayer").pause();
+                document.getElementById("slomoPlayer").pause();
+                document.getElementById("ytWrapperNormal").style.display = "block";
+                document.getElementById("ytWrapperSlomo").style.display = "block";
+                document.getElementById("ytWrapperNormal").innerHTML = '<div id="ytPlayerNormal"></div>';
+                document.getElementById("ytWrapperSlomo").innerHTML = '<div id="ytPlayerSlomo"></div>';
+                initYouTubePlayers(ytId);
+            } else {
+                document.getElementById("ytWrapperNormal").style.display = "none";
+                document.getElementById("ytWrapperSlomo").style.display = "none";
+                document.getElementById("videoPlayer").style.display = "block";
+                document.getElementById("slomoPlayer").style.display = "block";
+                if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
+                if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+                document.getElementById("videoSource").src = op.file;
+                document.getElementById("videoPlayer").load();
+                document.getElementById("videoPlayer").play();
+                document.getElementById("slomoSource").src = op.file;
+                document.getElementById("slomoPlayer").load();
+                document.getElementById("slomoPlayer").playbackRate = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
+                document.getElementById("slomoPlayer").play();
+            }
+            document.getElementById("perfSlider").value = 100; document.getElementById("allowSlider").value = 15;
+            updateSMV(); smvCard.style.display = "flex";
+        } else {
+            smvCard.style.display = "none"; unifiedPlayerContainer.style.display = "none";
+            document.getElementById("viewerShapeContainer").style.display = "none";
+            document.getElementById("videoPlayer").pause(); document.getElementById("slomoPlayer").pause(); 
+            if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
+            if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+        }
+    }
+
+    function updateSMV() {
+        if (!currentBaseSMV) return;
+        const perf = parseInt(document.getElementById("perfSlider").value);
+        const allow = parseInt(document.getElementById("allowSlider").value);
+        const baseTimeWithoutAllowance = currentBaseSMV / 1.15;
+        const rawSMV = (baseTimeWithoutAllowance * (perf / 100) * (1 + (allow / 100)));
+        document.getElementById("perfLabel").innerText = perf + "%";
+        document.getElementById("allowLabel").innerText = allow + "%";
+        document.getElementById("smvValue").innerText = rawSMV.toFixed(4) + " min";
+        document.getElementById("targetValue").innerText = rawSMV > 0 ? Math.floor(60 / rawSMV) : 0 + " pairs";
+    }
+
+    function addOperation() {
+        const n = document.getElementById("newOpName").value.trim();
+        let f = document.getElementById("newFileName").value.trim();
+        const t = parseFloat(document.getElementById("obsTime").value);
+        
+        let s = getCleanCanvasImage();
+        
+        if (!n || !f || isNaN(t) || t <= 0) return alert("Fill Name, File Name/Link, and Time correctly.");
+        
+        if (f.includes("ik.imagekit.io")) {
+            if (f.includes("?")) {
+                f = f.split("?")[0]; 
+            }
+            f = f + "?tr=orig-true";
+        }
+
+        const calc = ((t * (parseFloat(document.getElementById("perfRating").value)||100)/100) * (1 + ((parseFloat(document.getElementById("allowance").value)||15)/100))) / 60;
+        
+        operations.push({ name: n, file: f, smvPair: parseFloat(calc.toFixed(4)), shape: s });
+        
+        saveToMemory(); populateDropdown(operations); renderBulletinList();
+        
+        document.getElementById("newOpName").value = ""; 
+        document.getElementById("newFileName").value = ""; 
+        document.getElementById("obsTime").value = "";
+        clearCanvas();
+        
+        alert("Added Locally! Remember to click 'Generate Code' when you are done to get the master list for GitHub.");
+    }
+
+    function deleteOperation() {
+        const select = document.getElementById("deleteSelect"); 
+        if (select.selectedIndex <= 0) return alert("Please select an operation to delete.");
+        
+        if (confirm("Are you sure you want to delete this operation?")) {
+            operations.splice(parseInt(select.options[select.selectedIndex].dataset.index), 1);
+            saveToMemory(); 
+            
+            document.getElementById("searchInput").value = ""; 
+            populateDropdown(operations);
+            
+            document.getElementById("smvCard").style.display = "none"; 
+            document.getElementById("unifiedPlayerContainer").style.display = "none";
+            document.getElementById("viewerShapeContainer").style.display = "none";
+            
+            document.getElementById("videoPlayer").pause(); 
+            document.getElementById("slomoPlayer").pause(); 
+            if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
+            if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+            
+            renderBulletinList();
+            alert("Deleted Locally! Remember to click 'Generate Code' to save this change for GitHub.");
+        }
+    }
+
+    function generateCode() {
+        let codeOutput = `    let defaultOperations = [\n`;
+        operations.forEach((op, index) => {
+            codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)}, shape: "${op.shape || ''}" }`;
+            if (index < operations.length - 1) codeOutput += `,`;
+            codeOutput += `\n`;
+        });
+        codeOutput += `    ];`;
+
+        const exportArea = document.getElementById("exportArea");
+        exportArea.value = codeOutput; 
+        exportArea.style.display = "block"; 
+        exportArea.select(); 
+        document.execCommand("copy");
+        alert("Success! The code is copied to your clipboard. Paste this block directly into your index.html file on GitHub to save these changes permanently.");
+    }
+
+    function renderBulletinList() {
+        const query = document.getElementById("bulletinSearch").value.toLowerCase();
+        const tbody = document.getElementById("bulletinSelectionListBody");
+        tbody.innerHTML = "";
+        
+        operations.forEach((op, index) => {
+            if (currentAiFilter !== null && !currentAiFilter.includes(index)) return;
+            if (!op.name.toLowerCase().includes(query)) return;
+            
+            const thumbHtml = getThumbnailHtml(op.file);
+            const isChecked = checkedBulletinIndices.has(index) ? "checked" : "";
+            
+            const shapeBadge = op.shape && op.shape.startsWith('data:image') 
+                ? `<img src="${op.shape}" class="drawn-shape" alt="Custom Shape">` 
+                : "";
+            
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td style="text-align: center; font-weight: bold; color: #888; vertical-align: middle;">${index + 1}</td>
+                <td style="text-align: center; vertical-align: middle;">
+                    <input type="checkbox" class="bulletin-checkbox" value="${index}" id="chk_${index}" onchange="handleCheckboxChange(this, ${index})" style="width: 18px; height: 18px; cursor: pointer;" ${isChecked}>
+                </td>
+                <td style="vertical-align: middle;">
+                    <label for="chk_${index}" style="font-weight: bold; font-size: 1.1em; color: #fff; cursor: pointer; display: flex; align-items: center; margin: 0;">
+                        ${op.name} ${shapeBadge}
+                    </label>
+                </td>
+                <td style="color: #007bff; font-weight: bold; font-size: 1.05em; vertical-align: middle;">
+                    ${op.smvPair.toFixed(4)}
+                </td>
+                <td style="text-align: center; vertical-align: middle;">
+                    ${thumbHtml}
+                </td>
+                <td style="text-align: center; vertical-align: middle;">
+                    <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 8px 15px; margin:0;">▶ Preview</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function openPreviewModal(index) {
+        const op = operations[index];
+        document.getElementById("modalTitle").innerText = op.name;
+        document.getElementById("previewModal").style.display = "flex";
+        
+        if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
+            document.getElementById("modalVideo").style.display = "none";
+            document.getElementById("modalYtWrapper").style.display = "block";
+            document.getElementById("modalYtWrapper").innerHTML = '<div id="modalYtPlayer"></div>';
+            modalYtAPI = new YT.Player('modalYtPlayer', {
+                videoId: getYouTubeID(op.file),
+                playerVars: { 'autoplay': 1, 'playsinline': 1 },
+                events: { 'onReady': e => e.target.playVideo() }
+            });
+        } else {
+            document.getElementById("modalYtWrapper").style.display = "none";
+            const video = document.getElementById("modalVideo");
+            video.style.display = "block";
+            video.src = op.file;
+            video.play();
+        }
+    }
+
+    function closePreviewModal() {
+        document.getElementById("previewModal").style.display = "none";
+        document.getElementById("modalVideo").pause();
+        document.getElementById("modalVideo").src = "";
+        if (modalYtAPI) { modalYtAPI.destroy(); modalYtAPI = null; }
+    }
+
+    function generateBulletinTable() {
+        if (checkedBulletinIndices.size === 0) return alert("Please select at least one operation.");
+        
+        const tbody = document.getElementById("bulletinTableBody");
+        const tfoot = document.getElementById("bulletinTableFooter");
+        
+        tbody.innerHTML = "";
+        tfoot.innerHTML = "";
+        
+        let selectedIndices = Array.from(checkedBulletinIndices).sort((a, b) => a - b);
+        let totalSMV = 0;
+        
+        selectedIndices.forEach((index, displayCount) => {
+            const op = operations[index];
+            totalSMV += op.smvPair;
+            
+            const thumbHtml = getThumbnailHtml(op.file);
+            const shapeBadge = op.shape && op.shape.startsWith('data:image') 
+                ? `<img src="${op.shape}" class="drawn-shape" alt="Custom Shape">` 
+                : "";
+
+            tbody.innerHTML += `
+                <tr>
+                    <td style="text-align: center; font-weight: bold; color: #888; vertical-align: middle;">${displayCount + 1}</td>
+                    <td style="font-weight: bold; vertical-align: middle; display: flex; align-items: center;">
+                        ${op.name} ${shapeBadge}
+                    </td>
+                    <td style="color: #007bff; font-weight:bold; vertical-align: middle;">${op.smvPair.toFixed(4)}</td>
+                    <td style="text-align: right;">
+                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 15px;">
+                            ${thumbHtml}
+                            <button class="btn-primary" onclick="openPreviewModal(${index})" style="padding: 5px 15px; margin:0;">▶ Play</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tfoot.innerHTML = `
+            <tr>
+                <td colspan="2" style="text-align: right; text-transform: uppercase;">Total SMV:</td>
+                <td style="color: #007bff;">${totalSMV.toFixed(4)}</td>
+                <td></td>
+            </tr>
+        `;
+        
+        document.getElementById("bulletinResultArea").style.display = "block";
+        document.getElementById("bulletinResultArea").dataset.sharedIds = selectedIndices.join(",");
+    }
+
+    function clearBulletin() {
+        if (confirm("Are you sure you want to clear all selections and start over?")) {
+            currentAiFilter = null; 
+            checkedBulletinIndices.clear(); 
+            document.getElementById("bulletinResultArea").style.display = "none";
+            document.getElementById("bulletinResultArea").dataset.sharedIds = "";
+            document.getElementById("bulletinTableBody").innerHTML = "";
+            document.getElementById("bulletinTableFooter").innerHTML = "";
+            document.getElementById("aiResultContainer").style.display = "none";
+            document.getElementById("bulletinSearch").value = "";
+            renderBulletinList(); 
+        }
+    }
+
+    function getShareableURL() {
+        const ids = document.getElementById("bulletinResultArea").dataset.sharedIds;
+        return window.location.origin + window.location.pathname + "?b=" + ids;
+    }
+
+    function copyShareLink() {
+        const link = getShareableURL();
+        navigator.clipboard.writeText(link).then(() => {
+            alert("Share Link Copied! You can paste this in WhatsApp.");
+        });
+    }
+
+    function sendIEEmail() {
+        const link = getShareableURL();
+        const subject = encodeURIComponent("IE Team: New Operations Bulletin");
+        const body = encodeURIComponent("Hello IE Team,\n\nPlease review the selected operations and SMV times by clicking the link below:\n\n" + link + "\n\nRegards.");
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    }
+
+    function downloadCSV() {
+        if (checkedBulletinIndices.size === 0) return alert("No operations selected to download.");
+        
+        let csvContent = "data:text/csv;charset=utf-8,No.,Operation Name,Has Custom Shape,SMV (min)\n";
+        let selectedIndices = Array.from(checkedBulletinIndices).sort((a, b) => a - b);
+        let total = 0;
+        
+        selectedIndices.forEach((index, i) => {
+            const op = operations[index];
+            total += op.smvPair;
+            const hasShapeStr = (op.shape && op.shape.startsWith('data:image')) ? `"Yes"` : `"No"`;
+            csvContent += `${i + 1},"${op.name}",${hasShapeStr},${op.smvPair.toFixed(4)}\n`;
+        });
+        
+        csvContent += `,,,Total SMV:,${total.toFixed(4)}\n`;
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "DSI_Operations_Targets.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    window.onload = function() {
+        initCanvas(); 
+        
+        let memoryData = localStorage.getItem("footwearOperations_Final");
+        if (memoryData) {
+            try {
+                operations = JSON.parse(memoryData);
+            } catch(e) {
+                console.error("Local storage load error", e);
+            }
+        }
+        populateDropdown(operations);
+        
+        const savedApiKey = localStorage.getItem("geminiApiKey");
+        if (savedApiKey) document.getElementById("geminiApiKeyInput").value = savedApiKey;
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const sharedIds = urlParams.get('b');
+        
+        if (sharedIds) {
+            document.body.classList.add("shared-mode-active");
+            openTab('bulletin');
+            
+            const indices = sharedIds.split(",");
+            let foundAny = false;
+            indices.forEach(idx => {
+                const parsedIdx = parseInt(idx);
+                if (!isNaN(parsedIdx)) { 
+                    checkedBulletinIndices.add(parsedIdx); 
+                    foundAny = true; 
+                }
+            });
+            
+            if(foundAny) {
+                generateBulletinTable();
+                document.getElementById("bulletinResultArea").style.marginTop = "0";
+            } else {
+                document.getElementById("bulletin").innerHTML = "<h3 style='text-align:center;'>Bulletin link is invalid or expired.</h3>";
+            }
+        }
+    };
+</script>
 </body>
 </html>
