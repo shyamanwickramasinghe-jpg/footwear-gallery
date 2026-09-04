@@ -7,284 +7,81 @@
     <title>DSI FOOTTECH: AI SMV Estimator & Social Media Trending Operations</title>
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
-        body {
-            background: linear-gradient(rgba(10, 15, 20, 0.30), rgba(10, 15, 20, 0.30)), url('https://ik.imagekit.io/qegfiwkq6/Bgrd%20image.jpg') no-repeat center center fixed;
-            background-size: cover;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1000px; 
-            margin: 0 auto;
-            background: rgba(20, 24, 30, 0.65);
-            padding: 30px;
-            padding-bottom: 250px; 
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .dsi-header {
-            display: flex;
-            align-items: center; 
-            justify-content: flex-start; 
-            gap: 15px; 
-            margin-bottom: 20px;
-            border-bottom: 1px solid #444;
-            padding-bottom: 15px;
-        }
-        
-        .dsi-image-logo {
-            height: 38px; 
-            width: auto;
-            object-fit: contain;
-        }
-
-        .dsi-header h3 {
-            margin: 0; 
-            color: #cccccc;
-            font-weight: 600;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            font-size: 1.1em;
-        }
-
-        .header-flex {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .header-left { display: flex; align-items: center; gap: 15px; }
-        .header-logo { width: 45px; height: 45px; flex-shrink: 0; forced-color-adjust: none; }
-        .header-left h2 { margin: 0; font-size: 1.3em; color: #ddd; }
-        
-        .help-btn { background: #ffc107; color: #000; border: none; padding: 8px 16px; font-weight: bold; border-radius: 20px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: background 0.3s; }
-        .help-btn:hover { background: #e0a800; }
-
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #444; padding-bottom: 10px; flex-wrap: wrap; }
-        .tab-btn { background: #333; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 6px; transition: background 0.3s; flex-grow: 1; text-align: center; font-weight: bold; }
-        .tab-btn:hover { background: #555; }
-        .tab-btn.active { background: #007bff; font-weight: bold; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        select, input[type="text"], input[type="search"], input[type="number"], button, textarea, input[type="password"] {
-            padding: 10px; margin: 5px 0 15px 0; border-radius: 6px; border: 1px solid #555;
-            background: #222; color: white; box-sizing: border-box; font-family: inherit;
-        }
-        .input-group { display: flex; gap: 15px; }
-        .input-group > div { flex: 1; }
-        button { background: #28a745; cursor: pointer; border: none; font-weight: bold; transition: opacity 0.2s; }
-        button:hover { opacity: 0.85; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-warning { background: #ffc107; color: black; }
-        .btn-primary { background: #007bff; color: white; }
-        .btn-info { background: #17a2b8; color: white; }
-        
-        input[type=range] { -webkit-appearance: none; background: #444; height: 6px; border-radius: 3px; outline: none; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #007bff; cursor: pointer; }
-        
-        .info-card { background: rgba(0, 0, 0, 0.5); border-left: 4px solid #007bff; padding: 15px; margin: 15px 0; border-radius: 6px; display: flex; flex-direction: column; align-items: center; }
-        .info-item { text-align: center; }
-        .info-label { font-size: 0.9em; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
-        .info-value { font-size: 1.5em; font-weight: bold; color: #007bff; margin-top: 5px; }
-
-        .video-layout { display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
-        .main-video-container, .slomo-video-container { flex: 1; display: flex; flex-direction: column; min-width: 300px; }
-        video, .player-frame { border: 2px solid #444; border-radius: 8px; width: 100%; height: 350px; object-fit: contain; background: #000; box-sizing: border-box; }
-        .player-frame iframe { width: 100% !important; height: 100% !important; border: none !important; border-radius: 6px; }
-        .video-title { font-size: 0.9em; color: #aaa; margin-bottom: 5px; text-transform: uppercase; text-align: center; display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 40px; }
-        .speed-select { padding: 5px 12px; margin: 0; font-size: 1.1em; width: auto; background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-
-        #exportArea { width: 100%; height: 150px; background: #111; color: #0f0; font-family: monospace; padding: 10px; display: none; }
-
-        .bulletin-list { 
-            max-height: 550px; 
-            overflow-y: auto; 
-            background: #1a1a1a; 
-            border-radius: 8px; 
-            border: 1px solid #444; 
-            margin-bottom: 15px; 
-        }
-        
-        .bulletin-thumb { 
-            width: 120px; 
-            height: 68px; 
-            object-fit: cover; 
-            border-radius: 6px; 
-            border: 1px solid #555; 
-            background: #111; 
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
-            cursor: zoom-in;
-            position: relative;
-            z-index: 1;
-            transform-origin: center right; 
-        }
-        
-        .bulletin-thumb:hover {
-            transform: scale(3.5); 
-            z-index: 9999; 
-            box-shadow: -10px 10px 30px rgba(0,0,0,0.9);
-            border: 2px solid #007bff;
-            border-radius: 3px;
-        }
-
-        .bulletin-table { 
-            width: 100%; 
-            border-collapse: separate; 
-            border-spacing: 0;
-            background: #222; 
-            margin: 0; 
-        }
-        
-        .bulletin-table th, .bulletin-table td { 
-            padding: 12px; 
-            text-align: left; 
-            border-bottom: 1px solid #444; 
-            vertical-align: middle; 
-        }
-        
-        .bulletin-table th { 
-            background: #007bff; 
-            color: white; 
-            text-transform: uppercase; 
-            font-size: 0.9em; 
-            position: sticky; 
-            top: 0; 
-            z-index: 100; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.5); 
-        }
-        
-        .bulletin-table tr:hover { background: #333; }
-        .bulletin-table tfoot td { border-top: 2px solid #007bff; font-weight: bold; font-size: 1.1em; background: #1a1a1a; }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; }
-        .modal-content { width: 90%; max-width: 800px; background: #111; padding: 20px; border-radius: 12px; border: 2px solid #007bff; max-height: 90vh; overflow-y: auto; }
-        .modal-close { background: #dc3545; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 6px; font-weight: bold; margin-top: 15px; width: 100%; }
-        
-        .help-guide-section { background: #222; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 15px; border-radius: 6px; }
-        .help-guide-section h4 { margin-top: 0; color: #ffc107; }
-        .help-guide-section ul { margin-bottom: 0; padding-left: 20px; color: #ddd; }
-        .help-guide-section li { margin-bottom: 8px; }
-
-        .shared-mode-active .tabs, .shared-mode-active #viewer, .shared-mode-active #estimator, .shared-mode-active #manage, .shared-mode-active .bulletin-creation-tools, .shared-mode-active .help-btn { display: none !important; }
-        .shared-mode-active .container { max-width: 800px; padding: 15px; }
-        .shared-mode-active #bulletin { display: block !important; }
-        .shared-header { background: #e30613; padding: 15px; text-align: center; border-radius: 8px; margin-bottom: 20px; font-weight: bold; font-size: 1.2em; display: none; }
-        .shared-mode-active .shared-header { display: block; }
-        
-        .admin-banner { background: rgba(220, 53, 69, 0.15); border: 2px solid #dc3545; color: #ffcccc; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; }
-        .admin-banner h3 { margin: 0 0 5px 0; color: #ff4d4d; font-size: 1.2em; }
-        .admin-banner p { margin: 0; font-size: 0.9em; line-height: 1.4; }
-
-        .canvas-container { margin-bottom: 15px; background: #1a1a1a; padding: 10px; border-radius: 8px; border: 1px solid #444; }
-        #drawingCanvas { background: #0a0a0a; border: 1px solid #555; border-radius: 6px; cursor: crosshair; touch-action: none; display: block; width: 100%; max-width: 600px; height: 300px; margin-top: 5px; }
-        
-        /* UPDATED SKETCH VISIBILITY & ZOOM */
-        .drawn-shape { 
-            height: 40px; 
-            vertical-align: middle; 
-            margin-left: 15px; 
-            background: #0a0a0a; 
-            border: 1px solid #ffc107; 
-            border-radius: 4px; 
-            padding: 2px; 
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, z-index 0s;
-            position: relative;
-            z-index: 1;
-            cursor: zoom-in;
-        }
-        .drawn-shape:hover {
-            transform: scale(4);
-            z-index: 9999;
-            box-shadow: -10px 10px 30px rgba(0,0,0,0.9);
-            border: 2px solid #ffc107;
-        }
-
-        .custom-dropdown {
-            position: relative;
-            margin-top: 5px;
-            margin-bottom: 15px;
-        }
-        .dropdown-selected {
-            background: #222;
-            border: 1px solid #17a2b8;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-            color: #fff;
-        }
-        .dropdown-selected::after {
-            content: "▼";
-            font-size: 0.8em;
-            color: #17a2b8;
-        }
-        .dropdown-options {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            background: #1e1e1e;
-            border: 1px solid #17a2b8;
-            border-top: none;
-            border-radius: 0 0 6px 6px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 99999;
-            display: none;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.8);
-        }
-        .dropdown-options.open {
-            display: block;
-        }
-        .dropdown-option {
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #333;
-            color: #ddd;
-        }
-        .dropdown-option:hover {
-            background: #007bff;
-            color: #fff;
-        }
-
-        #shoppingBtn:hover { background: #0056b3 !important; }
-
-        @media print {
-            body { background: #fff !important; color: #000 !important; }
-            .tabs, .dsi-header, .header-flex, .bulletin-creation-tools, .bulletin-list, .modal-overlay, #unifiedPlayerContainer { display: none !important; }
-            .container { box-shadow: none; padding: 0; background: transparent !important; max-width: 100%; border: none !important; }
-            #bulletinResultArea { display: block !important; margin-top: 0 !important; }
-            .bulletin-table { border-collapse: collapse !important; }
-            .bulletin-table th { background: #eee !important; color: #000 !important; border: 1px solid #ccc !important; box-shadow: none; }
-            .bulletin-table td { border: 1px solid #ccc !important; color: #000 !important; }
-            .bulletin-table tfoot td { background: #fff !important; color: #000 !important; border-top: 2px solid #000 !important; }
-            .bulletin-thumb, button, a { display: none !important; }
-            .shared-header { display: block !important; background: #eee !important; color: #000 !important; border: 1px solid #ccc !important; }
-            
-            body.print-estimate-only .container > *:not(#estimator) { display: none !important; }
-            body.print-estimate-only #estimator > *:not(#estResultArea) { display: none !important; }
-            body.print-estimate-only #estResultArea { border: none !important; padding: 0 !important; background: transparent !important; }
-            body.print-estimate-only #estResultArea > button { display: none !important; }
-            body.print-estimate-only #estPrintHeader { display: flex !important; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-            body.print-estimate-only #estAiOutput { font-size: 1.1em; color: #000 !important; }
-            body.print-estimate-only #estAiOutput strong, body.print-estimate-only #estAiOutput h3, body.print-estimate-only #estAiOutput h4 { color: #000 !important; }
-            body.print-estimate-only #estAiOutput div { background: transparent !important; border-color: #000 !important; }
-        }
+        body{background:linear-gradient(rgba(10,15,20,.3),rgba(10,15,20,.3)),url('https://ik.imagekit.io/qegfiwkq6/Bgrd%20image.jpg') no-repeat center center fixed;background-size:cover;color:#fff;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0;padding:20px;min-height:100vh}
+        .container{max-width:1000px;margin:0 auto;background:rgba(20,24,30,.65);padding:30px 30px 250px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1)}
+        .dsi-header{display:flex;align-items:center;justify-content:flex-start;gap:15px;margin-bottom:20px;border-bottom:1px solid #444;padding-bottom:15px}
+        .dsi-image-logo{height:38px;width:auto;object-fit:contain}
+        .dsi-header h3{margin:0;color:#ccc;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;font-size:1.1em}
+        .header-flex{display:flex;align-items:center;justify-content:space-between;margin-bottom:25px;padding-bottom:15px;flex-wrap:wrap;gap:15px}
+        .header-left{display:flex;align-items:center;gap:15px}
+        .header-logo{width:45px;height:45px;flex-shrink:0}
+        .header-left h2{margin:0;font-size:1.3em;color:#ddd}
+        .help-btn{background:#ffc107;color:#000;border:none;padding:8px 16px;font-weight:700;border-radius:20px;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.3);transition:background .3s}
+        .help-btn:hover{background:#e0a800}
+        .tabs{display:flex;gap:10px;margin-bottom:20px;border-bottom:2px solid #444;padding-bottom:10px;flex-wrap:wrap}
+        .tab-btn{background:#333;color:#fff;border:none;padding:10px 20px;cursor:pointer;border-radius:6px;transition:background .3s;flex-grow:1;text-align:center;font-weight:700}
+        .tab-btn:hover{background:#555}
+        .tab-btn.active{background:#007bff}
+        .tab-content{display:none}
+        .tab-content.active{display:block}
+        select,input[type=text],input[type=search],input[type=number],button,textarea,input[type=password]{padding:10px;margin:5px 0 15px 0;border-radius:6px;border:1px solid #555;background:#222;color:#fff;box-sizing:border-box;font-family:inherit}
+        .input-group{display:flex;gap:15px}
+        .input-group>div{flex:1}
+        button{background:#28a745;cursor:pointer;border:none;font-weight:700;transition:opacity .2s}
+        button:hover{opacity:.85}
+        .btn-danger{background:#dc3545;color:#fff}
+        .btn-warning{background:#ffc107;color:#000}
+        .btn-primary{background:#007bff;color:#fff}
+        .btn-info{background:#17a2b8;color:#fff}
+        input[type=range]{-webkit-appearance:none;background:#444;height:6px;border-radius:3px;outline:0}
+        input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#007bff;cursor:pointer}
+        .info-card{background:rgba(0,0,0,.5);border-left:4px solid #007bff;padding:15px;margin:15px 0;border-radius:6px;display:flex;flex-direction:column;align-items:center}
+        .info-item{text-align:center}
+        .info-label{font-size:.9em;color:#aaa;text-transform:uppercase;letter-spacing:1px}
+        .info-value{font-size:1.5em;font-weight:700;color:#007bff;margin-top:5px}
+        .video-layout{display:flex;gap:15px;margin-top:15px;flex-wrap:wrap}
+        .main-video-container,.slomo-video-container{flex:1;display:flex;flex-direction:column;min-width:300px}
+        video,.player-frame{border:2px solid #444;border-radius:8px;width:100%;height:350px;object-fit:contain;background:#000;box-sizing:border-box}
+        .player-frame iframe{width:100%!important;height:100%!important;border:none!important;border-radius:6px}
+        .video-title{font-size:.9em;color:#aaa;margin-bottom:5px;text-transform:uppercase;text-align:center;display:flex;justify-content:center;align-items:center;gap:10px;min-height:40px}
+        .speed-select{padding:5px 12px;margin:0;font-size:1.1em;width:auto;background:#007bff;color:#fff;border:none;font-weight:700;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.5)}
+        #exportArea{width:100%;height:150px;background:#111;color:#0f0;font-family:monospace;padding:10px;display:none}
+        .bulletin-list{max-height:550px;overflow-y:auto;background:#1a1a1a;border-radius:8px;border:1px solid #444;margin-bottom:15px}
+        .bulletin-thumb{width:120px;height:68px;object-fit:cover;border-radius:6px;border:1px solid #555;background:#111;transition:transform .3s cubic-bezier(.175,.885,.32,1.275),box-shadow .3s ease;cursor:zoom-in;position:relative;z-index:1;transform-origin:center right}
+        .bulletin-thumb:hover{transform:scale(3.5);z-index:9999;box-shadow:-10px 10px 30px rgba(0,0,0,.9);border:2px solid #007bff;border-radius:3px}
+        .bulletin-table{width:100%;border-collapse:separate;border-spacing:0;background:#222;margin:0}
+        .bulletin-table td,.bulletin-table th{padding:12px;text-align:left;border-bottom:1px solid #444;vertical-align:middle}
+        .bulletin-table th{background:#007bff;color:#fff;text-transform:uppercase;font-size:.9em;position:sticky;top:0;z-index:100;box-shadow:0 4px 6px rgba(0,0,0,.5)}
+        .bulletin-table tr:hover{background:#333}
+        .bulletin-table tfoot td{border-top:2px solid #007bff;font-weight:700;font-size:1.1em;background:#1a1a1a}
+        .modal-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.9);z-index:1000;display:none;justify-content:center;align-items:center;flex-direction:column}
+        .modal-content{width:90%;max-width:800px;background:#111;padding:20px;border-radius:12px;border:2px solid #007bff;max-height:90vh;overflow-y:auto}
+        .modal-close{background:#dc3545;color:#fff;border:none;padding:10px 20px;cursor:pointer;border-radius:6px;font-weight:700;margin-top:15px;width:100%}
+        .help-guide-section{background:#222;border-left:4px solid #ffc107;padding:15px;margin-bottom:15px;border-radius:6px}
+        .help-guide-section h4{margin-top:0;color:#ffc107}
+        .help-guide-section ul{margin-bottom:0;padding-left:20px;color:#ddd}
+        .help-guide-section li{margin-bottom:8px}
+        .shared-mode-active #estimator,.shared-mode-active #manage,.shared-mode-active #viewer,.shared-mode-active .bulletin-creation-tools,.shared-mode-active .help-btn,.shared-mode-active .tabs{display:none!important}
+        .shared-mode-active .container{max-width:800px;padding:15px}
+        .shared-mode-active #bulletin{display:block!important}
+        .shared-header{background:#e30613;padding:15px;text-align:center;border-radius:8px;margin-bottom:20px;font-weight:700;font-size:1.2em;display:none}
+        .shared-mode-active .shared-header{display:block}
+        .admin-banner{background:rgba(220,53,69,.15);border:2px solid #dc3545;color:#ffcccc;padding:15px;border-radius:8px;margin-bottom:20px;text-align:left}
+        .admin-banner h3{margin:0 0 5px 0;color:#ff4d4d;font-size:1.2em}
+        .admin-banner p{margin:0;font-size:.9em;line-height:1.4}
+        .canvas-container{margin-bottom:15px;background:#1a1a1a;padding:10px;border-radius:8px;border:1px solid #444}
+        #drawingCanvas{background:#0a0a0a;border:1px solid #555;border-radius:6px;cursor:crosshair;touch-action:none;display:block;width:100%;max-width:600px;height:300px;margin-top:5px}
+        .drawn-shape{height:40px;vertical-align:middle;margin-left:15px;background:#0a0a0a;border:1px solid #ffc107;border-radius:4px;padding:2px;transition:transform .3s cubic-bezier(.175,.885,.32,1.275),box-shadow .3s ease,z-index 0s;position:relative;z-index:1;cursor:zoom-in}
+        .drawn-shape:hover{transform:scale(4);z-index:9999;box-shadow:-10px 10px 30px rgba(0,0,0,.9);border:2px solid #ffc107}
+        .custom-dropdown{position:relative;margin-top:5px;margin-bottom:15px}
+        .dropdown-selected{background:#222;border:1px solid #17a2b8;padding:10px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;color:#fff}
+        .dropdown-selected::after{content:"▼";font-size:.8em;color:#17a2b8}
+        .dropdown-options{position:absolute;top:100%;left:0;width:100%;background:#1e1e1e;border:1px solid #17a2b8;border-top:none;border-radius:0 0 6px 6px;max-height:200px;overflow-y:auto;z-index:99999;display:none;box-shadow:0 8px 16px rgba(0,0,0,.8)}
+        .dropdown-options.open{display:block}
+        .dropdown-option{padding:10px;cursor:pointer;border-bottom:1px solid #333;color:#ddd}
+        .dropdown-option:hover{background:#007bff;color:#fff}
+        #shoppingBtn:hover{background:#0056b3!important}
+        @media print{body{background:#fff!important;color:#000!important}.bulletin-creation-tools,.bulletin-list,.dsi-header,.header-flex,.modal-overlay,.tabs,#unifiedPlayerContainer{display:none!important}.container{box-shadow:none;padding:0;background:0 0!important;max-width:100%;border:none!important}#bulletinResultArea{display:block!important;margin-top:0!important}.bulletin-table{border-collapse:collapse!important}.bulletin-table th{background:#eee!important;color:#000!important;border:1px solid #ccc!important;box-shadow:none}.bulletin-table td{border:1px solid #ccc!important;color:#000!important}.bulletin-table tfoot td{background:#fff!important;color:#000!important;border-top:2px solid #000!important}a,button,.bulletin-thumb{display:none!important}.shared-header{display:block!important;background:#eee!important;color:#000!important;border:1px solid #ccc!important}body.print-estimate-only .container>*:not(#estimator){display:none!important}body.print-estimate-only #estimator>*:not(#estResultArea){display:none!important}body.print-estimate-only #estResultArea{border:none!important;padding:0!important;background:0 0!important}body.print-estimate-only #estResultArea>button{display:none!important}body.print-estimate-only #estPrintHeader{display:flex!important;margin-bottom:20px;border-bottom:2px solid #000;padding-bottom:10px}body.print-estimate-only #estAiOutput{font-size:1.1em;color:#000!important}body.print-estimate-only #estAiOutput h3,body.print-estimate-only #estAiOutput h4,body.print-estimate-only #estAiOutput strong{color:#000!important}body.print-estimate-only #estAiOutput div{background:0 0!important;border-color:#000!important}}
     </style>
 </head>
 <body>
@@ -313,17 +110,16 @@
         <button type="button" class="help-btn" onclick="openHelpModal()">📖 How to Use</button>
     </div>
 
-<div class="tabs">
+    <div class="tabs">
         <button type="button" class="tab-btn active" onclick="openTab('estimator', event)">AI SMV Estimator</button>
         <button type="button" class="tab-btn" onclick="openTab('viewer', event)">Social Media Operation Viewer</button>
         <button type="button" class="tab-btn" onclick="openTab('bulletin', event)">Social Media OP Bulletin</button>
         <button type="button" class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d;">Manage (Admin)</button>
     </div>
 
-    <!-- Tab 1: Video Viewer -->
     <div id="viewer" class="tab-content">
         <label>Search operation:</label><br>
-        <input type="search" id="searchInput" name="app_search_query_no_autofill" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other" onkeyup="filterOperations()" placeholder="Type to filter existing operations..." style="width: 100%;"><br>
+        <input type="search" id="searchInput" autocomplete="off" onkeyup="filterOperations()" placeholder="Type to filter existing operations..." style="width: 100%;"><br>
 
         <label>Select Operation:</label><br>
         <select id="videoSelect" style="width: 100%;" onchange="playVideo()">
@@ -354,7 +150,6 @@
                 <input type="range" id="allowSlider" min="1" max="25" value="15" style="width: 100%; margin-top: 10px;" oninput="updateSMV()">
             </div>
 
-            <!-- UPDATED: VIEWER SKETCH AREA -->
             <div id="viewerShapeContainer" style="display: none; margin-top: 20px; width: 100%; text-align: center; border-top: 1px solid #444; padding-top: 15px;">
                 <label style="color: #ffc107; font-size: 0.95em; text-transform: uppercase; letter-spacing: 1px;">Operation Sketch Template</label><br>
                 <img id="viewerShape" src="" alt="Operation Sketch" style="max-height: 180px; border: 2px solid #ffc107; border-radius: 6px; margin-top: 10px; background: #0a0a0a; max-width: 100%;">
@@ -391,7 +186,6 @@
         </div>
     </div>
 
-    <!-- Tab 2: Global AI SMV Estimator -->
     <div id="estimator" class="tab-content active">
         <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI SMV Estimator</h3>
         <p style="color: #aaa; font-size: 0.95em;">Upload a photo or video of a footwear style to generate preliminary, multi-department global benchmark SMVs and estimated Labor vs. Material ratios.<br><br><i style="color: #ffc107;">*Note: The AI now accounts for deep internal sub-assembly, handling delays, and finishing operations to push baselines closer to real-world floor conditions.</i></p>
@@ -467,10 +261,8 @@
         </div>
     </div>
 
-    <!-- Tab 3: Social Media OP Bulletin -->
     <div id="bulletin" class="tab-content">
         <div class="shared-header">👟 IE Operations Guide</div>
-        
         <div class="bulletin-creation-tools">
             <h3 style="margin-top: 0;">Step 1: Operation Master List Selection</h3>
             
@@ -515,7 +307,6 @@
 
         <div id="bulletinResultArea" style="display: none; margin-top: 30px;">
             <h3 class="bulletin-creation-tools">Step 2: Share & Export Targets</h3>
-            
             <table class="bulletin-table" id="bulletinTable">
                 <thead>
                     <tr>
@@ -525,10 +316,8 @@
                         <th style="text-align: right;">Video</th>
                     </tr>
                 </thead>
-                <tbody id="bulletinTableBody">
-                </tbody>
-                <tfoot id="bulletinTableFooter">
-                </tfoot>
+                <tbody id="bulletinTableBody"></tbody>
+                <tfoot id="bulletinTableFooter"></tfoot>
             </table>
 
             <div class="bulletin-creation-tools" style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
@@ -542,14 +331,12 @@
 
     <!-- Tab 4: Manage Operations (ADMIN ONLY) -->
     <div id="manage" class="tab-content">
-        
         <div class="admin-banner">
             <h3>⚠️ Admin Access Only</h3>
             <p><strong>TEAM MEMBERS SHOULD NOT USE THIS TAB.</strong> This section is exclusively for managing the master database. Changes made here will not be saved permanently until you click "Generate Code for GitHub" and update the master index.html file.</p>
         </div>
         
         <h3 style="color: #ffc107;">🤖 AI Configuration</h3>
-        
         <label>Google Gemini API Key (For AI Analysis):</label><br>
         <div style="display: flex; gap: 10px; align-items: flex-start;">
             <input type="password" id="geminiApiKeyInput" placeholder="Paste Gemini API key here" style="flex: 1; margin: 0;" autocomplete="new-password">
@@ -567,7 +354,7 @@
         <input type="text" id="newFileName" placeholder="e.g. https://ik.imagekit.io/... or https://youtube.com/..." style="width: 100%; border: 1px solid #007bff;"><br>
 
         <div class="canvas-container">
-            <!-- UPDATED: CANVAS CONTROLS WITH UNDO -->
+            <!-- CANVAS CONTROLS WITH UNDO -->
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Vector Template Shape:</label>
                 <div>
@@ -600,10 +387,8 @@
         <button type="button" class="btn-warning" onclick="generateCode()" style="font-size: 1.1em; padding: 12px; font-weight: bold;">Generate Code for GitHub</button>
         <textarea id="exportArea" readonly></textarea>
     </div>
-
 </div>
 
-<!-- Global Modal for Video Preview -->
 <div class="modal-overlay" id="previewModal">
     <div class="modal-content">
         <h3 id="modalTitle" style="margin-top: 0; color: #fff;">Preview</h3>
@@ -615,7 +400,6 @@
     </div>
 </div>
 
-<!-- Modal for Web Search Results -->
 <div class="modal-overlay" id="webResultModal">
     <div class="modal-content" style="border-color: #17a2b8;">
         <h3 style="margin-top: 0; color: #17a2b8;">🌐 Global Similarity Search Results</h3>
@@ -625,14 +409,12 @@
     </div>
 </div>
 
-<!-- IN-APP HELP GUIDE MODAL -->
 <div class="modal-overlay" id="helpModal">
     <div class="modal-content" style="border-color: #ffc107;">
         <h2 style="margin-top: 0; color: #ffc107; display: flex; align-items: center; gap: 10px;">
             📖 FOOTTECH User Guide
         </h2>
         <p style="color: #ccc;">Welcome to the DSI Footwear Operations portal. Use the tabs at the top to navigate the platform. Here is how to use each section:</p>
-        
         <div class="help-guide-section">
             <h4>▶️ 1. Video Viewer (Motion Analysis)</h4>
             <ul>
@@ -640,7 +422,6 @@
                 <li><strong>Motion Study:</strong> Use the right-side video player to slow down footage (0.25x to 0.75x) to analyze micro-movements accurately.</li>
             </ul>
         </div>
-
         <div class="help-guide-section">
             <h4 style="color: #17a2b8;">🌐 2. AI SMV Estimator</h4>
             <ul>
@@ -648,7 +429,6 @@
                 <li><strong>Cost Ratios & Print:</strong> View the estimated Labor vs. Material ratio and click <em>Print Costing Sheet</em> to export an executive summary.</li>
             </ul>
         </div>
-
         <div class="help-guide-section">
             <h4>📋 3. Social Media OP Bulletin (Sharing & Matching)</h4>
             <ul>
@@ -657,7 +437,6 @@
                 <li><strong>Export & Print:</strong> Check the boxes of the operations you need. Download a CSV, print a PDF, or copy a WhatsApp link.</li>
             </ul>
         </div>
-
         <div class="help-guide-section">
             <h4 style="color: #e30613;">⚙️ 4. Manage (Admin Database)</h4>
             <ul style="color: #ffcccc;">
@@ -666,13 +445,12 @@
                 <li><strong>Save Permanently:</strong> Click <em>Generate Code for GitHub</em> and paste that code into your master file.</li>
             </ul>
         </div>
-        
         <button type="button" class="modal-close" style="background: #333; border: 1px solid #ffc107; color: #ffc107;" onclick="closeHelpModal()">Got it, let's start!</button>
     </div>
 </div>
 
 <script>
-let keyPart1 = "BOTS_ARE_BLOCKED_";
+    let keyPart1 = "BOTS_ARE_BLOCKED_";
     let keyPart2 = "NO_REAL_KEY_HERE";
     let masterApiKey = keyPart1 + keyPart2;
 
