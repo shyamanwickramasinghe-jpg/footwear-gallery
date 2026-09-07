@@ -1129,7 +1129,7 @@
         if (url.includes("youtube.com") || url.includes("youtu.be")) {
             return `<img src="https://img.youtube.com/vi/${getYouTubeID(url)}/mqdefault.jpg" class="bulletin-thumb" alt="YouTube Thumbnail">`;
         } else {
-            return `<video class="bulletin-thumb" src="${url}#t=3" preload="metadata" muted playsinline onmouseover="this.play()" onmouseout="this.pause(); this.currentTime=3;"></video>`;
+            return `<video class="bulletin-thumb" src="${url}#t=3" preload="metadata" muted playsinline ></video>`;
         }
     }
 
