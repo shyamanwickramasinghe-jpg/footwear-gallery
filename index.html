@@ -1268,6 +1268,9 @@
                 document.getElementById("viewerShape").src = "";
             }
 
+    if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
+            if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+
             if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
                 const ytId = getYouTubeID(op.file);
                 document.getElementById("videoPlayer").style.display = "none";
@@ -1280,6 +1283,20 @@
                 document.getElementById("ytWrapperSlomo").innerHTML = '<div id="ytPlayerSlomo"></div>';
                 initYouTubePlayers(ytId);
             } else {
+                document.getElementById("ytWrapperNormal").style.display = "none";
+                document.getElementById("ytWrapperSlomo").style.display = "none";
+                document.getElementById("videoPlayer").style.display = "block";
+                document.getElementById("slomoPlayer").style.display = "block";
+                
+                // Fixed standard video loading for all browsers
+                document.getElementById("videoPlayer").src = op.file;
+                document.getElementById("videoPlayer").load();
+                document.getElementById("videoPlayer").play();
+                document.getElementById("slomoPlayer").src = op.file;
+                document.getElementById("slomoPlayer").load();
+                document.getElementById("slomoPlayer").playbackRate = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
+                document.getElementById("slomoPlayer").play();
+            }
                 document.getElementById("ytWrapperNormal").style.display = "none";
                 document.getElementById("ytWrapperSlomo").style.display = "none";
                 document.getElementById("videoPlayer").style.display = "block";
