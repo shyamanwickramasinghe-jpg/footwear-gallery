@@ -1232,15 +1232,15 @@
         }
     }
 
-    function initYouTubePlayers(videoId) {
+function initYouTubePlayers(videoId) {
         ytPlayerAPI_Normal = new YT.Player('ytPlayerNormal', {
             videoId: videoId,
-            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
+            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1 },
             events: { 'onReady': e => e.target.playVideo(), 'onStateChange': e => { if(e.data===0) e.target.playVideo(); } }
         });
         ytPlayerAPI_Slomo = new YT.Player('ytPlayerSlomo', {
             videoId: videoId,
-            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'mute': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
+            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'mute': 1, 'autoplay': 1 },
             events: {
                 'onReady': e => { e.target.mute(); e.target.setPlaybackRate(parseFloat(document.getElementById("unifiedSlomoSpeed").value)); e.target.playVideo(); },
                 'onStateChange': e => { if(e.data===1) e.target.setPlaybackRate(parseFloat(document.getElementById("unifiedSlomoSpeed").value)); if(e.data===0) e.target.playVideo(); }
