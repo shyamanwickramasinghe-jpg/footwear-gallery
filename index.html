@@ -290,7 +290,12 @@
                 </table>
             </div> <!-- Closes estPrintableContent -->
             
-            <button type="button" class="btn-warning" onclick="printEstimate()" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 1.1em; color: black;">🖨️ Print Costing Sheet</button>
+<div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                <button type="button" onclick="printEstimate()" style="flex: 1; min-width: 150px; background: #ffc107; color: #000; padding: 12px; font-size: 1.1em; border-radius: 6px;">🖨️ Print Sheet</button>
+                <button type="button" onclick="copyCostingLink()" style="flex: 1; min-width: 150px; background: #007bff; padding: 12px; font-size: 1.1em; border-radius: 6px;">📋 Copy Link</button>
+                <button type="button" onclick="shareCostingWhatsApp()" style="flex: 1; min-width: 150px; background: #28a745; padding: 12px; font-size: 1.1em; border-radius: 6px;">💬 WhatsApp</button>
+                <button type="button" onclick="shareCostingEmail()" style="flex: 1; min-width: 150px; background: #6f42c1; padding: 12px; font-size: 1.1em; border-radius: 6px;">📧 Email</button>
+            </div>
         </div> <!-- Closes estResultArea -->
     </div> <!-- END OF TAB 2 -->
 
@@ -986,10 +991,34 @@
         return localKey && localKey.trim() !== "" ? localKey.trim() : masterApiKey; 
     }
 
-    function printEstimate() {
+function printEstimate() {
         document.body.classList.add('print-estimate-only');
         window.print();
         setTimeout(() => document.body.classList.remove('print-estimate-only'), 500);
+    }
+
+    function getCostingShareText() {
+        const usd = document.getElementById('dynamicUsdPrice').innerText;
+        const lkr = document.getElementById('dynamicLkrPrice').innerText;
+        return `DSI FOOTTECH Global Costing Estimate\nEstimated Global Retail: ${usd} (${lkr})\nCheck out the full breakdown on our portal!`;
+    }
+
+    function copyCostingLink() {
+        const text = getCostingShareText() + "\n" + window.location.href;
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Costing summary copied! You can paste this in WhatsApp or chat.");
+        });
+    }
+
+    function shareCostingWhatsApp() {
+        const text = encodeURIComponent(getCostingShareText() + "\n" + window.location.href);
+        window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
+
+    function shareCostingEmail() {
+        const subject = encodeURIComponent("DSI FOOTTECH: Global Costing Estimate");
+        const body = encodeURIComponent(getCostingShareText() + "\n\n" + window.location.href);
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
 
     async function generateGlobalEstimate() {
@@ -1128,9 +1157,9 @@ let aiText = data.candidates[0].content.parts[0].text.replace(/```html/g, "").re
             
             // Populates regional pricing table values so they don't show dashes
             document.getElementById("priceLkr").innerText = "LKR 7,500 - 11,500";
-            document.getElementById("priceIndia").innerText = "INR 1,800 - 2,800";
-            document.getElementById("priceChina").innerText = "CNY 160 - 240";
-            document.getElementById("priceEurope").innerText = "€ 40 - € 65";
+            document.getElementById("priceIndia").innerText = "INR 1,800 - 2,800 (Approx. LKR 6,200 - 9,600)";
+            document.getElementById("priceChina").innerText = "CNY 160 - 240 (Approx. LKR 7,800 - 11,700)";
+            document.getElementById("priceEurope").innerText = "€ 40 - € 65 (Approx. LKR 15,200 - 24,700)";
             
             document.getElementById("estResultArea").style.display = "block";
                 
@@ -1457,92 +1486,62 @@ let aiText = data.candidates[0].content.parts[0].text.replace(/```html/g, "").re
         }
     }
 
-    function initYouTubePlayers(videoId) {
+function initYouTubePlayers(videoId) {
         ytPlayerAPI_Normal = new YT.Player('ytPlayerNormal', {
             videoId: videoId,
             playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
             events: { 'onReady': e => e.target.playVideo(), 'onStateChange': e => { if(e.data===0) e.target.playVideo(); } }
         });
-        ytPlayerAPI_Slomo = new YT.Player('ytPlayerSlomo', {
-            videoId: videoId,
-            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'mute': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
-            events: {
-                'onReady': e => { e.target.mute(); e.target.setPlaybackRate(parseFloat(document.getElementById("unifiedSlomoSpeed").value)); e.target.playVideo(); },
-                'onStateChange': e => { if(e.data===1) e.target.setPlaybackRate(parseFloat(document.getElementById("unifiedSlomoSpeed").value)); if(e.data===0) e.target.playVideo(); }
-            }
-        });
     }
 
-    // UPDATED: Video Player logic adapted to custom dropdown
-function playVideo() {
+    function playVideo() {
         const smvCard = document.getElementById("smvCard");
-        const unifiedPlayerContainer = document.getElementById("unifiedPlayerContainer");
+        const videoPlayer = document.getElementById("videoPlayer");
+        const ytWrapperNormal = document.getElementById("ytWrapperNormal");
 
         if (activeVideoIndex !== -1) {
             const op = operations[activeVideoIndex];
             currentBaseSMV = op.smvPair || 0;
-            unifiedPlayerContainer.style.display = "flex";
 
-            if (op.shape && op.shape.startsWith('data:image')) {
-                document.getElementById("viewerShape").src = op.shape;
-                document.getElementById("viewerShapeContainer").style.display = "block";
-            } else {
-                document.getElementById("viewerShapeContainer").style.display = "none";
-                document.getElementById("viewerShape").src = "";
-            }
-
-            // Destroy old YouTube players first to prevent crashing
+            // Destroy old player to prevent overlapping audio
             if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
-            if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
 
             if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
-                const ytId = getYouTubeID(op.file);
-                document.getElementById("videoPlayer").style.display = "none";
-                document.getElementById("slomoPlayer").style.display = "none";
-                document.getElementById("videoPlayer").pause();
-                document.getElementById("slomoPlayer").pause();
-                document.getElementById("ytWrapperNormal").style.display = "block";
-                document.getElementById("ytWrapperSlomo").style.display = "block";
-                document.getElementById("ytWrapperNormal").innerHTML = '<div id="ytPlayerNormal"></div>';
-                document.getElementById("ytWrapperSlomo").innerHTML = '<div id="ytPlayerSlomo"></div>';
-                initYouTubePlayers(ytId);
+                videoPlayer.style.display = "none";
+                videoPlayer.pause();
+                ytWrapperNormal.style.display = "block";
+                ytWrapperNormal.innerHTML = '<div id="ytPlayerNormal"></div>';
+                initYouTubePlayers(getYouTubeID(op.file));
             } else {
-                document.getElementById("ytWrapperNormal").style.display = "none";
-                document.getElementById("ytWrapperSlomo").style.display = "none";
-                document.getElementById("videoPlayer").style.display = "block";
-                document.getElementById("slomoPlayer").style.display = "block";
-                
-                // Fixed standard video loading for all browsers
-                document.getElementById("videoPlayer").src = op.file;
-                document.getElementById("videoPlayer").load();
-                document.getElementById("videoPlayer").play();
-                document.getElementById("slomoPlayer").src = op.file;
-                document.getElementById("slomoPlayer").load();
-                document.getElementById("slomoPlayer").playbackRate = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
-                document.getElementById("slomoPlayer").play();
+                ytWrapperNormal.style.display = "none";
+                videoPlayer.style.display = "block";
+                videoPlayer.src = op.file;
+                videoPlayer.load();
+                videoPlayer.play();
             }
             
-            document.getElementById("perfSlider").value = 100; document.getElementById("allowSlider").value = 15;
-            updateSMV(); smvCard.style.display = "flex";
+            document.getElementById("perfSlider").value = 100;
+            updateSMV(); 
+            smvCard.style.display = "flex";
         } else {
-            smvCard.style.display = "none"; unifiedPlayerContainer.style.display = "none";
-            document.getElementById("viewerShapeContainer").style.display = "none";
-            document.getElementById("videoPlayer").pause(); document.getElementById("slomoPlayer").pause(); 
+            smvCard.style.display = "none"; 
+            videoPlayer.style.display = "none";
+            videoPlayer.pause(); 
+            ytWrapperNormal.style.display = "none";
             if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
-            if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
         }
     }
 
-    function updateSMV() {
+function updateSMV() {
         if (!currentBaseSMV) return;
         const perf = parseInt(document.getElementById("perfSlider").value);
-        const allow = parseInt(document.getElementById("allowSlider").value);
+        const allow = 15; 
         const baseTimeWithoutAllowance = currentBaseSMV / 1.15;
         const rawSMV = (baseTimeWithoutAllowance * (perf / 100) * (1 + (allow / 100)));
+        
         document.getElementById("perfLabel").innerText = perf + "%";
-        document.getElementById("allowLabel").innerText = allow + "%";
         document.getElementById("smvValue").innerText = rawSMV.toFixed(4) + " min";
-        document.getElementById("targetValue").innerText = rawSMV > 0 ? Math.floor(60 / rawSMV) : 0 + " pairs";
+        document.getElementById("targetValue").innerText = rawSMV > 0 ? Math.floor(60 / rawSMV) : 0;
     }
 
     function saveToMemory() { 
@@ -1594,7 +1593,7 @@ function playVideo() {
         }
     }
 
-    function deleteOperation() {
+function deleteOperation() {
         const select = document.getElementById("deleteSelect"); 
         if (select.selectedIndex <= 0) return alert("Please select an operation to delete.");
         
@@ -1608,14 +1607,25 @@ function playVideo() {
 
             populateDropdown(operations);
             
+            // Hides the SMV Card
             document.getElementById("smvCard").style.display = "none"; 
-            document.getElementById("unifiedPlayerContainer").style.display = "none";
-            document.getElementById("viewerShapeContainer").style.display = "none";
             
-            document.getElementById("videoPlayer").pause(); 
-            document.getElementById("slomoPlayer").pause(); 
-            if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
-            if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
+            // Pauses and hides the local video player
+            const videoPlayer = document.getElementById("videoPlayer");
+            if(videoPlayer) {
+                videoPlayer.pause();
+                videoPlayer.style.display = "none";
+            }
+            
+            // Hides and destroys the YouTube player
+            const ytWrapperNormal = document.getElementById("ytWrapperNormal");
+            if(ytWrapperNormal) {
+                ytWrapperNormal.style.display = "none";
+            }
+            if(ytPlayerAPI_Normal) { 
+                ytPlayerAPI_Normal.destroy(); 
+                ytPlayerAPI_Normal = null; 
+            }
             
             renderBulletinList();
             alert("Deleted Locally! Remember to click 'Generate Code' to save this change for GitHub.");
