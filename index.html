@@ -289,61 +289,7 @@
                     </tbody>
                 </table>
             </div>
-            <button type="button" class="btn-warning" onclick="printEstimate()" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 1.1em; color: black;">🖨️ Print Costing Sheet</button>
-        </div>
-    </div>
-            <div style="flex: 1; min-width: 200px;">
-                <label style="font-weight: bold;">2. Sole Type:</label>
-                <input type="hidden" id="estSoleType" value="PVC Injection">
-                <div class="custom-dropdown" id="dropdownSole">
-                    <div class="dropdown-selected" onclick="toggleDropdown('optionsSole')">PVC Injection</div>
-                    <div class="dropdown-options" id="optionsSole">
-                        <div class="dropdown-option" onclick="selectDropdownOption('estSoleType', 'dropdownSole', 'PVC Injection')">PVC Injection</div>
-                        <div class="dropdown-option" onclick="selectDropdownOption('estSoleType', 'dropdownSole', 'EVA Injection')">EVA Injection</div>
-                        <div class="dropdown-option" onclick="selectDropdownOption('estSoleType', 'dropdownSole', 'PU Pouring')">PU Pouring</div>
-                        <div class="dropdown-option" onclick="selectDropdownOption('estSoleType', 'dropdownSole', 'Moulded PVC Sole')">Moulded PVC Sole</div>
-                        <div class="dropdown-option" onclick="selectDropdownOption('estSoleType', 'dropdownSole', 'Moulded PU Sole')">Moulded PU Sole</div>
-                        <div class="dropdown-option" onclick="selectDropdownOption('estSoleType', 'dropdownSole', 'Hot and Cold Sole')">Hot and Cold Sole</div>
-                        <div class="dropdown-option" onclick="selectDropdownOption('estSoleType', 'dropdownSole', 'Rubber Sole')">Rubber Sole</div>
-                        <div class="dropdown-option" onclick="selectDropdownOption('estSoleType', 'dropdownSole', 'EVA Sole')">EVA Sole</div>
-                        <div class="dropdown-option" onclick="selectDropdownOption('estSoleType', 'dropdownSole', 'TPR Sole')">TPR Sole</div>
-                        <div class="dropdown-option" onclick="selectDropdownOption('estSoleType', 'dropdownSole', 'Phylon Sole')">Phylon Sole</div>
-                        <div class="dropdown-option" onclick="selectDropdownOption('estSoleType', 'dropdownSole', 'TPU Sole')">TPU Sole</div>
-                    </div>
-                </div>
-            </div>
 
-            <div style="flex: 1; min-width: 200px;">
-                <label style="font-weight: bold;">3. Upload Media:</label><br>
-                <input type="file" id="estMediaInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="width: 100%; padding: 7px; background: #222; border: 1px solid #17a2b8; color: white; border-radius: 6px; margin-top: 5px;">
-            </div>
-        </div>
-        
-        <button type="button" class="btn-info" onclick="generateGlobalEstimate()" style="width: 100%; padding: 12px; font-size: 1.1em; background: #17a2b8;">🧠 Generate Global Benchmark Estimate</button>
-
-        <div id="estLoadingMsg" style="display:none; color: #17a2b8; font-weight: bold; margin-top: 15px; text-align: center; background: #222; padding: 10px; border-radius: 6px; border: 1px solid #17a2b8;">
-            🧠 Analyzing material and fetching live search data... Please wait...
-        </div>
-
-        <div id="estResultArea" style="display:none; margin-top: 20px; background: #1a1a1a; border: 1px solid #444; padding: 20px; border-radius: 8px;">
-            <div id="estPrintableContent">
-                <div class="dsi-header" style="display:none; align-items: center; justify-content: flex-start; gap: 15px;" id="estPrintHeader">
-                    <img src="https://LOCKED.imagekit.io/qegfiwkq6/4544545.jpg?updatedAt=1785824235651" alt="DSI Logo" style="height: 40px;">
-                    <h3 style="margin: 0; text-transform: uppercase; font-size: 1.2em;">Global Costing Estimate Report</h3>
-                </div>
-                <div id="estAiOutput" style="line-height: 1.6; color: #ddd;"></div>
-                
-                <h3 style="color:#17a2b8; margin-top: 30px; border-bottom: 1px solid #444; padding-bottom: 10px;">💰 Global Market Benchmarks</h3>
-                <p style="color: #ddd;">Estimated Global Retail Price Range: <strong style="color: #28a745;" id="dynamicUsdPrice">--</strong> (Approx. <strong style="color: #ffc107;" id="dynamicLkrPrice">--</strong>)</p>
-                
-                <div style="margin-top: 15px; text-align: center;">
-                    <a id="shoppingBtn" href="#" target="_blank" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: background 0.3s; width: 80%;">🛍️ View Live Competitor Prices on Google Shopping</a>
-                </div>
-
-            </div>
-            <button type="button" class="btn-warning" onclick="printEstimate()" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 1.1em; color: black;">🖨️ Print Costing Sheet</button>
-        </div>
-    </div>
 
     <!-- Tab 3: Social Media OP Bulletin -->
     <div id="bulletin" class="tab-content">
