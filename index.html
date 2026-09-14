@@ -446,9 +446,16 @@
         <hr style="border-color: #444; margin: 30px 0;">
 
         <h3>Add New Operation</h3>
-        <label>Operation Name:</label><br>
-        <input type="text" id="newOpName" placeholder="e.g. Heel Stitching" style="width: 100%;"><br>
-        
+<label>Operation Name & Category:</label><br>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="newOpName" placeholder="e.g. Heel Stitching" style="flex: 2; margin: 0;">
+            <select id="newOpCategory" style="flex: 1; margin: 0; background: #222; border: 1px solid #007bff; color: white; border-radius: 6px;">
+                <option value="Single Operation">Single Operation</option>
+                <option value="Full Process">Full Process</option>
+                <option value="Tech Innovation">Tech Innovation</option>
+                <option value="Market & Quality">Market & Quality</option>
+            </select>
+        </div>        
         <label style="color: #007bff; font-weight:bold;">Video Link (ImageKit or YouTube):</label><br>
         <input type="text" id="newFileName" placeholder="e.g. https://LOCKED.imagekit.io/... or https://youtube.com/..." style="width: 100%; border: 1px solid #007bff;"><br>
 
@@ -1552,9 +1559,10 @@ function updateSMV() {
         }
     }
 
-    function addOperation() {
+function addOperation() {
         try {
             const n = document.getElementById("newOpName").value.trim();
+            const cat = document.getElementById("newOpCategory").value; // Grabs the category
             let f = document.getElementById("newFileName").value.trim();
             const t = parseFloat(document.getElementById("obsTime").value);
             let s = getCleanCanvasImage();
@@ -1576,7 +1584,8 @@ function updateSMV() {
 
             const calc = ((t * (pRate/100)) * (1 + (allow/100))) / 60;
             
-            operations.push({ name: n, file: f, smvPair: parseFloat(calc.toFixed(4)), shape: s });
+            // Pushes the category into the database array
+            operations.push({ name: n, file: f, smvPair: parseFloat(calc.toFixed(4)), shape: s, category: cat });
             
             saveToMemory(); 
             populateDropdown(operations); 
@@ -1632,10 +1641,12 @@ function deleteOperation() {
         }
     }
 
-    function generateCode() {
+function generateCode() {
         let codeOutput = `    let defaultOperations = [\n`;
         operations.forEach((op, index) => {
-            codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)}, shape: "${op.shape || ''}" }`;
+            // Assigns 'Single Operation' as a fallback for older database items
+            let opCat = op.category ? op.category : "Single Operation"; 
+            codeOutput += `        { name: "${op.name}", file: "${op.file}", smvPair: ${op.smvPair.toFixed(4)}, shape: "${op.shape || ''}", category: "${opCat}" }`;
             if (index < operations.length - 1) codeOutput += `,`;
             codeOutput += `\n`;
         });
