@@ -284,11 +284,73 @@
                     <tbody id="regionalPricingBody">
                         <tr><td>Sri Lanka (Local)</td><td id="priceLkr">--</td></tr>
                         <tr><td>India Market</td><td id="priceIndia">--</td></tr>
-                        <tr><td>China Market</td><td id="priceChina">--</td></tr>
+<tr><td>China Market</td><td id="priceChina">--</td></tr>
                         <tr><td>Europe Market</td><td id="priceEurope">--</td></tr>
                     </tbody>
                 </table>
+            </div> <!-- Closes estPrintableContent -->
+            
+            <button type="button" class="btn-warning" onclick="printEstimate()" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 1.1em; color: black;">🖨️ Print Costing Sheet</button>
+        </div> <!-- Closes estResultArea -->
+    </div> <!-- END OF TAB 2 -->
+
+    <!-- Tab 3: Benchmark & Efficiency Dashboard -->
+    <div id="benchmarkTab" class="tab-content">
+        <h3 style="color: #17a2b8; margin-top: 0;">📊 Benchmark & Efficiency Dashboard</h3>
+        <p style="color: #aaa; font-size: 0.95em;">Upload internal factory footage to compare against international benchmarks.</p>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="file" id="benchMediaInput" accept="video/mp4,video/webm" style="flex: 1; padding: 10px; background: #222; border: 1px solid #17a2b8; color: white; border-radius: 6px;" onchange="handleBenchmarkUpload(event)">
+            <input type="text" id="benchmarkUrlInput" placeholder="Paste Global YouTube URL here..." style="flex: 1; margin: 0;">
+            <button type="button" class="btn-primary" onclick="loadManualBenchmark()" style="margin: 0; padding: 10px 20px;">Load Benchmark</button>
+        </div>
+
+        <div id="benchLoadingMsg" style="display:none; color: #ffc107; font-weight: bold; text-align: center; margin-bottom: 20px;">
+            ⏳ AI is analyzing micro-motions... Please wait...
+        </div>
+
+        <div id="benchmarkDashboardArea" style="display:none;">
+            <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                <div class="dashboard-metric">
+                    <div style="font-size: 0.9em; color: #aaa; text-transform: uppercase;">Benchmark Target OEE</div>
+                    <div style="font-size: 1.8em; color: #28a745; font-weight: bold;" id="benchOee">--</div>
+                </div>
+                <div class="dashboard-metric">
+                    <div style="font-size: 0.9em; color: #aaa; text-transform: uppercase;">Time Variance</div>
+                    <div style="font-size: 1.8em; color: #dc3545; font-weight: bold;" id="benchVariance">--</div>
+                </div>
             </div>
+
+            <!-- Master Slomo Controller -->
+            <div style="text-align: center; margin-bottom: 15px; background: #222; padding: 10px; border-radius: 6px; border: 1px solid #555;">
+                <label style="font-weight: bold; margin-right: 15px; color: #fff;">Master Slo-Mo Sync:</label>
+                <select id="masterSlomo" class="speed-select" onchange="syncSlomo()">
+                    <option value="1">1.0x (Normal)</option>
+                    <option value="0.75">0.75x (Slow)</option>
+                    <option value="0.5">0.5x (Slower)</option>
+                    <option value="0.25">0.25x (Analysis Mode)</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <!-- DSI Video -->
+                <div class="split-pane">
+                    <h4 style="margin-top:0; color:#fff; text-align:center;">🏭 Local Factory Footage</h4>
+                    <video id="dsiBenchVideo" class="player-frame" controls loop style="width: 100%; height: 300px; background:#000; border-radius:6px;"></video>
+                </div>
+                <!-- Global Video -->
+                <div class="split-pane">
+                    <h4 style="margin-top:0; color:#fff; text-align:center;">🌐 Global Benchmark Standard</h4>
+                    <video id="globalBenchVideo" class="player-frame" controls loop style="display:none; width: 100%; height: 300px; background:#000; border-radius:6px;"></video>
+                    <div id="globalBenchYtWrapper" class="player-frame" style="display:none; width: 100%; height: 300px;"><div id="globalBenchYtPlayer"></div></div>
+                </div>
+            </div>
+
+            <div id="benchAiAnalysis" style="margin-top: 20px; background: #222; border: 1px solid #ffc107; padding: 15px; border-radius: 8px;">
+                <!-- AI Populates Here -->
+            </div>
+        </div>
+    </div>
 
 
     <!-- Tab 3: Social Media OP Bulletin -->
