@@ -120,17 +120,18 @@
 
 <div class="tabs">
         <button type="button" class="tab-btn active" onclick="openTab('estimator', event)">🌐 AI SMV Estimator</button>
-        <button type="button" class="tab-btn" onclick="openTab('viewer', event)">🔍 Operation Viewer</button>
+        <button type="button" class="tab-btn" onclick="openTab('searchHub', event)">🔎 Global & Local Search</button>
+        <button type="button" class="tab-btn" onclick="openTab('viewer', event)">🎬 Operation Viewer</button>
         <button type="button" class="tab-btn" onclick="openTab('benchmarkTab', event)">📊 Benchmark Dashboard</button>
         <button type="button" class="tab-btn" onclick="openTab('bulletin', event)">📋 IE Bulletin</button>
         <button type="button" class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d;">⚙️ Admin</button>
     </div>
 
     <!-- Tab 1: Video Viewer -->
-<div id="viewer" class="tab-content">
-        <h3 style="color: #17a2b8; margin-top: 0;">🔍 Integrated Tech & Operations Search Hub</h3>
+<!-- NEW TAB: Global & Local Search Hub -->
+    <div id="searchHub" class="tab-content">
+        <h3 style="color: #17a2b8; margin-top: 0;">🔎 Integrated Tech & Operations Search Hub</h3>
         
-        <!-- Category Filter Chips (Amendment 4) -->
         <div style="margin-bottom: 15px;">
             <span class="filter-chip active" onclick="filterByCategory('All', this)">All</span>
             <span class="filter-chip" onclick="filterByCategory('Single Operation', this)">Single Operations</span>
@@ -139,83 +140,86 @@
             <span class="filter-chip" onclick="filterByCategory('Market & Quality', this)">Market & Quality</span>
         </div>
 
-        <label>Search operation or innovation (Case-insensitive):</label><br>
-        <input type="search" id="searchInput" autocomplete="off" onkeyup="filterOperations()" placeholder="Type to search (e.g., 'edge painting', 'pvc')..." style="width: 100%;"><br>
+        <label>Search local database & global standards (Case-insensitive):</label><br>
+        <input type="search" id="searchInput" autocomplete="off" onkeyup="filterOperations()" placeholder="Type to search (e.g., 'edge painting', 'pvc')..." style="width: 100%; font-size: 1.1em; padding: 12px; border: 2px solid #007bff;"><br>
 
-<!-- Split View: Local Database vs Global Tech Intelligence (Amendment 2) -->
-        <div class="split-view" id="viewerSplitView" style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
-            
-            <!-- Left Pane: Local Database Match (WIDER) -->
-            <div class="split-pane" style="flex: 2; min-width: 300px; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444;">
-                <h4 style="color: #007bff; margin-top:0;">🏢 Local Database Match</h4>
-                
-                <label>Select Operation:</label><br>
-                <div class="custom-dropdown" id="dropdownVideoSelectWrapper">
-                    <div class="dropdown-selected" onclick="toggleDropdown('optionsVideoSelect')" id="dropdownVideoDisplay">-- Choose Operation --</div>
-                    <div class="dropdown-options" id="optionsVideoSelect">
+        <div class="split-view" style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+            <!-- Left: Local Matches -->
+            <div class="split-pane" style="flex: 1; min-width: 300px; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+                <h4 style="color: #007bff; margin-top:0;">🏢 Local Database Matches</h4>
+                <p style="color:#aaa; font-size:0.9em;">Click an operation to view it.</p>
+                <div class="custom-dropdown" id="dropdownVideoSelectWrapper" style="display:block; position:relative;">
+                    <div class="dropdown-options open" id="optionsVideoSelect" style="position:relative; display:block; max-height: 400px; box-shadow: none; border: 1px solid #333;">
                         <!-- Javascript will inject list here -->
                     </div>
                 </div>
-
-                <div class="info-card" id="smvCard" style="display: none; align-items: center; justify-content: center; width: 100%; box-sizing: border-box;">
-                    <div style="display: flex; justify-content: space-around; width: 100%;">
-                        <div class="info-item">
-                            <div class="info-label">Revised SMV</div>
-                            <div class="info-value" id="smvValue">--</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Hourly Target</div>
-                            <div class="info-value" id="targetValue">--</div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 20px; width: 100%; text-align: center; border-top: 1px solid #444; padding-top: 15px;">
-                        <label style="color: #aaa; font-size: 0.9em; text-transform: uppercase;">
-                            Simulate Performance Rating: <span id="perfLabel" style="color: #007bff; font-weight: bold; font-size: 1.2em;">100%</span>
-                        </label><br>
-                        <input type="range" id="perfSlider" min="50" max="150" value="100" style="width: 100%; margin-top: 10px;" oninput="updateSMV()">
-                    </div>
-                </div>
-
-                <!-- Side-by-Side Video Layout (Normal vs Slow Motion) -->
-                <div id="localVideoContainer" style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 250px;">
-                        <h5 style="color:#aaa; text-align:center; margin: 0 0 5px 0;">Normal Speed</h5>
-                        <video id="videoPlayer" class="player-frame" controls loop style="display: none; width: 100%; height: 250px; background:#000; border-radius:6px;"></video>
-                        <div id="ytWrapperNormal" class="player-frame" style="display: none; width: 100%; height: 250px;"><div id="ytPlayerNormal"></div></div>
-                    </div>
-                    <div style="flex: 1; min-width: 250px;">
-                        <h5 style="color:#aaa; text-align:center; margin: 0 0 5px 0;">Slow Motion Analysis</h5>
-                        <video id="slomoPlayer" class="player-frame" controls loop style="display: none; width: 100%; height: 250px; background:#000; border-radius:6px;"></video>
-                        <div id="ytWrapperSlomo" class="player-frame" style="display: none; width: 100%; height: 250px;"><div id="ytPlayerSlomo"></div></div>
-                        <div style="text-align: center; margin-top: 10px;">
-                            <select id="slomoSpeed" class="speed-select" onchange="changeSlomoSpeed()">
-                                <option value="0.5">0.5x Speed</option>
-                                <option value="0.25">0.25x Speed</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Technical Spec Overlay for Market/Quality -->
-                <div id="specOverlay" style="display:none; background: rgba(0,123,255,0.1); border: 1px solid #007bff; padding: 12px; border-radius: 6px; margin-top: 15px; font-size: 0.9em;">
-                    <strong style="color:#007bff; text-transform:uppercase; font-size:0.85em; letter-spacing:1px;">Technical Specs / Quality Checkpoints:</strong><br>
-                    <span id="specText" style="color:#ddd; display:block; margin-top:5px;"></span>
-                </div>
             </div>
 
-            <!-- Right Pane: Global Tech Intelligence Card (REDUCED WIDTH) -->
-            <div class="split-pane" style="flex: 0 0 280px; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #ffc107;">
+            <!-- Right: Global AI -->
+            <div class="split-pane" style="flex: 1; min-width: 300px; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #ffc107;">
                 <h4 style="color: #ffc107; margin-top:0;">🌐 Global Tech Intelligence (AI)</h4>
                 <div id="globalLoading" style="color:#aaa; font-style:italic; padding: 20px; text-align:center;">Type an operation name above to search global machine standards...</div>
-                <div id="globalContent" style="display:none; color:#ddd; line-height:1.6;">
-                    <!-- Populated dynamically by AI search -->
-                </div>
+                <div id="globalContent" style="display:none; color:#ddd; line-height:1.6;"></div>
             </div>
-
         </div>
     </div>
 
+<!-- TAB: Video Viewer (Dedicated only to viewing) -->
+    <div id="viewer" class="tab-content">
+        <h3 style="color: #17a2b8; margin-top: 0;">🎬 Operation Viewer & Analyzer</h3>
+        
+        <div class="custom-dropdown" style="margin-bottom: 20px;">
+            <div class="dropdown-selected" id="dropdownVideoDisplay" style="background:#007bff; color:#fff; font-weight:bold; border:none; text-align:center; pointer-events: none;">
+                -- Go to 'Global & Local Search' Tab to pick an operation --
+            </div>
+        </div>
+
+        <div class="info-card" id="smvCard" style="display: none; align-items: center; justify-content: center; width: 100%; box-sizing: border-box;">
+            <div style="display: flex; justify-content: space-around; width: 100%;">
+                <div class="info-item">
+                    <div class="info-label">Revised SMV</div>
+                    <div class="info-value" id="smvValue">--</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Hourly Target</div>
+                    <div class="info-value" id="targetValue">--</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; width: 100%; text-align: center; border-top: 1px solid #444; padding-top: 15px;">
+                <label style="color: #aaa; font-size: 0.9em; text-transform: uppercase;">
+                    Simulate Performance Rating: <span id="perfLabel" style="color: #007bff; font-weight: bold; font-size: 1.2em;">100%</span>
+                </label><br>
+                <input type="range" id="perfSlider" min="50" max="150" value="100" style="width: 100%; margin-top: 10px;" oninput="updateSMV()">
+            </div>
+        </div>
+
+        <!-- Side-by-Side Video Layout -->
+        <div id="localVideoContainer" style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 250px;">
+                <h5 style="color:#aaa; text-align:center; margin: 0 0 5px 0;">Normal Speed</h5>
+                <video id="videoPlayer" class="player-frame" controls loop style="display: none; width: 100%; height: 350px; background:#000; border-radius:6px;"></video>
+                <div id="ytWrapperNormal" class="player-frame" style="display: none; width: 100%; height: 350px;"><div id="ytPlayerNormal"></div></div>
+            </div>
+            <div style="flex: 1; min-width: 250px;">
+                <h5 style="color:#aaa; text-align:center; margin: 0 0 5px 0;">Slow Motion Analysis</h5>
+                <video id="slomoPlayer" class="player-frame" controls loop style="display: none; width: 100%; height: 350px; background:#000; border-radius:6px;"></video>
+                <div id="ytWrapperSlomo" class="player-frame" style="display: none; width: 100%; height: 350px;"><div id="ytPlayerSlomo"></div></div>
+                <div style="text-align: center; margin-top: 10px;">
+                    <select id="slomoSpeed" class="speed-select" onchange="changeSlomoSpeed()">
+                        <option value="0.5">0.5x Speed</option>
+                        <option value="0.25">0.25x Speed</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Spec Overlay for Market/Quality -->
+        <div id="specOverlay" style="display:none; background: rgba(0,123,255,0.1); border: 1px solid #007bff; padding: 12px; border-radius: 6px; margin-top: 15px; font-size: 0.9em;">
+            <strong style="color:#007bff; text-transform:uppercase; font-size:0.85em; letter-spacing:1px;">Technical Specs / Quality Checkpoints:</strong><br>
+            <span id="specText" style="color:#ddd; display:block; margin-top:5px;"></span>
+        </div>
+    </div>
     <!-- Tab 2: Global AI SMV Estimator -->
     <div id="estimator" class="tab-content active">
         <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI SMV Estimator</h3>
@@ -1480,12 +1484,12 @@ let aiText = data.candidates[0].content.parts[0].text.replace(/```html/g, "").re
         });
     }
 
-    // NEW: Handle Custom Dropdown Selection
+// NEW: Handle Custom Dropdown Selection
     function selectVideoOption(index) {
         activeVideoIndex = index;
         const displayEl = document.getElementById("dropdownVideoDisplay");
         if (index === -1) {
-            displayEl.innerHTML = "-- Choose Operation --";
+            displayEl.innerHTML = "-- Go to 'Global & Local Search' Tab to pick an operation --";
         } else {
             const op = operations[index];
             const shapeImg = (op.shape && op.shape.startsWith('data:image')) ? `<img src="${op.shape}" class="dropdown-shape-img" alt="shape">` : '';
@@ -1495,6 +1499,9 @@ let aiText = data.candidates[0].content.parts[0].text.replace(/```html/g, "").re
         
         document.getElementById("searchInput").value = "";
         populateDropdown(operations);
+        
+        // Auto-switch to the Viewer tab when an operation is clicked
+        openTab('viewer');
         playVideo();
     }
 
@@ -1506,10 +1513,17 @@ let aiText = data.candidates[0].content.parts[0].text.replace(/```html/g, "").re
         if (tabId === 'bulletin') renderBulletinList();
     }
 
-    // UPDATED: Auto-open dropdown while searching
+    // UPDATED: Auto-open dropdown while searching AND Trigger AI
     function filterOperations() {
         const query = document.getElementById("searchInput").value.toLowerCase();
-        const filtered = operations.filter(op => op.name.toLowerCase().includes(query));
+        
+        // 1. Filter local operations
+        const filtered = operations.filter(op => {
+            const matchesQuery = op.name.toLowerCase().includes(query) || (op.specs && op.specs.toLowerCase().includes(query));
+            const opCat = op.category ? op.category : "Single Operation";
+            const matchesCategory = typeof currentCategoryFilter !== 'undefined' && currentCategoryFilter !== 'All' ? opCat === currentCategoryFilter : true;
+            return matchesQuery && matchesCategory;
+        });
         populateDropdown(filtered);
         
         const optionsContainer = document.getElementById("optionsVideoSelect");
@@ -1518,8 +1532,42 @@ let aiText = data.candidates[0].content.parts[0].text.replace(/```html/g, "").re
         } else {
             optionsContainer.classList.remove('open');
         }
+
+        // 2. Trigger AI Box
+        if (query.length > 2) {
+            document.getElementById("globalLoading").innerText = "🌐 Searching global machine standards... Please wait...";
+            document.getElementById("globalLoading").style.display = "block";
+            document.getElementById("globalContent").style.display = "none";
+            fetchGlobalTechInsights(query); 
+        } else {
+            document.getElementById("globalLoading").style.display = "block";
+            document.getElementById("globalContent").style.display = "none";
+            document.getElementById("globalLoading").innerText = "Type an operation name above to search global machine standards...";
+        }
     }
 
+    // MOCK AI GENERATOR FOR GLOBAL STANDARDS
+    async function fetchGlobalTechInsights(query) {
+        setTimeout(() => {
+            const loadingEl = document.getElementById("globalLoading");
+            const contentEl = document.getElementById("globalContent");
+            if(loadingEl) loadingEl.style.display = "none";
+            if(contentEl) {
+                contentEl.innerHTML = `
+                    <p style="color:#00ffff; margin-top:0;"><strong>Global Automation Standard for:</strong> <em>${query}</em></p>
+                    <ul style="color:#ccc; font-size:0.9em; padding-left:20px; line-height:1.5;">
+                        <li><strong>Recommended Machinery:</strong> High-speed automated unit / edge applicator.</li>
+                        <li><strong>Global Benchmark SMV:</strong> ~15% faster via automated guides.</li>
+                        <li><strong>Critical Quality Check:</strong> Maintain uniform pressure to prevent defects.</li>
+                    </ul>
+                    <div style="margin-top: 15px;">
+                        <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' footwear manufacturing process')}" target="_blank" style="background:#007bff; color:white; padding:8px 12px; text-decoration:none; border-radius:4px; font-weight:bold; display:inline-block;">▶ Watch Global Factory Tutorials</a>
+                    </div>
+                `;
+                contentEl.style.display = "block";
+            }
+        }, 800);
+    }
 function changeSlomoSpeed() {
         const selectedSpeed = parseFloat(document.getElementById("slomoSpeed").value);
         const localSlomo = document.getElementById("slomoPlayer");
@@ -1546,7 +1594,7 @@ function changeSlomoSpeed() {
                     e.target.mute(); 
                 }, 
                 'onStateChange': e => { 
-                    if(e.data===0) e.target.playVideo(); 
+                    if(e.data===0) e.target.playVideo();  
                 } 
             }
         });
