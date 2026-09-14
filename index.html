@@ -695,21 +695,55 @@ function filterOperations() {
         }
     }
 
-async function fetchGlobalTechInsights(query) {
+// SMART MOCK AI GENERATOR FOR GLOBAL STANDARDS
+    async function fetchGlobalTechInsights(query) {
+        // Default fallback text
+        let machine = "Semi-automated conveyor system / smart applicator.";
+        let smv = "~10-15% faster overall throughput.";
+        let quality = "Standardized modular checking and visual inspection.";
+
+        // Smart Keyword Analysis
+        const q = query.toLowerCase();
+        if (q.includes("stitch") || q.includes("sew") || q.includes("bind") || q.includes("loop")) {
+            machine = "Programmable computer stitching machine / Auto-pattern sewer.";
+            smv = "~20% faster with automatic thread trimming.";
+            quality = "Monitor thread tension and Stitch Per Inch (SPI) consistency.";
+        } else if (q.includes("cut") || q.includes("skiv") || q.includes("punch")) {
+            machine = "CNC oscillating knife cutter / Precision bell knife skiver.";
+            smv = "~30% faster with auto-nesting software.";
+            quality = "Ensure blade sharpness for zero frayed edges and precise alignment.";
+        } else if (q.includes("sole") || q.includes("pvc") || q.includes("pu") || q.includes("inject")) {
+            machine = "Automated rotary injection molding / PU pouring station.";
+            smv = "High volume output with ~12 sec cycle time.";
+            quality = "Strict temperature control to prevent flash and air bubbles.";
+        } else if (q.includes("last") || q.includes("toe") || q.includes("heel") || q.includes("joint")) {
+            machine = "Computerized automatic toe/heel lasting machine.";
+            smv = "~25% faster shaping with programmable pincer adjustments.";
+            quality = "Check for wrinkle-free upper tensioning and accurate centering.";
+        } else if (q.includes("pack") || q.includes("clean") || q.includes("finish") || q.includes("box")) {
+            machine = "Automated heat-setting and UV curing conveyor.";
+            smv = "~10% faster cooling and shape retention.";
+            quality = "Visual inspection for excess glue or material scuffs.";
+        }
+
         setTimeout(() => {
-            document.getElementById("globalLoading").style.display = "none";
-            document.getElementById("globalContent").innerHTML = `
-                <p style="color:#00ffff; margin-top:0;"><strong>Global Automation Standard for:</strong> <em>${query}</em></p>
-                <ul style="color:#ccc; font-size:0.9em; padding-left:20px; line-height:1.5;">
-                    <li><strong>Recommended Machinery:</strong> High-speed automated roller gluing / single-head edge applicator.</li>
-                    <li><strong>Global Benchmark SMV:</strong> ~15% faster via automated material guides.</li>
-                    <li><strong>Critical Quality Check:</strong> Maintain uniform pressure to prevent adhesive bleeding.</li>
-                </ul>
-                <div style="margin-top: 15px;">
-                    <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' footwear manufacturing process')}" target="_blank" style="background:#007bff; color:white; padding:8px 12px; text-decoration:none; border-radius:4px; font-weight:bold; display:inline-block;">▶ Watch Global Factory Tutorials</a>
-                </div>
-            `;
-            document.getElementById("globalContent").style.display = "block";
+            const loadingEl = document.getElementById("globalLoading");
+            const contentEl = document.getElementById("globalContent");
+            if(loadingEl) loadingEl.style.display = "none";
+            if(contentEl) {
+                contentEl.innerHTML = `
+                    <p style="color:#00ffff; margin-top:0;"><strong>Global Automation Standard for:</strong> <em>${query}</em></p>
+                    <ul style="color:#ccc; font-size:0.9em; padding-left:20px; line-height:1.5;">
+                        <li><strong>Recommended Machinery:</strong> ${machine}</li>
+                        <li><strong>Global Benchmark SMV:</strong> ${smv}</li>
+                        <li><strong>Critical Quality Check:</strong> ${quality}</li>
+                    </ul>
+                    <div style="margin-top: 15px;">
+                        <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' footwear manufacturing process')}" target="_blank" style="background:#007bff; color:white; padding:8px 12px; text-decoration:none; border-radius:4px; font-weight:bold; display:inline-block;">▶ Watch Global Factory Tutorials</a>
+                    </div>
+                `;
+                contentEl.style.display = "block";
+            }
         }, 800);
     }
     let keyPart1 = "BOTS_ARE_BLOCKED_";
