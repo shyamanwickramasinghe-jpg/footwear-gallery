@@ -142,11 +142,11 @@
         <label>Search operation or innovation (Case-insensitive):</label><br>
         <input type="search" id="searchInput" autocomplete="off" onkeyup="filterOperations()" placeholder="Type to search (e.g., 'edge painting', 'pvc')..." style="width: 100%;"><br>
 
-        <!-- Split View: Local Database vs Global Tech Intelligence (Amendment 2) -->
+<!-- Split View: Local Database vs Global Tech Intelligence (Amendment 2) -->
         <div class="split-view" id="viewerSplitView" style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
             
-            <!-- Left Pane: Local Database Match -->
-            <div class="split-pane" style="flex: 1; min-width: 300px; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+            <!-- Left Pane: Local Database Match (WIDER) -->
+            <div class="split-pane" style="flex: 2; min-width: 300px; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444;">
                 <h4 style="color: #007bff; margin-top:0;">🏢 Local Database Match</h4>
                 
                 <label>Select Operation:</label><br>
@@ -177,20 +177,35 @@
                     </div>
                 </div>
 
-                <div id="localVideoContainer" style="margin-top: 15px;">
-                    <video id="videoPlayer" class="player-frame" controls loop style="display: none; width: 100%; height: 280px; background:#000; border-radius:6px;"></video>
-                    <div id="ytWrapperNormal" class="player-frame" style="display: none; width: 100%; height: 280px;"><div id="ytPlayerNormal"></div></div>
+                <!-- Side-by-Side Video Layout (Normal vs Slow Motion) -->
+                <div id="localVideoContainer" style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 250px;">
+                        <h5 style="color:#aaa; text-align:center; margin: 0 0 5px 0;">Normal Speed</h5>
+                        <video id="videoPlayer" class="player-frame" controls loop style="display: none; width: 100%; height: 250px; background:#000; border-radius:6px;"></video>
+                        <div id="ytWrapperNormal" class="player-frame" style="display: none; width: 100%; height: 250px;"><div id="ytPlayerNormal"></div></div>
+                    </div>
+                    <div style="flex: 1; min-width: 250px;">
+                        <h5 style="color:#aaa; text-align:center; margin: 0 0 5px 0;">Slow Motion Analysis</h5>
+                        <video id="slomoPlayer" class="player-frame" controls loop style="display: none; width: 100%; height: 250px; background:#000; border-radius:6px;"></video>
+                        <div id="ytWrapperSlomo" class="player-frame" style="display: none; width: 100%; height: 250px;"><div id="ytPlayerSlomo"></div></div>
+                        <div style="text-align: center; margin-top: 10px;">
+                            <select id="slomoSpeed" class="speed-select" onchange="changeSlomoSpeed()">
+                                <option value="0.5">0.5x Speed</option>
+                                <option value="0.25">0.25x Speed</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Technical Spec Overlay for Market/Quality (Amendment 5) -->
+                <!-- Technical Spec Overlay for Market/Quality -->
                 <div id="specOverlay" style="display:none; background: rgba(0,123,255,0.1); border: 1px solid #007bff; padding: 12px; border-radius: 6px; margin-top: 15px; font-size: 0.9em;">
                     <strong style="color:#007bff; text-transform:uppercase; font-size:0.85em; letter-spacing:1px;">Technical Specs / Quality Checkpoints:</strong><br>
                     <span id="specText" style="color:#ddd; display:block; margin-top:5px;"></span>
                 </div>
             </div>
 
-            <!-- Right Pane: Global Tech Intelligence Card (Amendment 2) -->
-            <div class="split-pane" style="flex: 1; min-width: 300px; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #ffc107;">
+            <!-- Right Pane: Global Tech Intelligence Card (REDUCED WIDTH) -->
+            <div class="split-pane" style="flex: 0 0 280px; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #ffc107;">
                 <h4 style="color: #ffc107; margin-top:0;">🌐 Global Tech Intelligence (AI)</h4>
                 <div id="globalLoading" style="color:#aaa; font-style:italic; padding: 20px; text-align:center;">Type an operation name above to search global machine standards...</div>
                 <div id="globalContent" style="display:none; color:#ddd; line-height:1.6;">
@@ -1505,57 +1520,99 @@ let aiText = data.candidates[0].content.parts[0].text.replace(/```html/g, "").re
         }
     }
 
-    function changeUnifiedSlomoSpeed() {
-        const selectedSpeed = parseFloat(document.getElementById("unifiedSlomoSpeed").value);
-        document.getElementById("slomoPlayer").playbackRate = selectedSpeed;
+function changeSlomoSpeed() {
+        const selectedSpeed = parseFloat(document.getElementById("slomoSpeed").value);
+        const localSlomo = document.getElementById("slomoPlayer");
+        if(localSlomo) localSlomo.playbackRate = selectedSpeed;
         if (ytPlayerAPI_Slomo && typeof ytPlayerAPI_Slomo.setPlaybackRate === 'function') {
             ytPlayerAPI_Slomo.setPlaybackRate(selectedSpeed);
         }
     }
 
-function initYouTubePlayers(videoId) {
+    function initYouTubePlayers(videoId) {
         ytPlayerAPI_Normal = new YT.Player('ytPlayerNormal', {
             videoId: videoId,
             playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
             events: { 'onReady': e => e.target.playVideo(), 'onStateChange': e => { if(e.data===0) e.target.playVideo(); } }
         });
+        
+        ytPlayerAPI_Slomo = new YT.Player('ytPlayerSlomo', {
+            videoId: videoId,
+            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
+            events: { 
+                'onReady': e => { 
+                    e.target.setPlaybackRate(0.5); 
+                    e.target.playVideo(); 
+                    e.target.mute(); 
+                }, 
+                'onStateChange': e => { 
+                    if(e.data===0) e.target.playVideo(); 
+                } 
+            }
+        });
     }
 
-    function playVideo() {
+function playVideo() {
         const smvCard = document.getElementById("smvCard");
         const videoPlayer = document.getElementById("videoPlayer");
+        const slomoPlayer = document.getElementById("slomoPlayer");
         const ytWrapperNormal = document.getElementById("ytWrapperNormal");
+        const ytWrapperSlomo = document.getElementById("ytWrapperSlomo");
 
         if (activeVideoIndex !== -1) {
             const op = operations[activeVideoIndex];
             currentBaseSMV = op.smvPair || 0;
 
-            // Destroy old player to prevent overlapping audio
+            // Destroy old players
             if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
+            if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
 
             if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
                 videoPlayer.style.display = "none";
+                slomoPlayer.style.display = "none";
                 videoPlayer.pause();
+                slomoPlayer.pause();
+                
                 ytWrapperNormal.style.display = "block";
+                ytWrapperSlomo.style.display = "block";
                 ytWrapperNormal.innerHTML = '<div id="ytPlayerNormal"></div>';
+                ytWrapperSlomo.innerHTML = '<div id="ytPlayerSlomo"></div>';
+                
                 initYouTubePlayers(getYouTubeID(op.file));
             } else {
                 ytWrapperNormal.style.display = "none";
+                ytWrapperSlomo.style.display = "none";
+                
                 videoPlayer.style.display = "block";
+                slomoPlayer.style.display = "block";
+                
                 videoPlayer.src = op.file;
+                slomoPlayer.src = op.file;
+                
                 videoPlayer.load();
+                slomoPlayer.load();
+                
                 videoPlayer.play();
+                slomoPlayer.play();
+                
+                slomoPlayer.playbackRate = parseFloat(document.getElementById("slomoSpeed").value);
+                slomoPlayer.muted = true;
             }
             
             document.getElementById("perfSlider").value = 100;
             updateSMV(); 
             smvCard.style.display = "flex";
+            
         } else {
             smvCard.style.display = "none"; 
             videoPlayer.style.display = "none";
+            slomoPlayer.style.display = "none";
             videoPlayer.pause(); 
+            slomoPlayer.pause(); 
             ytWrapperNormal.style.display = "none";
+            ytWrapperSlomo.style.display = "none";
             if(ytPlayerAPI_Normal) { ytPlayerAPI_Normal.destroy(); ytPlayerAPI_Normal = null; }
+            if(ytPlayerAPI_Slomo) { ytPlayerAPI_Slomo.destroy(); ytPlayerAPI_Slomo = null; }
         }
     }
 
