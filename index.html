@@ -639,24 +639,44 @@
         filterOperations();
     }
 
-    function filterOperations() {
+function filterOperations() {
         const query = document.getElementById("searchInput").value.toLowerCase();
+        
+        // 1. Filter the dropdown list by BOTH text search AND category chips
         const filtered = operations.filter(op => {
             const matchesQuery = op.name.toLowerCase().includes(query) || (op.specs && op.specs.toLowerCase().includes(query));
-            const matchesCategory = currentCategoryFilter === 'All' || op.category === currentCategoryFilter;
+            // Treat older database items as 'Single Operation' by default
+            const opCat = op.category ? op.category : "Single Operation";
+            const matchesCategory = currentCategoryFilter === 'All' || opCat === currentCategoryFilter;
             return matchesQuery && matchesCategory;
         });
         
         populateDropdown(filtered);
         
+        // 2. Open or close the dropdown menu
+        const optionsContainer = document.getElementById("optionsVideoSelect");
+        if (query.length > 0) {
+            optionsContainer.classList.add('open');
+        } else {
+            optionsContainer.classList.remove('open');
+        }
+
+        // 3. Trigger the Global Tech Intelligence (AI) Box
         if (query.length > 2) {
+            document.getElementById("globalLoading").innerText = "🌐 Searching global machine standards... Please wait...";
             document.getElementById("globalLoading").style.display = "block";
             document.getElementById("globalContent").style.display = "none";
-            fetchGlobalTechInsights(query);
+            
+            // Calls the AI generation function
+            fetchGlobalTechInsights(query); 
+        } else {
+            document.getElementById("globalLoading").style.display = "block";
+            document.getElementById("globalContent").style.display = "none";
+            document.getElementById("globalLoading").innerText = "Type an operation name above to search global machine standards...";
         }
     }
 
-    async function fetchGlobalTechInsights(query) {
+async function fetchGlobalTechInsights(query) {
         setTimeout(() => {
             document.getElementById("globalLoading").style.display = "none";
             document.getElementById("globalContent").innerHTML = `
