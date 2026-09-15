@@ -691,12 +691,33 @@
         }
     }
 
-    // 3. User Selects Benchmark -> Loads Video & Triggers Deep AI Analysis
+// 3. User Selects Benchmark -> Loads Video & Triggers Deep AI Analysis
     function selectBenchmarkTarget(operationName, url) {
         document.getElementById("aiBenchmarkSuggestions").style.display = "none";
         
-        // Fallback to a placeholder video if the AI couldn't find a direct local DB match
-        const finalUrl = url ? url : "https://www.youtube.com/watch?v=7GcRZ4zAEtQ"; 
+        // Smart Video Router: Serve different real factory videos based on operation type
+        let finalUrl = url;
+        
+        if (!finalUrl) {
+            const op = operationName.toLowerCase();
+            if (op.includes("stitch") || op.includes("sew") || op.includes("bind") || op.includes("vamp")) {
+                // Footwear Stitching/Sewing Process Video
+                finalUrl = "https://www.youtube.com/watch?v=vV1Uf3D0aC8"; 
+            } else if (op.includes("cut") || op.includes("skiv") || op.includes("punch") || op.includes("stamp")) {
+                // Footwear Cutting/Skiving Process Video
+                finalUrl = "https://www.youtube.com/watch?v=9M3XWJ2S2yM"; 
+            } else if (op.includes("last") || op.includes("toe") || op.includes("heel") || op.includes("form")) {
+                // Footwear Lasting Machine Video
+                finalUrl = "https://www.youtube.com/watch?v=6m8g5w2U5yQ"; 
+            } else if (op.includes("sole") || op.includes("pvc") || op.includes("pu") || op.includes("inject")) {
+                // Footwear Sole Injection/Attaching Video
+                finalUrl = "https://www.youtube.com/watch?v=T_W-8BlyJ-4"; 
+            } else {
+                // General Footwear Assembly Fallback Video
+                finalUrl = "https://www.youtube.com/watch?v=7GcRZ4zAEtQ"; 
+            }
+        }
+        
         document.getElementById("benchmarkUrlInput").value = finalUrl;
         
         loadManualBenchmark(finalUrl); 
