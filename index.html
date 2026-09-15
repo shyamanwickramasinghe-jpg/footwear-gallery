@@ -1077,10 +1077,10 @@ function printEstimate() {
         setTimeout(() => document.body.classList.remove('print-estimate-only'), 500);
     }
 
-    function getCostingShareText() {
-        const usd = document.getElementById('dynamicUsdPrice').innerText;
-        const lkr = document.getElementById('dynamicLkrPrice').innerText;
-        return `DSI FOOTTECH Global Costing Estimate\nEstimated Global Retail: ${usd} (${lkr})\nCheck out the full breakdown on our portal!`;
+function getCostingShareText() {
+        const lkrEl = document.getElementById('priceLkr');
+        const lkr = lkrEl ? lkrEl.innerText : "N/A";
+        return `DSI FOOTTECH Global Costing Estimate\nEstimated Sri Lanka Retail: ${lkr}\nCheck out the full breakdown on our portal!`;
     }
 
     function copyCostingLink() {
@@ -1100,7 +1100,6 @@ function printEstimate() {
         const body = encodeURIComponent(getCostingShareText() + "\n\n" + window.location.href);
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
-
     async function generateGlobalEstimate() {
         const fileInput = document.getElementById("estMediaInput");
         const file = fileInput.files[0];
@@ -1163,17 +1162,16 @@ function printEstimate() {
         }
     }
 
-    async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey) {
+async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey) {
         const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style. Upper material: ${material}. Sole type: ${soleType}.
         CRITICAL INSTRUCTION: Your baseline estimates must reflect lean, real-world factory floor conditions. 
-        - Include necessary hidden internal operations (lining preparation, reinforcements) ONLY if the specific style actually requires them.
-        - Group essential micro-operations (handling, thread trimming) logically to avoid listing unnecessary or redundant steps.
-        - Apply a strict 10% to 15% standard allowance for fatigue and manual handling. Do NOT double or artificially inflate the times.
-        - Eliminate any operations that do not directly apply to the exact shoe design shown in the media.
-        - Open-toe sandals and slippers must naturally fall between 18 to 25 minutes total SMV.
-        Estimate the global market retail price for this type of shoe in USD and LKR (assuming 1 USD = 328 LKR).
-        Generate a highly specific 3-5 word search query describing the shoe.
-        Output ONLY raw HTML exactly matching this structure. 
+        - Include necessary hidden internal operations.
+        - Group essential micro-operations logically.
+        - Apply a strict 10% to 15% standard allowance for fatigue and manual handling.
+        
+Act as a live market scraper. Estimate the highly accurate, current global market retail price for this specific shoe in LKR, INR, CNY, and EUR. DO NOT give generic ranges. Prices MUST drastically vary based on the detected material (e.g., premium leather is expensive, basic PVC is cheap), sole type, and visual complexity. (Assume 1 USD = 328 LKR).
+        
+        Output ONLY raw HTML exactly matching this structure. Do NOT use markdown formatting like \`\`\`html.
 
         <div style="background: #111; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
             <h4 style="color:#007bff; margin-top:0;">Footwear Style & Operation Overview</h4>
@@ -1185,43 +1183,55 @@ function printEstimate() {
             <tbody>[Add realistic operations]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
+        
         <h3 style="color:#ffc107; margin-bottom: 10px;">🧵 2. Pre-Stitching & Sub-Assembly</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Include Lining/Handling)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
             <tbody>[Add operations]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
+        
         <h3 style="color:#ffc107; margin-bottom: 10px;">🪡 3. Sewing & Stitching</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Include Trimming/Checking)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
             <tbody>[Add operations]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
+        
         <h3 style="color:#ffc107; margin-bottom: 10px;">🔨 4. Lasting & Bottoming</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Specific to ${soleType})</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
             <tbody>[Add operations]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
+        
         <h3 style="color:#ffc107; margin-bottom: 10px;">📦 5. Finishing & Packing</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Include Cleaning/Insock/Box)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
             <tbody>[Add operations]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
+        
         <div style="background: #198754; border: 2px solid #28a745; padding: 15px; border-radius: 8px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
             <h2 style="margin:0; color:#fff;">Total Estimated Shoe SMV:</h2>
             <h2 style="margin:0; color:#fff; font-family: monospace;">[Total] min</h2>
         </div>
         <div style="background: #222; border-left: 4px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 4px;">
             <h4 style="color:#ffc107; margin-top:0;">Standard Labor vs. Material Cost Ratio</h4>
-            <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the realistic Labor % vs Material % for this specific material and style, factoring in standard manual labor allowances]</p>
+            <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the realistic Labor % vs Material % for this specific material and style]</p>
         </div>
-        <div id="ai-search-data" data-query="[YOUR_SPECIFIC_SEARCH_QUERY]" data-usd="$[Min] - $[Max]" data-lkr="LKR [Min] - LKR [Max]" style="display:none;"></div>`;
+        
+        <!-- CRITICAL: YOU MUST INCLUDE THIS HIDDEN DIV SO THE DASHBOARD CAN READ YOUR ACCURATE PRICES -->
+        <div id="ai-pricing-data" 
+             data-lkr="LKR [Min] - [Max]" 
+             data-inr="INR [Min] - [Max] (Approx. LKR [X])" 
+             data-cny="CNY [Min] - [Max] (Approx. LKR [X])" 
+             data-eur="€ [Min] - € [Max] (Approx. LKR [X])" 
+             style="display:none;"></div>`;
 
         try {
             const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
                 body: JSON.stringify(requestBody)
@@ -1231,33 +1241,19 @@ function printEstimate() {
             if (!response.ok) return alert(`⚠️ Gemini API Error: ${data.error.message}`);
 
             if (data.candidates && data.candidates[0]) {
-let aiText = data.candidates[0].content.parts[0].text.replace(/```html/g, "").replace(/```/g, "").trim();
-            
-            document.getElementById("estAiOutput").innerHTML = aiText;
-            
-            // Populates regional pricing table values so they don't show dashes
-            document.getElementById("priceLkr").innerText = "LKR 7,500 - 11,500";
-            document.getElementById("priceIndia").innerText = "INR 1,800 - 2,800 (Approx. LKR 6,200 - 9,600)";
-            document.getElementById("priceChina").innerText = "CNY 160 - 240 (Approx. LKR 7,800 - 11,700)";
-            document.getElementById("priceEurope").innerText = "€ 40 - € 65 (Approx. LKR 15,200 - 24,700)";
-            
-            document.getElementById("estResultArea").style.display = "block";
+                let aiText = data.candidates[0].content.parts[0].text.replace(/```html/g, "").replace(/```/g, "").trim();
                 
-                const searchDataEl = document.getElementById('ai-search-data');
-                let searchQuery = "footwear";
-                let usdPrice = "$20 - $40";
-                let lkrPrice = "LKR 6,560 - LKR 13,120";
+                document.getElementById("estAiOutput").innerHTML = aiText;
                 
-                if (searchDataEl) {
-                    searchQuery = searchDataEl.getAttribute('data-query') || searchQuery;
-                    usdPrice = searchDataEl.getAttribute('data-usd') || usdPrice;
-                    lkrPrice = searchDataEl.getAttribute('data-lkr') || lkrPrice;
+                // Extract dynamic prices from the hidden div the AI created
+                const pricingDataEl = document.getElementById('ai-pricing-data');
+                if (pricingDataEl) {
+                    document.getElementById("priceLkr").innerText = pricingDataEl.getAttribute('data-lkr') || "--";
+                    document.getElementById("priceIndia").innerText = pricingDataEl.getAttribute('data-inr') || "--";
+                    document.getElementById("priceChina").innerText = pricingDataEl.getAttribute('data-cny') || "--";
+                    document.getElementById("priceEurope").innerText = pricingDataEl.getAttribute('data-eur') || "--";
                 }
                 
-                document.getElementById('dynamicUsdPrice').innerText = usdPrice;
-                document.getElementById('dynamicLkrPrice').innerText = lkrPrice;
-                
-                document.getElementById('shoppingBtn').href = 'https://www.google.com/search?tbm=shop&q=' + encodeURIComponent(searchQuery);
                 document.getElementById("estResultArea").style.display = "block";
             }
         } catch (error) {
