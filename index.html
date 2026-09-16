@@ -220,9 +220,12 @@
             <span id="specText" style="color:#ddd; display:block; margin-top:5px;"></span>
         </div>
     </div>
-    <!-- Tab 2: Global AI SMV Estimator -->
+   <!-- Tab 2: Global AI SMV Estimator -->
     <div id="estimator" class="tab-content active">
-        <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI SMV Estimator</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="color: #17a2b8; display: flex; align-items: center; gap: 10px; margin-top: 0;">🌐 Global AI SMV Estimator</h3>
+            <button type="button" onclick="clearEstimator()" style="background: #dc3545; color: white; padding: 5px 15px; border-radius: 4px; border: none; cursor: pointer;">🧹 Clear Tab</button>
+        </div>
         <p style="color: #ffc107; font-size: 0.85em; margin-top: -5px;">⚠️ <strong>API Key Required:</strong> To use AI features, please set your free Google Gemini API Key in the 'Manage' tab.</p>
         <p style="color: #aaa; font-size: 0.95em;">Upload a photo/video or a BOM Excel sheet to generate preliminary SMVs and Regional Cost Projections.</p>
         
@@ -2301,11 +2304,18 @@ window.onload = function() {
     };
 
     // --- Clear Tab Controllers ---
-    function clearEstimator() {
+function clearEstimator() {
         document.getElementById("estMediaInput").value = "";
         document.getElementById("estAdditionalSpecs").value = "";
-        document.getElementById("estBomInput").value = "";
+        if(document.getElementById("estBomInput")) document.getElementById("estBomInput").value = "";
+        
+        // Hide the result area and loading messages
         document.getElementById("estResultArea").style.display = "none";
+        document.getElementById("estLoadingMsg").style.display = "none";
+        
+        // Clear out the old AI text so it doesn't flash on the next scan
+        if(document.getElementById("estAiOutput")) document.getElementById("estAiOutput").innerHTML = "";
+        
         document.getElementById("estValueEngineeringToggle").checked = false;
     }
 
