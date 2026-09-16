@@ -1646,12 +1646,38 @@ Act as a live market scraper. Estimate the highly accurate, current global marke
         playVideo();
     }
 
-    function openTab(tabId, evt) {
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        if(evt) evt.target.classList.add('active');
-        if (tabId === 'bulletin') renderBulletinList();
+function openTab(tabId, evt) {
+        // 1. Safely hide all tab contents
+        const tabs = document.querySelectorAll('.tab-content');
+        if (tabs) {
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                tab.style.display = 'none'; // Force hide
+            });
+        }
+
+        // 2. Safely remove active class from buttons
+        const buttons = document.querySelectorAll('.tab-btn');
+        if (buttons) {
+            buttons.forEach(btn => btn.classList.remove('active'));
+        }
+
+        // 3. Activate and display the target tab content safely
+        const targetTab = document.getElementById(tabId);
+        if (targetTab) {
+            targetTab.classList.add('active');
+            targetTab.style.display = 'block'; // Force show
+        }
+
+        // 4. Safely highlight the clicked button if an event exists
+        if (evt && evt.currentTarget && evt.currentTarget.classList) {
+            evt.currentTarget.classList.add('active');
+        }
+
+        // 5. Force the IE Bulletin table to generate immediately when the tab opens
+        if (tabId === 'bulletin' && typeof renderBulletinList === 'function') {
+            renderBulletinList();
+        }
     }
 
     // UPDATED: Auto-open dropdown while searching AND Trigger AI
