@@ -2131,7 +2131,7 @@ function generateCode() {
         document.body.removeChild(link);
     }
 
-    window.onload = function() {
+window.onload = function() {
         initCanvas(); 
         
         try {
@@ -2150,12 +2150,17 @@ function generateCode() {
 
         populateDropdown(operations);
         
+        // Force render bulletin list on load so it's ready instantly
+        if (typeof renderBulletinList === 'function') {
+            renderBulletinList();
+        }
+        
         try {
             const savedApiKey = localStorage.getItem("geminiApiKey");
             if (savedApiKey) document.getElementById("geminiApiKeyInput").value = savedApiKey;
         } catch(e) {}
         
-const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = new URLSearchParams(window.location.search);
         const sharedIds = urlParams.get('b');
         
         if (sharedIds) {
@@ -2176,10 +2181,11 @@ const urlParams = new URLSearchParams(window.location.search);
                 generateBulletinTable();
                 document.getElementById("bulletinResultArea").style.marginTop = "0";
             } else {
-                document.getElementById("bulletin").innerHTML = "<h3 style='text-align:center;'>Bulletin link is invalid or expired.</h3>";
+                const bulletinTab = document.getElementById("bulletin");
+                if(bulletinTab) bulletinTab.innerHTML = "<h3 style='text-align:center;'>Bulletin link is invalid or expired.</h3>";
             }
         }
-    }; // <-- END OF window.onload
+    };
 
     // --- Clear Tab Controllers ---
     function clearEstimator() {
@@ -2192,22 +2198,20 @@ const urlParams = new URLSearchParams(window.location.search);
 
     function clearSearchHub() {
         document.getElementById("searchInput").value = "";
-        filterOperations(); // Resets the list to show all
-        document.getElementById("globalAiSuggestions").style.display = "none";
+        filterOperations(); 
+        const globalAi = document.getElementById("globalAiSuggestions");
+        if(globalAi) globalAi.style.display = "none";
     }
 
     function clearViewer() {
-        if (normalYtAPI && typeof normalYtAPI.destroy === 'function') normalYtAPI.destroy();
-        if (slomoYtAPI && typeof slomoYtAPI.destroy === 'function') slomoYtAPI.destroy();
-        normalYtAPI = null;
-        slomoYtAPI = null;
-        document.getElementById("normalVideo").pause();
-        document.getElementById("slomoVideo").pause();
         document.getElementById("videoContainer").style.display = "none";
         document.getElementById("smvCard").style.display = "none";
-        document.getElementById("operationSelector").innerHTML = "-- Go to 'Global & Local Search' Tab to pick an operation --";
-        document.getElementById("performanceRating").value = 100;
-        document.getElementById("ratingValue").innerText = "100%";
+        const opSelector = document.getElementById("operationSelector");
+        if(opSelector) opSelector.innerHTML = "-- Go to 'Global & Local Search' Tab to pick an operation --";
+        const perfRating = document.getElementById("performanceRating");
+        if(perfRating) perfRating.value = 100;
+        const ratingVal = document.getElementById("ratingValue");
+        if(ratingVal) ratingVal.innerText = "100%";
         activeVideoIndex = -1;
     }
 
@@ -2222,22 +2226,25 @@ const urlParams = new URLSearchParams(window.location.search);
             globalBenchYtAPI.destroy();
             globalBenchYtAPI = null;
         }
-        document.getElementById("dsiBenchVideo").pause();
+        const dsiVid = document.getElementById("dsiBenchVideo");
+        if(dsiVid) dsiVid.pause();
         const gVid = document.getElementById("globalBenchVideo");
         if (gVid) gVid.pause();
     }
 
     // --- Help Modal Controllers ---
     function openHelpModal() {
-        document.getElementById("helpModal").style.display = "block";
+        const helpModal = document.getElementById("helpModal");
+        if(helpModal) helpModal.style.display = "block";
     }
 
     function closeHelpModal() {
-        document.getElementById("helpModal").style.display = "none";
+        const helpModal = document.getElementById("helpModal");
+        if(helpModal) helpModal.style.display = "none";
     }
 </script>
 
-<!-- Help Modal (How to Use) - This HTML goes OUTSIDE the script, but inside the body -->
+<!-- Help Modal (How to Use) -->
 <div id="helpModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
     <div class="modal-content" style="background-color: #1a1a1a; margin: 5% auto; padding: 25px; border: 1px solid #444; border-radius: 8px; width: 80%; max-width: 600px; color: #ddd; position: relative;">
         <span class="close-btn" onclick="closeHelpModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
@@ -2265,7 +2272,7 @@ const urlParams = new URLSearchParams(window.location.search);
 
         <div style="margin-bottom: 15px;">
             <h4 style="color: #ffc107; margin-bottom: 5px;">5. 📊 Benchmark Dashboard</h4>
-            <p style="margin: 0; color: #ddd; font-size: 0.95em;">Upload a video from the factory floor. The AI will scan the frames, suggest matching global operations, and generate an ergonomic breakdown (Muda, Fatigue) comparing your operator to the benchmark.</p>
+            <p style="margin: 0; color: #ddd; font-size: 0.95em;">Upload a video from the factory floor. The AI will scan the frames, suggest matching global operations, and generate an ergonomic breakdown comparing your operator to the benchmark.</p>
         </div>
         
         <p style="color: #17a2b8; font-style: italic; font-size: 0.9em; text-align: center; margin-top: 25px; border-top: 1px solid #444; padding-top: 15px;">
