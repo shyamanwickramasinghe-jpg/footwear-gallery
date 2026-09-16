@@ -310,11 +310,14 @@
             </div> <!-- Closes estPrintableContent -->
             
 <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-                <button type="button" onclick="printEstimate()" style="flex: 1; min-width: 150px; background: #ffc107; color: #000; padding: 12px; font-size: 1.1em; border-radius: 6px;">🖨️ Print Sheet</button>
-                <button type="button" onclick="copyCostingLink()" style="flex: 1; min-width: 150px; background: #007bff; padding: 12px; font-size: 1.1em; border-radius: 6px;">📋 Copy Link</button>
-                <button type="button" onclick="shareCostingWhatsApp()" style="flex: 1; min-width: 150px; background: #28a745; padding: 12px; font-size: 1.1em; border-radius: 6px;">💬 WhatsApp</button>
-                <button type="button" onclick="shareCostingEmail()" style="flex: 1; min-width: 150px; background: #6f42c1; padding: 12px; font-size: 1.1em; border-radius: 6px;">📧 Email</button>
-            </div>
+    <!-- Keep the Print button visible -->
+    <button type="button" onclick="printEstimate()" style="flex: 1; min-width: 150px; background: #ffc107; color: #000; padding: 12px; font-size: 1.1em; border-radius: 6px; font-weight: bold;">🖨️ Print Sheet / Export PDF</button>
+    
+    <!-- Hide the other buttons so they don't cause confusion -->
+    <button type="button" onclick="copyCostingLink()" style="display: none;">📋 Copy Link</button>
+    <button type="button" onclick="shareCostingWhatsApp()" style="display: none;">💬 WhatsApp</button>
+    <button type="button" onclick="shareCostingEmail()" style="display: none;">📧 Email</button>
+</div>
         </div> <!-- Closes estResultArea -->
     </div> <!-- END OF TAB 2 -->
 
@@ -2208,6 +2211,49 @@ function generateCode() {
             }
         }
     };
+function openHelpModal() {
+        document.getElementById("helpModal").style.display = "block";
+    }
+
+    function closeHelpModal() {
+        document.getElementById("helpModal").style.display = "none";
+    }
 </script>
+<!-- Help Modal (How to Use) - This HTML goes OUTSIDE the script, but inside the body -->
+<div id="helpModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
+    <div class="modal-content" style="background-color: #1a1a1a; margin: 5% auto; padding: 25px; border: 1px solid #444; border-radius: 8px; width: 80%; max-width: 600px; color: #ddd; position: relative;">
+        <span class="close-btn" onclick="closeHelpModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+        <h2 style="color: #007bff; margin-top: 0;">📖 How to Use DSI FOOTTECH Portal</h2>
+        
+        <div style="margin-bottom: 15px;">
+            <h4 style="color: #ffc107; margin-bottom: 5px;">1. ⚙️ Admin (First Step!)</h4>
+            <p style="margin: 0; color: #ddd; font-size: 0.95em;">Go to the Admin tab and enter your Google Gemini API Key. The AI features will not function without it.</p>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <h4 style="color: #ffc107; margin-bottom: 5px;">2. 🌐 AI SMV Estimator</h4>
+            <p style="margin: 0; color: #ddd; font-size: 0.95em;">Upload a photo of any footwear style, input the material and sole type, and click 'Generate Global Estimate'. The AI will break down the operations, estimate total SMV, and calculate regional retail costs.</p>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <h4 style="color: #ffc107; margin-bottom: 5px;">3. 🔎 Global & Local Search Hub</h4>
+            <p style="margin: 0; color: #ddd; font-size: 0.95em;">Type an operation (e.g., "Stitching"). The right panel will load global machine standards via AI, while the left panel filters your local factory database. Click an operation on the left to view it.</p>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <h4 style="color: #ffc107; margin-bottom: 5px;">4. 🎬 Operation Viewer</h4>
+            <p style="margin: 0; color: #ddd; font-size: 0.95em;">After selecting a video from the Search Hub, analyze the movement using the side-by-side Normal and Slow-Motion players. Use the slider to simulate performance ratings.</p>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <h4 style="color: #ffc107; margin-bottom: 5px;">5. 📊 Benchmark Dashboard</h4>
+            <p style="margin: 0; color: #ddd; font-size: 0.95em;">Upload a video from the factory floor. The AI will scan the frames, suggest matching global operations, and generate an ergonomic breakdown (Muda, Fatigue) comparing your operator to the benchmark.</p>
+        </div>
+        
+        <p style="color: #17a2b8; font-style: italic; font-size: 0.9em; text-align: center; margin-top: 25px; border-top: 1px solid #444; padding-top: 15px;">
+            Designed for D. Samson Industries (Pvt) Ltd - Industrial Engineering Dept.
+        </p>
+    </div>
+</div>
 </body>
 </html>
