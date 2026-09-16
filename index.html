@@ -673,16 +673,9 @@
         };
     }
 
-// --- True Database of Distinct Videos by Operation ---
-    const realVideoDatabase = {
-        lasting: ["DTfceuiW9T0", "P1wUjXb0Hk8", "4U_1m_Wd8Jc", "o4y1v6N_4kI"],
-        stitching: ["xMeSTJG_aEE", "vV1Uf3D0aC8", "M8P69_TfQdE", "3bO1K2O8XhU"],
-        cutting: ["9jKIf5VKiE4", "yU_GgX4U_lA", "8X_2y_W4M7o", "ZqW9v4P_x2Y"]
-    };
+let currentAiSuggestions = []; // Stores the 4 choices
 
-    let currentAiSuggestions = []; // Stores the 4 choices
-
-    // 1. AI Output triggers the 4 distinct videos
+    // 1. AI Output triggers the 4 distinct videos dynamically from your database
     function generateBenchmarkSuggestions() {
         document.getElementById("benchLoadingMsg").style.display = "none";
         document.getElementById("aiSelectionPhase").style.display = "block";
@@ -691,14 +684,17 @@
         const uploadedUrl = document.getElementById("dsiBenchVideo").src;
         if(uploadedUrl) document.getElementById("dsiBenchPreview").src = uploadedUrl;
 
-        // Simulated AI determination (e.g., Gemini recognized "Lasting")
-        let operationName = "Toe Lasting / Setup";
-        currentAiSuggestions = realVideoDatabase.lasting; // Array of 4 DISTINCT videos
-        
         const grid = document.getElementById("dynamicVideoGrid");
         grid.innerHTML = ""; 
+        currentAiSuggestions = [];
 
-        currentAiSuggestions.forEach((videoId, index) => {
+        // Pull 4 REAL working videos dynamically from your master operations list
+        let displayCount = Math.min(4, operations.length);
+        for(let i=0; i<displayCount; i++) {
+            let op = operations[i];
+            let videoId = getYouTubeID(op.file); // Extracts real ID from your Shorts links
+            currentAiSuggestions.push(videoId);
+
             const card = document.createElement("div");
             card.style.background = "#222";
             card.style.padding = "10px";
@@ -707,13 +703,12 @@
             
             card.innerHTML = `
                 <iframe width="100%" height="120" src="https://www.youtube.com/embed/${videoId}?mute=1&autoplay=1&loop=1&playlist=${videoId}" frameborder="0" style="border-radius: 4px; margin-bottom: 5px;"></iframe>
-                <div style="color: #ddd; font-size: 0.85em; margin-bottom: 5px;">Option ${index + 1}: ${operationName}</div>
-                <button type="button" onclick="selectPrimaryBenchmark('${operationName}', '${videoId}')" style="background: #007bff; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 0.9em;">Compare</button>
+                <div style="color: #ddd; font-size: 0.85em; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${op.name}">Option ${i + 1}: ${op.name}</div>
+                <button type="button" onclick="selectPrimaryBenchmark('${op.name.replace(/'/g, "\\'")}', '${videoId}')" style="background: #007bff; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 0.9em;">Compare</button>
             `;
             grid.appendChild(card);
-        });
+        }
     }
-
 // 2. The Selection Router (Moves selected to center, others to sidebar)
     function selectPrimaryBenchmark(operationName, selectedVideoId) {
         document.getElementById("aiSelectionPhase").style.display = "none";
