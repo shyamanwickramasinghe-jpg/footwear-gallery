@@ -337,30 +337,63 @@
             <button type="button" class="btn-primary" onclick="loadManualBenchmark()" style="margin: 0; padding: 10px 20px;">Load Benchmark</button>
         </div>
 
-        <div id="benchLoadingMsg" style="display:none; color: #ffc107; font-weight: bold; text-align: center; margin-bottom: 20px;">
+<div id="benchLoadingMsg" style="display:none; color: #ffc107; font-weight: bold; text-align: center; margin-bottom: 20px;">
             ⏳ AI is analyzing micro-motions... Please wait...
         </div>
 
-        <!-- PASTED New 2x2 AI Video Matrix -->
-        <div id="videoMatrixContainer" style="display:none; margin-top: 20px; background: #1a1a1a; padding: 20px; border-radius: 8px; border: 1px solid #444;">
-            <h4 style="color: #ffc107; text-align: center; margin-top: 0; margin-bottom: 20px;">🌐 AI Matched Global Benchmarks (Select Primary)</h4>
-            <div id="videoMatrixGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <!-- JavaScript will automatically inject the 4 videos here -->
+        <!-- Phase 1: AI Search & Selection -->
+        <div id="aiSelectionPhase" style="display:none; margin-top: 20px;">
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <!-- Left: Your Uploaded Media -->
+                <div style="flex: 1; min-width: 300px; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #007bff;">
+                    <h4 style="color: #007bff; margin-top: 0;">🏭 Your Uploaded Media</h4>
+                    <video id="dsiBenchPreview" controls style="width: 100%; border-radius: 4px; background: #000;"></video>
+                </div>
+                <!-- Right: 4 AI Suggested Videos -->
+                <div style="flex: 2; min-width: 400px; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+                    <h4 style="color: #ffc107; margin-top: 0;">🌐 AI Matched Global Operations</h4>
+                    <div id="dynamicVideoGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <!-- JS injects 4 different videos here -->
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div id="benchmarkDashboardArea" style="display:none;">
-            <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-                <div class="dashboard-metric">
-                    <div style="font-size: 0.9em; color: #aaa; text-transform: uppercase;">Benchmark Target OEE</div>
-                    <div style="font-size: 1.8em; color: #28a745; font-weight: bold;" id="benchOee">--</div>
+        <!-- Phase 2: Active Comparison (With Sidebar) -->
+        <div id="benchmarkDashboardArea" style="display:none; margin-top: 20px;">
+            <div style="display: flex; gap: 20px;">
+                
+                <!-- Main Comparison Area -->
+                <div style="flex: 3;">
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <div class="dashboard-metric"><div style="font-size: 0.9em; color: #aaa;">Target OEE</div><div style="font-size: 1.8em; color: #28a745; font-weight: bold;" id="benchOee">--</div></div>
+                        <div class="dashboard-metric"><div style="font-size: 0.9em; color: #aaa;">Time Variance</div><div style="font-size: 1.8em; color: #dc3545; font-weight: bold;" id="benchVariance">--</div></div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 20px;">
+                        <!-- Your Video -->
+                        <div style="flex: 1;">
+                            <h4 style="color: #fff; text-align: center;">🏭 Local</h4>
+                            <video id="dsiBenchVideo" controls style="width: 100%; height: 250px; background: #000; border-radius: 6px;"></video>
+                        </div>
+                        <!-- Selected AI Video -->
+                        <div style="flex: 1;">
+                            <h4 style="color: #fff; text-align: center;">🌐 Global Benchmark</h4>
+                            <div id="globalBenchYtWrapper" style="width: 100%; height: 250px; background: #000; border-radius: 6px;"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="dashboard-metric">
-                    <div style="font-size: 0.9em; color: #aaa; text-transform: uppercase;">Time Variance</div>
-                    <div style="font-size: 1.8em; color: #dc3545; font-weight: bold;" id="benchVariance">--</div>
+                
+                <!-- Sidebar: Alternative AI Choices -->
+                <div style="flex: 1; background: #222; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+                    <h4 style="color: #ffc107; margin-top: 0; font-size: 1.1em; text-align: center;">Alternative Options</h4>
+                    <div id="sidebarAlternatives" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- JS injects the 3 unselected videos here -->
+                    </div>
                 </div>
-            </div>
 
+            </div>
+        </div>
             <!-- Master Slomo Controller -->
             <div style="text-align: center; margin-bottom: 15px; background: #222; padding: 10px; border-radius: 6px; border: 1px solid #555;">
                 <label style="font-weight: bold; margin-right: 15px; color: #fff;">Master Slo-Mo Sync:</label>
@@ -654,72 +687,76 @@
         };
     }
 
-// --- Pre-Verified Footwear Video Library ---
-    const benchmarkLibrary = {
-        stitching: "xMeSTJG_aEE",  // General factory operations
-        cutting: "9jKIf5VKiE4",    // Material prep and cutting
-        lasting: "DTfceuiW9T0",    // Shoe lasting process
-        sole: "ZUQ0gRBUbQM",       // Assembly and sole attachment
-        fallback: "UtzYDtBaXBs"    // General factory tour
+// --- True Database of Distinct Videos by Operation ---
+    const realVideoDatabase = {
+        lasting: ["DTfceuiW9T0", "P1wUjXb0Hk8", "4U_1m_Wd8Jc", "o4y1v6N_4kI"],
+        stitching: ["xMeSTJG_aEE", "vV1Uf3D0aC8", "M8P69_TfQdE", "3bO1K2O8XhU"],
+        cutting: ["9jKIf5VKiE4", "yU_GgX4U_lA", "8X_2y_W4M7o", "ZqW9v4P_x2Y"]
     };
 
-    // 1. Generate the 2x2 Video Matrix (Replaces old text suggestions)
+    let currentAiSuggestions = []; // Stores the 4 choices
+
+    // 1. AI Output triggers the 4 distinct videos
     function generateBenchmarkSuggestions() {
-        const matrixContainer = document.getElementById("videoMatrixContainer");
-        const grid = document.getElementById("videoMatrixGrid");
-        
-        matrixContainer.style.display = "block";
-        grid.innerHTML = ""; // Clear old videos
-        
-        // Hide the loading message since the grid is ready
         document.getElementById("benchLoadingMsg").style.display = "none";
-
-        // For this demo, we will simulate a "Lasting" operation detected by AI
-        let baseVideoId = benchmarkLibrary.lasting;
-        let operationName = "Toe Lasting / Setup";
-
-        // Generate 4 mini-players with different starting timestamps
-        const startTimes = [10, 45, 80, 120]; 
+        document.getElementById("aiSelectionPhase").style.display = "block";
         
-        for (let i = 0; i < 4; i++) {
-            const videoUrl = `https://www.youtube.com/watch?v=${baseVideoId}&t=${startTimes[i]}s`;
-            
+        // Show uploaded video in the preview pane
+        const uploadedUrl = document.getElementById("dsiBenchVideo").src;
+        if(uploadedUrl) document.getElementById("dsiBenchPreview").src = uploadedUrl;
+
+        // Simulated AI determination (e.g., Gemini recognized "Lasting")
+        let operationName = "Toe Lasting / Setup";
+        currentAiSuggestions = realVideoDatabase.lasting; // Array of 4 DISTINCT videos
+        
+        const grid = document.getElementById("dynamicVideoGrid");
+        grid.innerHTML = ""; 
+
+        currentAiSuggestions.forEach((videoId, index) => {
             const card = document.createElement("div");
             card.style.background = "#222";
             card.style.padding = "10px";
             card.style.borderRadius = "6px";
             card.style.textAlign = "center";
-            card.style.border = "1px solid #555";
             
             card.innerHTML = `
-                <iframe width="100%" height="150" src="https://www.youtube.com/embed/${baseVideoId}?start=${startTimes[i]}&mute=1&autoplay=1&loop=1" frameborder="0" style="border-radius: 4px; margin-bottom: 10px;"></iframe>
-                <div style="color: #ddd; font-size: 0.9em; margin-bottom: 10px; font-weight: bold;">Option ${i + 1}: ${operationName} (Angle ${i + 1})</div>
-                <button type="button" onclick="selectPrimaryBenchmark('${operationName}', '${videoUrl}')" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">✅ Promote to Dashboard</button>
+                <iframe width="100%" height="120" src="https://www.youtube.com/embed/${videoId}?mute=1&autoplay=1&loop=1&playlist=${videoId}" frameborder="0" style="border-radius: 4px; margin-bottom: 5px;"></iframe>
+                <div style="color: #ddd; font-size: 0.85em; margin-bottom: 5px;">Option ${index + 1}: ${operationName}</div>
+                <button type="button" onclick="selectPrimaryBenchmark('${operationName}', '${videoId}')" style="background: #007bff; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 0.9em;">Compare</button>
             `;
             grid.appendChild(card);
-        }
+        });
     }
 
-// 2. User Promotes a Video to the Main Dashboard
-    function selectPrimaryBenchmark(operationName, url) {
-        // Hide the matrix grid
-        document.getElementById("videoMatrixContainer").style.display = "none";
-        
-        // Populate the URL bar
-        document.getElementById("benchmarkUrlInput").value = url;
-        
-        // Load the main dashboard UI
+// 2. The Selection Router (Moves selected to center, others to sidebar)
+    function selectPrimaryBenchmark(operationName, selectedVideoId) {
+        document.getElementById("aiSelectionPhase").style.display = "none";
         document.getElementById("benchmarkDashboardArea").style.display = "block";
         
-        // Play the selected video in the master global viewer
-        loadManualBenchmark(url); 
+        // Load the main selected video (Fixed format!)
+        const fullUrl = "https://youtube.com/watch?v=" + selectedVideoId;
+        document.getElementById("benchmarkUrlInput").value = fullUrl;
+        loadManualBenchmark(fullUrl); 
         
-        // Trigger the text analysis!
+        // Build the Sidebar with the 3 remaining videos
+        const sidebar = document.getElementById("sidebarAlternatives");
+        sidebar.innerHTML = "";
+        
+        currentAiSuggestions.forEach((videoId) => {
+            if (videoId !== selectedVideoId) {
+                const altCard = document.createElement("div");
+                altCard.innerHTML = `
+                    <iframe width="100%" height="90" src="https://www.youtube.com/embed/${videoId}?mute=1" frameborder="0" style="border-radius: 4px;"></iframe>
+                    <button type="button" onclick="selectPrimaryBenchmark('${operationName}', '${videoId}')" style="background: #28a745; color: white; border: none; padding: 4px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 0.8em; margin-top: 2px;">Switch to this</button>
+                `;
+                sidebar.appendChild(altCard);
+            }
+        });
+
         if (typeof generateDynamicEfficiencyAnalysis === "function") {
             generateDynamicEfficiencyAnalysis(operationName); 
         }
     }
-
 // 4. Load the Video into the Right Pane
     function loadManualBenchmark(manualUrl) {
         let url = manualUrl || document.getElementById("benchmarkUrlInput").value;
