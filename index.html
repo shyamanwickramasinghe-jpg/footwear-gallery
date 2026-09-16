@@ -337,11 +337,11 @@
             <button type="button" class="btn-primary" onclick="loadManualBenchmark()" style="margin: 0; padding: 10px 20px;">Load Benchmark</button>
         </div>
 
-<div id="benchLoadingMsg" style="display:none; color: #ffc107; font-weight: bold; text-align: center; margin-bottom: 20px;">
+        <div id="benchLoadingMsg" style="display:none; color: #ffc107; font-weight: bold; text-align: center; margin-bottom: 20px;">
             ⏳ AI is analyzing micro-motions... Please wait...
         </div>
 
-        <!-- Phase 1: AI Search & Selection -->
+        <!-- Phase 1: AI Search & Selection (4 Distinct Videos Grid) -->
         <div id="aiSelectionPhase" style="display:none; margin-top: 20px;">
             <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                 <!-- Left: Your Uploaded Media -->
@@ -359,42 +359,14 @@
             </div>
         </div>
 
-        <!-- Phase 2: Active Comparison (With Sidebar) -->
+        <!-- Phase 2: Active Comparison Dashboard (Main Split-Screen + Sidebar) -->
         <div id="benchmarkDashboardArea" style="display:none; margin-top: 20px;">
-            <div style="display: flex; gap: 20px;">
-                
-                <!-- Main Comparison Area -->
-                <div style="flex: 3;">
-                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                        <div class="dashboard-metric"><div style="font-size: 0.9em; color: #aaa;">Target OEE</div><div style="font-size: 1.8em; color: #28a745; font-weight: bold;" id="benchOee">--</div></div>
-                        <div class="dashboard-metric"><div style="font-size: 0.9em; color: #aaa;">Time Variance</div><div style="font-size: 1.8em; color: #dc3545; font-weight: bold;" id="benchVariance">--</div></div>
-                    </div>
-                    
-                    <div style="display: flex; gap: 20px;">
-                        <!-- Your Video -->
-                        <div style="flex: 1;">
-                            <h4 style="color: #fff; text-align: center;">🏭 Local</h4>
-                            <video id="dsiBenchVideo" controls style="width: 100%; height: 250px; background: #000; border-radius: 6px;"></video>
-                        </div>
-                        <!-- Selected AI Video -->
-                        <div style="flex: 1;">
-                            <h4 style="color: #fff; text-align: center;">🌐 Global Benchmark</h4>
-                            <div id="globalBenchYtWrapper" style="width: 100%; height: 250px; background: #000; border-radius: 6px;"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Sidebar: Alternative AI Choices -->
-                <div style="flex: 1; background: #222; padding: 15px; border-radius: 8px; border: 1px solid #444;">
-                    <h4 style="color: #ffc107; margin-top: 0; font-size: 1.1em; text-align: center;">Alternative Options</h4>
-                    <div id="sidebarAlternatives" style="display: flex; flex-direction: column; gap: 10px;">
-                        <!-- JS injects the 3 unselected videos here -->
-                    </div>
-                </div>
-
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div class="dashboard-metric"><div style="font-size: 0.9em; color: #aaa;">Target OEE</div><div style="font-size: 1.8em; color: #28a745; font-weight: bold;" id="benchOee">--</div></div>
+                <div class="dashboard-metric"><div style="font-size: 0.9em; color: #aaa;">Time Variance</div><div style="font-size: 1.8em; color: #dc3545; font-weight: bold;" id="benchVariance">--</div></div>
             </div>
-        </div>
-            <!-- Master Slomo Controller -->
+
+            <!-- Master Slo-Mo Controller -->
             <div style="text-align: center; margin-bottom: 15px; background: #222; padding: 10px; border-radius: 6px; border: 1px solid #555;">
                 <label style="font-weight: bold; margin-right: 15px; color: #fff;">Master Slo-Mo Sync:</label>
                 <select id="masterSlomo" class="speed-select" onchange="syncSlomo()">
@@ -405,95 +377,36 @@
                 </select>
             </div>
 
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                <!-- DSI Video -->
-                <div class="split-pane">
-                    <h4 style="margin-top:0; color:#fff; text-align:center;">🏭 Local Factory Footage</h4>
-                    <video id="dsiBenchVideo" class="player-frame" controls loop style="width: 100%; height: 300px; background:#000; border-radius:6px;"></video>
-                </div>
-                <!-- Global Video -->
-                <div class="split-pane">
-                    <h4 style="margin-top:0; color:#fff; text-align:center;">🌐 Global Benchmark Standard</h4>
-                    <video id="globalBenchVideo" class="player-frame" controls loop style="display:none; width: 100%; height: 300px; background:#000; border-radius:6px;"></video>
-                    <div id="globalBenchYtWrapper" class="player-frame" style="display:none; width: 100%; height: 300px;"><div id="globalBenchYtPlayer"></div></div>
-                </div>
-            </div>
-
-            <div id="benchAiAnalysis" style="margin-top: 20px; background: #222; border: 1px solid #ffc107; padding: 15px; border-radius: 8px;">
-                <!-- AI Populates Here -->
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Tab 3: Social Media OP Bulletin -->
-    <div id="bulletin" class="tab-content">
-        <div class="shared-header">👟 IE Operations Guide</div>
-        <div class="bulletin-creation-tools">
-            <h3 style="margin-top: 0;">Step 1: Operation Master List Selection</h3>
-            <p style="color: #ffc107; font-size: 0.85em; margin-top: -10px;">⚠️ <strong>API Key Required:</strong> To use the AI Visual Scan, set your free API Key in the 'Manage' tab.</p>
-            
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                <input type="search" id="bulletinSearch" autocomplete="off" onkeyup="renderBulletinList()" placeholder="Search to filter..." style="flex: 1; min-width: 200px; margin: 0;">
-                <button type="button" class="btn-warning" onclick="document.getElementById('aiImageInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">📸 AI Visual Scan</button>
-                <input type="file" id="aiImageInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleAIScan(event)">
+            <div style="display: flex; gap: 20px; align-items: flex-start;">
                 
-                <button type="button" class="btn-info" onclick="document.getElementById('aiWebInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">🌐 Web & YouTube Match</button>
-                <input type="file" id="aiWebInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleWebScan(event)">
-            </div>
-            
-            <div id="aiLoadingMsg" style="display:none; color: #ffc107; font-weight: bold; margin-bottom: 15px; text-align: center; background: #333; padding: 10px; border-radius: 6px; border: 1px solid #ffc107;">
-                🤖 AI is scanning your media... Please wait...
+                <!-- Main Split Pane (Local vs Global) -->
+                <div style="flex: 3; display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 250px; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+                        <h4 style="margin-top:0; color:#fff; text-align:center;">🏭 Local Factory Footage</h4>
+                        <video id="dsiBenchVideo" controls loop style="width: 100%; height: 260px; background:#000; border-radius:6px;"></video>
+                    </div>
+                    <div style="flex: 1; min-width: 250px; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+                        <h4 style="margin-top:0; color:#fff; text-align:center;">🌐 Global Benchmark Standard</h4>
+                        <video id="globalBenchVideo" controls loop style="display:none; width: 100%; height: 260px; background:#000; border-radius:6px;"></video>
+                        <div id="globalBenchYtWrapper" style="display:none; width: 100%; height: 260px;"><div id="globalBenchYtPlayer"></div></div>
+                    </div>
+                </div>
+
+                <!-- Sidebar: Alternative AI Choices (The 3 unselected options) -->
+                <div style="flex: 1; min-width: 200px; background: #222; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+                    <h4 style="color: #ffc107; margin-top: 0; font-size: 1.05em; text-align: center;">Alternative Options</h4>
+                    <div id="sidebarAlternatives" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- JS injects alternative videos here -->
+                    </div>
+                </div>
+
             </div>
 
-            <div id="aiResultContainer" style="display:none; color: #fff; background: #198754; font-weight: bold; margin-bottom: 15px; padding: 10px; border-radius: 6px; border: 1px solid #218838; justify-content: space-between; align-items: center;">
-                <span id="aiResultText">✅ AI Scan Complete! Check the list below.</span>
-                <button type="button" onclick="clearAIFilter()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Clear Filter</button>
+            <div id="benchAiAnalysis" style="margin-top: 20px; background: #222; border: 1px solid #ffc107; padding: 15px; border-radius: 8px; color: #ddd;">
+                <!-- AI Populates Analysis Here -->
             </div>
-            
-            <div class="bulletin-list" style="padding: 0;">
-                <table class="bulletin-table" style="margin-top: 0;">
-                    <thead>
-                        <tr>
-                            <th style="width: 40px; text-align: center;">No.</th>
-                            <th style="width: 40px; text-align: center;">☑</th>
-                            <th>Operation Name</th>
-                            <th>SMV (min)</th>
-                            <th style="text-align: center;">Zoom Preview</th>
-                            <th style="text-align: center;">Normal Preview</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bulletinSelectionListBody">
-                    </tbody>
-                </table>
-            </div>
-            
-            <button type="button" class="btn-primary" onclick="generateBulletinTable()" style="width: 100%; font-size: 1.1em; padding: 12px; margin-top: 15px;">Create Bulletin List</button>
-            <button type="button" class="btn-danger" onclick="clearBulletin()" style="width: 100%; margin-top: 10px; padding: 12px; font-size: 1.1em;">Clear All Selections & Start Over</button>
         </div>
 
-        <div id="bulletinResultArea" style="display: none; margin-top: 30px;">
-            <h3 class="bulletin-creation-tools">Step 2: Share & Export Targets</h3>
-            <table class="bulletin-table" id="bulletinTable">
-                <thead>
-                    <tr>
-                        <th style="width: 40px; text-align: center;">No.</th>
-                        <th>Operation Name</th>
-                        <th>SMV (min)</th>
-                        <th style="text-align: right;">Video</th>
-                    </tr>
-                </thead>
-                <tbody id="bulletinTableBody"></tbody>
-                <tfoot id="bulletinTableFooter"></tfoot>
-            </table>
-
-            <div class="bulletin-creation-tools" style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-                <button type="button" onclick="copyShareLink()" style="flex: 1; min-width: 150px; background: #007bff;">📋 Copy WhatsApp Link</button>
-                <button type="button" onclick="sendIEEmail()" style="flex: 1; min-width: 150px; background: #6f42c1;">📧 Send via Email</button>
-                <button type="button" onclick="downloadCSV()" style="flex: 1; min-width: 150px; background: #28a745;">⬇️ Download CSV</button>
-                <button type="button" onclick="window.print()" style="flex: 1; min-width: 150px; background: #ffc107; color: #000;">🖨️ Print PDF</button>
-            </div>
-        </div>
     </div>
 
     <!-- Tab 4: Manage Operations (ADMIN ONLY) -->
