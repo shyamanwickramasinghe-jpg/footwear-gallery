@@ -2015,35 +2015,56 @@ function updateSMV() {
 function addOperation() {
         try {
             const n = document.getElementById("newOpName").value.trim();
-            const cat = document.getElementById("newOpCategory").value; // Grabs the category
+            const cat = document.getElementById("newOpCategory").value; 
             let f = document.getElementById("newFileName").value.trim();
-            const t = parseFloat(document.getElementById("obsTime").value);
-            let s = getCleanCanvasImage();
             
-            if (!n || !f || isNaN(t) || t <= 0) {
-                alert("Fill Name, File Name/Link, and Time correctly.");
+            // Core Validation: Name and File are ALWAYS required
+            if (!n || !f) {
+                alert("Please provide an Operation Name and a Video Link.");
                 return;
             }
-            
+
             if (f.includes("ik.imagekit.io")) {
                 if (f.includes("?")) f = f.split("?")[0]; 
                 f = f + "?tr=orig-true";
             }
 
-            let pRate = parseFloat(document.getElementById("perfRating").value);
-            if (isNaN(pRate)) pRate = 100;
-            let allow = parseFloat(document.getElementById("allowance").value);
-            if (isNaN(allow)) allow = 15;
+            let t = 0;
+            let s = "";
+            let calc = 0;
 
-            const calc = ((t * (pRate/100)) * (1 + (allow/100))) / 60;
-            
-            // Pushes the category into the database array
-            operations.push({ name: n, file: f, smvPair: parseFloat(calc.toFixed(4)), shape: s, category: cat });
+            // Conditional Logic: Only check SMV/Canvas if it's a Single Operation
+            if (cat === "Single Operation") {
+                t = parseFloat(document.getElementById("obsTime").value);
+                s = getCleanCanvasImage();
+
+                if (isNaN(t) || t <= 0) {
+                    alert("Please enter a valid Observed Time for a Single Operation.");
+                    return;
+                }
+
+                let pRate = parseFloat(document.getElementById("perfRating").value);
+                if (isNaN(pRate)) pRate = 100;
+                let allow = parseFloat(document.getElementById("allowance").value);
+                if (isNaN(allow)) allow = 15;
+
+                calc = ((t * (pRate/100)) * (1 + (allow/100))) / 60;
+            }
+
+            // Push to local database
+            operations.push({ 
+                name: n, 
+                file: f, 
+                smvPair: parseFloat(calc.toFixed(4)), 
+                shape: s, 
+                category: cat 
+            });
             
             saveToMemory(); 
             populateDropdown(operations); 
             renderBulletinList();
             
+            // Reset the form
             document.getElementById("newOpName").value = ""; 
             document.getElementById("newFileName").value = ""; 
             document.getElementById("obsTime").value = "";
