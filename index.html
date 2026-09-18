@@ -128,6 +128,13 @@
     padding: 6px 10px;
     font-size: 0.85em;
 }
+/* Forces vertical factory footage to fill the container, eliminating black bars */
+.main-video-container video, 
+.slomo-video-container video,
+#dsiBenchVideo {
+    object-fit: cover !important;
+    background: transparent !important;
+}
 	</style>
 </head>
 <body>
@@ -1505,7 +1512,11 @@ async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey) {
         - Group essential micro-operations logically.
         - Apply a strict 10% to 15% standard allowance for fatigue and manual handling.
         
-Act as a live market scraper. Estimate the highly accurate, current global market retail price for this specific shoe in LKR, INR, CNY, and EUR. DO NOT give generic ranges. Prices MUST drastically vary based on the detected material (e.g., premium leather is expensive, basic PVC is cheap), sole type, and visual complexity. (Assume 1 USD = 328 LKR).
+Pricing Engine Instruction: You must act as a global footwear merchandiser. When generating the Regional Cost & Retail Projections, DO NOT use direct currency conversion from the Sri Lankan LKR base price. 
+Instead, you must:
+1. Evaluate the shoe's market segment based on the BOM and visuals (e.g., mass-market, mid-tier, specialized safety, or premium).
+2. Estimate the actual retail price range a consumer would pay for a comparable shoe natively in Sri Lanka, India, China, and Europe. 
+3. Factor in realistic regional variables including purchasing power parity, import tariffs, European retail markups, and local competitive pricing for this specific footwear category. Your output must reflect authentic regional market realities, not a mathematically flat exchange rate.
         
         Output ONLY raw HTML exactly matching this structure. Do NOT use markdown formatting like \`\`\`html.
 
@@ -1972,13 +1983,13 @@ function changeSlomoSpeed() {
     function initYouTubePlayers(videoId) {
         ytPlayerAPI_Normal = new YT.Player('ytPlayerNormal', {
             videoId: videoId,
-            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
+            playerVars: { 'controls': 0, 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
             events: { 'onReady': e => e.target.playVideo(), 'onStateChange': e => { if(e.data===0) e.target.playVideo(); } }
         });
         
         ytPlayerAPI_Slomo = new YT.Player('ytPlayerSlomo', {
             videoId: videoId,
-            playerVars: { 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
+            playerVars: { 'controls': 0, 'rel': 0, 'modestbranding': 1, 'playsinline': 1, 'autoplay': 1, 'loop': 1, 'playlist': videoId },
             events: { 
                 'onReady': e => { 
                     e.target.setPlaybackRate(0.5); 
@@ -2250,7 +2261,7 @@ function generateCode() {
             document.getElementById("modalYtWrapper").innerHTML = '<div id="modalYtPlayer"></div>';
             modalYtAPI = new YT.Player('modalYtPlayer', {
                 videoId: getYouTubeID(op.file),
-                playerVars: { 'autoplay': 1, 'playsinline': 1 },
+                playerVars: { 'controls': 0, 'rel': 0, 'modestbranding': 1, 'autoplay': 1, 'playsinline': 1 },
                 events: { 'onReady': e => e.target.playVideo() }
             });
         } else {
