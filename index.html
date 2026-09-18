@@ -507,7 +507,6 @@
         <div style="display: flex; gap: 10px; margin-bottom: 15px;">
             <input type="text" id="newOpName" placeholder="e.g. Heel Stitching" style="flex: 2; margin: 0;">
             
-            <!-- 1. ADDED onchange HERE -->
             <select id="newOpCategory" onchange="toggleFields()" style="flex: 1; margin: 0; background: #222; border: 1px solid #007bff; color: white; border-radius: 6px;">
                 <option value="Single Operation">Single Operation (SMV Only)</option>
                 <option value="Full Process">Full Process / Training</option>
@@ -519,29 +518,30 @@
         <label style="color: #007bff; font-weight:bold;">Video Link (ImageKit or YouTube):</label><br>
         <input type="text" id="newFileName" placeholder="e.g. https://LOCKED.imagekit.io/... or https://youtube.com/..." style="width: 100%; border: 1px solid #007bff;"><br>
 
-        <div class="canvas-container">
-            <!-- (Your existing canvas drawing code stays exactly the same here) -->
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Vector Template Shape:</label>
-                <div>
-                    <button type="button" class="btn-warning" onclick="undoCanvas()" style="padding: 4px 10px; font-size: 0.85em; margin-right: 5px; color: #000;">🔙 Undo</button>
-                    <button type="button" onclick="clearCanvas()" style="background: #555; padding: 4px 10px; font-size: 0.85em;">🗑️ Clear Sketch</button>
+        <!-- SKETCH AND SMV FIELDS (HIDDEN IF NOT SINGLE OP) -->
+        <div id="singleOpFields">
+            <div class="canvas-container">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Vector Template Shape:</label>
+                    <div>
+                        <button type="button" class="btn-warning" onclick="undoCanvas()" style="padding: 4px 10px; font-size: 0.85em; margin-right: 5px; color: #000;">🔙 Undo</button>
+                        <button type="button" onclick="clearCanvas()" style="background: #555; padding: 4px 10px; font-size: 0.85em;">🗑️ Clear Sketch</button>
+                    </div>
                 </div>
+                <canvas id="drawingCanvas" width="600" height="300"></canvas>
+                <p style="font-size: 0.9em; color: #ddd; margin: 8px 0 0 0;"><strong>1.</strong> Click grid dots to draw a shape. <br><strong>2.</strong> Click and drag the <span style="color:#007bff; font-weight:bold;">Blue Handles</span> or the white anchor dots to perfectly adjust your curves.</p>
             </div>
-            <canvas id="drawingCanvas" width="600" height="300"></canvas>
-            <p style="font-size: 0.9em; color: #ddd; margin: 8px 0 0 0;"><strong>1.</strong> Click grid dots to draw a shape. <br><strong>2.</strong> Click and drag the <span style="color:#007bff; font-weight:bold;">Blue Handles</span> or the white anchor dots to perfectly adjust your curves.</p>
+
+            <div class="input-group">
+                <div><label>Observed Time (sec):</label><br><input type="number" step="0.1" id="obsTime" placeholder="e.g. 41.4" style="width: 100%;"></div>
+                <div><label>Perf. Rating (%):</label><br><input type="number" id="perfRating" value="100" style="width: 100%;"></div>
+                <div><label>Allowances (%):</label><br><input type="number" id="allowance" value="15" style="width: 100%;"></div>
+            </div>
         </div>
 
-        <!-- 2. THESE ARE THE STANDARD FIELDS (ALWAYS VISIBLE) -->
-        <div class="input-group" id="standardFields">
-            <div><label>Observed Time (sec):</label><br><input type="number" step="0.1" id="obsTime" placeholder="e.g. 41.4" style="width: 100%;"></div>
-            <div><label>Perf. Rating (%):</label><br><input type="number" id="perfRating" value="100" style="width: 100%;"></div>
-            <div><label>Allowances (%):</label><br><input type="number" id="allowance" value="15" style="width: 100%;"></div>
-        </div>
-
-        <!-- 3. NEW: THE EDUCATIONAL FIELDS (HIDDEN BY DEFAULT FOR SINGLE OP) -->
+        <!-- EDUCATIONAL FIELDS (HIDDEN BY DEFAULT) -->
         <div id="educationalFields" style="display: none; background: #222; padding: 15px; border-radius: 6px; margin-top: 15px; border: 1px dashed #007bff;">
-            <p style="color: #007bff; font-weight: bold; margin-top: 0;">📚 Educational Details (Optional)</p>
+            <p style="color: #007bff; font-weight: bold; margin-top: 0;">📚 Educational Details</p>
             <div style="margin-bottom: 10px;">
                 <label>Process Details:</label><br>
                 <input type="text" id="eduProcess" placeholder="Describe the process steps..." style="width: 100%;">
@@ -562,28 +562,7 @@
             </div>
         </div>
 
-        <button type="button" onclick="addOperation()" style="margin-top: 15px; width: 100%; padding: 12px; font-size: 1.1em;">+ Add Operation to Local List</button>       
-        <label style="color: #007bff; font-weight:bold;">Video Link (ImageKit or YouTube):</label><br>
-        <input type="text" id="newFileName" placeholder="e.g. https://LOCKED.imagekit.io/... or https://youtube.com/..." style="width: 100%; border: 1px solid #007bff;"><br>
-
-        <div class="canvas-container">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Vector Template Shape:</label>
-                <div>
-                    <button type="button" class="btn-warning" onclick="undoCanvas()" style="padding: 4px 10px; font-size: 0.85em; margin-right: 5px; color: #000;">🔙 Undo</button>
-                    <button type="button" onclick="clearCanvas()" style="background: #555; padding: 4px 10px; font-size: 0.85em;">🗑️ Clear Sketch</button>
-                </div>
-            </div>
-            <canvas id="drawingCanvas" width="600" height="300"></canvas>
-            <p style="font-size: 0.9em; color: #ddd; margin: 8px 0 0 0;"><strong>1.</strong> Click grid dots to draw a shape. <br><strong>2.</strong> Click and drag the <span style="color:#007bff; font-weight:bold;">Blue Handles</span> or the white anchor dots to perfectly adjust your curves.</p>
-        </div>
-
-        <div class="input-group">
-            <div><label>Observed Time (sec):</label><br><input type="number" step="0.1" id="obsTime" placeholder="e.g. 41.4" style="width: 100%;"></div>
-            <div><label>Perf. Rating (%):</label><br><input type="number" id="perfRating" value="100" style="width: 100%;"></div>
-            <div><label>Allowances (%):</label><br><input type="number" id="allowance" value="15" style="width: 100%;"></div>
-        </div>
-        <button type="button" onclick="addOperation()" style="margin-top: 5px; width: 100%; padding: 12px; font-size: 1.1em;">+ Add Operation to Local List</button>
+        <button type="button" onclick="addOperation()" style="margin-top: 15px; width: 100%; padding: 12px; font-size: 1.1em; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer;">+ Add Operation to Local List</button>
 
         <hr style="border-color: #444; margin: 30px 0;">
 
@@ -676,15 +655,18 @@
 // --- Benchmark Dashboard Controllers (AI Upgraded) ---
     let currentBenchmarkFrames = [];
 // --- NEW LOGIC: Toggle Admin Form Fields ---
-    function toggleFields() {
+function toggleFields() {
         const opType = document.getElementById("newOpCategory").value;
         const eduFields = document.getElementById("educationalFields");
+        const singleOpFields = document.getElementById("singleOpFields");
         
         if (opType === "Single Operation") {
-            // Hide the educational fields when Single Operation is selected
+            // Show Sketch & SMV, hide Educational
+            singleOpFields.style.display = "block";
             eduFields.style.display = "none";
         } else {
-            // Show them for Training, Tech, or Market categories
+            // Hide Sketch & SMV, show Educational
+            singleOpFields.style.display = "none";
             eduFields.style.display = "block";
         }
     }
