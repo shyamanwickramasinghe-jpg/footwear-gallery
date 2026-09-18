@@ -236,6 +236,13 @@
                     Simulate Performance Rating: <span id="perfLabel" style="color: #007bff; font-weight: bold; font-size: 1.2em;">100%</span>
                 </label><br>
                 <input type="range" id="perfSlider" min="50" max="150" value="100" style="width: 100%; margin-top: 10px;" oninput="updateSMV()">
+<!-- Dynamic Allowance Slider -->
+<div style="margin-top: 15px; text-align: center;">
+    <span style="font-size: 0.9em; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">
+        Personal & Fatigue (P&F) Allowance: <strong id="allowLabel" style="color: #ffc107;">15%</strong>
+    </span>
+    <input type="range" id="allowSlider" min="0" max="30" value="15" step="1" style="width: 100%; margin-top: 10px;" oninput="updateSMV()">
+</div>
             </div>
         </div>
 
@@ -2068,16 +2075,24 @@ function playVideo() {
     }
 
 function updateSMV() {
-        if (!currentBaseSMV) return;
-        const perf = parseInt(document.getElementById("perfSlider").value);
-        const allow = 15; 
-        const baseTimeWithoutAllowance = currentBaseSMV / 1.15;
-        const rawSMV = (baseTimeWithoutAllowance * (perf / 100) * (1 + (allow / 100)));
-        
-        document.getElementById("perfLabel").innerText = perf + "%";
-        document.getElementById("smvValue").innerText = rawSMV.toFixed(4) + " min";
-        document.getElementById("targetValue").innerText = rawSMV > 0 ? Math.floor(60 / rawSMV) : 0;
-    }
+    if (!currentBaseSMV) return;
+    
+    // Fetch values from both sliders
+    const perf = parseInt(document.getElementById("perfSlider").value);
+    const allow = parseInt(document.getElementById("allowSlider").value);
+    
+    // Calculate the raw base time (stripping the default 15% allowance stored in the database)
+    const baseTimeWithoutAllowance = currentBaseSMV / 1.15;
+    
+    // Apply the dynamic performance rating and the new dynamic allowance
+    const rawSMV = (baseTimeWithoutAllowance * (perf / 100) * (1 + (allow / 100)));
+    
+    // Update the UI labels and final metrics
+    document.getElementById("perfLabel").innerText = perf + "%";
+    document.getElementById("allowLabel").innerText = allow + "%";
+    document.getElementById("smvValue").innerText = rawSMV.toFixed(4) + " min";
+    document.getElementById("targetValue").innerText = rawSMV > 0 ? Math.floor(60 / rawSMV) : 0;
+}
 
     function saveToMemory() { 
         try {
