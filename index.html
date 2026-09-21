@@ -1607,12 +1607,12 @@ async function runGlobalAIAnalysis(mediaParts, material, soleType, additionalSpe
             </div>
         </div>
         
-        <!-- CRITICAL AI INSTRUCTION: You MUST replace these brackets with actual realistic numerical values. Do not output the literal brackets. -->
+<!-- CRITICAL AI INSTRUCTION: You MUST replace these brackets with actual realistic numerical values. Do not output the literal brackets. -->
         <div id="ai-pricing-data" 
              data-lkr="LKR [Actual LKR Min] - [Actual LKR Max]" 
-             data-inr="INR [Actual INR Min] - [Actual INR Max]" 
-             data-cny="CNY [Actual CNY Min] - [Actual CNY Max]" 
-             data-eur="€ [Actual EUR Min] - € [Actual EUR Max]" 
+             data-inr="INR [Actual INR Min] - [Actual INR Max] (Approx. LKR [Equivalent LKR])" 
+             data-cny="CNY [Actual CNY Min] - [Actual CNY Max] (Approx. LKR [Equivalent LKR])" 
+             data-eur="€ [Actual EUR Min] - € [Actual EUR Max] (Approx. LKR [Equivalent LKR])" 
              style="display:none;"></div>`;
         try {
             const requestBody = { contents: [{ parts: [ { text: promptText }, ...mediaParts ] }] };
