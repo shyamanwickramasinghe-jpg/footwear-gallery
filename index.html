@@ -1514,21 +1514,42 @@ async function generateGlobalEstimate() {
     }
 
 async function runGlobalAIAnalysis(mediaParts, material, soleType, additionalSpecs, apiKey) {
-        const promptText = `You are a Senior Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style. Upper material: ${material}. Sole type: ${soleType}.
+        
+        // The Hidden Memory Bank: 53 Styles / 25 Excel Sheets Summarized
+        const dsiCalibrationMatrix = `
+        DSI FACTORY CALIBRATION MATRIX (Strict Mathematical Baseline):
+        You must scale your SMV estimate by cross-referencing the visual complexity of the uploaded image against these known historical benchmarks from our factory. Do not output this matrix.
+        - EVA Injection Slides: ~10.63 to 12.07 mins (100% in Assembly/AA)
+        - Basic Slip-on/Molded Sandals: ~17.52 to 17.58 mins
+        - Men's PU/Leather Sandals: ~14.09 to 20.60 mins
+        - Women's Comfort/Strappy Sandals: ~13.26 to 31.26 mins (Scales with upper complexity)
+        - Kids Velcro School Shoes: ~22.00 to 33.40 mins
+        - Kids Velcro Sneakers (Multi-panel): ~34.65 to 36.86 mins (Sewing/UU ~21-24 mins)
+        - Basic Lace-Up Sneakers: ~37.57 to 41.77 mins
+        - High-Top Kids Sneakers: ~41.60 to 41.71 mins
+        - Embellished/Strappy Women's Heels: ~46.79 to 52.62 mins
+        - Canvas Lace-Up Sneakers: 57.93 mins (Heavy sewing/lasting)
+        - High-Complexity Athletic Sneakers: ~68.04 to 78.91 mins (Sewing/UU ~36-45 mins)
+        - Tall Printed Rain Boots: ~102.20 to 118.52 mins (Assembly/AA > 90 mins)
+        - Heavy-Duty Safety Shoes: 113.23 mins (Sewing/UU ~62 mins)
+        `;
+
+        const promptText = `You are a Senior Footwear Industrial Engineer acting as an independent value-auditor. Analyze the attached media showing a footwear manufacturing style. Upper material: ${material}. Sole type: ${soleType}.
         CRITICAL STYLE SPECS: "${additionalSpecs}"
         
-        CRITICAL INSTRUCTION: Your baseline estimates must reflect lean, real-world factory floor conditions. Currently, you are missing hidden operations, causing SMV to be far too low. 
-        - You MUST heavily consider the "CRITICAL STYLE SPECS" provided above.
-        - You MUST include all preparatory and hidden internal operations (e.g., skiving, strap edge folding, reinforcement taping, lining attachment).
-        - You MUST include all chemical/bottoming prep (e.g., sole roughing, primer application, double cementing, heat activation, heavy pressing).
-        - Break down the micro-operations deeply so the total SMV realistically reflects a full factory production cycle (often 15 to 20 minutes for complex styles). Do not skip operations.
-        - Apply a strict 10% to 15% standard allowance for fatigue and manual handling.
+        ${dsiCalibrationMatrix}
         
-        Pricing Engine Instruction: You must act as a global footwear merchandiser. When generating the Regional Cost & Retail Projections, DO NOT use direct currency conversion from the Sri Lankan LKR base price. 
-        Instead, you must:
-        1. Evaluate the shoe's market segment based on the BOM and visuals (e.g., mass-market, mid-tier, specialized safety, or premium).
-        2. Estimate the actual retail price range a consumer would pay for a comparable shoe natively in Sri Lanka, India, China, and Europe. 
-        3. Factor in realistic regional variables including purchasing power parity, import tariffs, European retail markups, and local competitive pricing for this specific footwear category. Your output must reflect authentic regional market realities, not a mathematically flat exchange rate.
+        CRITICAL INSTRUCTION: Your baseline estimates must reflect our real-world factory floor conditions. 
+        1. Perform a visual decomposition of the new image (closure type, upper complexity, bottoming method).
+        2. Silently match the new image to the closest category in the DSI FACTORY CALIBRATION MATRIX.
+        3. Algorithmically adjust the SMV based on the structural differences between the new shoe and the baseline category.
+        4. Apply a strict 10% to 15% standard allowance for fatigue and manual handling.
+        5. Output ONLY the final audited SMV. Do NOT output comparative variances, gap analyses, or historical floor times.
+        
+        Pricing Engine Instruction: Act as a global footwear merchandiser. When generating the Regional Cost & Retail Projections, DO NOT use direct currency conversion from the Sri Lankan LKR base price. 
+        Instead:
+        1. Evaluate the shoe's market segment natively in Sri Lanka, India, China, and Europe. 
+        2. Factor in realistic regional variables including purchasing power parity, import tariffs, European retail markups, and local competitive pricing.
         
         Output ONLY raw HTML exactly matching this structure. Do NOT use markdown formatting like \`\`\`html.
 
@@ -1539,35 +1560,35 @@ async function runGlobalAIAnalysis(mediaParts, material, soleType, additionalSpe
         <h3 style="color:#ffc107; margin-bottom: 10px;">✂️ 1. Cutting & Preparation</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Include Skiving/Marking)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>[Add realistic operations]</tbody>
+            <tbody>[Add realistic operations mapping to CU, CI, CS]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
         
         <h3 style="color:#ffc107; margin-bottom: 10px;">🧵 2. Pre-Stitching & Sub-Assembly</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
-            <thead><tr><th>Operation Name (Include Lining/Handling)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>[Add operations]</tbody>
+            <thead><tr><th>Operation Name (Include Insole Prep/Handling)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
+            <tbody>[Add operations mapping to II]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
         
         <h3 style="color:#ffc107; margin-bottom: 10px;">🪡 3. Sewing & Stitching</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Include Trimming/Checking)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>[Add operations]</tbody>
+            <tbody>[Add operations mapping to UU]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
         
         <h3 style="color:#ffc107; margin-bottom: 10px;">🔨 4. Lasting & Bottoming</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Specific to ${soleType})</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>[Add operations]</tbody>
+            <tbody>[Add operations mapping to SS and early AA]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
         
         <h3 style="color:#ffc107; margin-bottom: 10px;">📦 5. Finishing & Packing</h3>
         <table class="bulletin-table" style="margin-bottom: 25px;">
             <thead><tr><th>Operation Name (Include Cleaning/Insock/Box)</th><th style="text-align: right; width: 120px;">SMV (min)</th></tr></thead>
-            <tbody>[Add operations]</tbody>
+            <tbody>[Add operations mapping to final AA]</tbody>
             <tfoot><tr><td style="text-align: right; text-transform: uppercase;">Subtotal:</td><td style="text-align: right; color:#ffc107;">[0.00]</td></tr></tfoot>
         </table>
         
@@ -1580,12 +1601,11 @@ async function runGlobalAIAnalysis(mediaParts, material, soleType, additionalSpe
             <p style="margin-bottom:0; color:#ddd;">[Write 1-2 sentences estimating the realistic Labor % vs Material % for this specific material and style]</p>
         </div>
         
-        <!-- CRITICAL: YOU MUST INCLUDE THIS HIDDEN DIV SO THE DASHBOARD CAN READ YOUR ACCURATE PRICES -->
         <div id="ai-pricing-data" 
              data-lkr="LKR [Min] - [Max]" 
-             data-inr="INR [Min] - [Max] (Approx. LKR [X])" 
-             data-cny="CNY [Min] - [Max] (Approx. LKR [X])" 
-             data-eur="€ [Min] - € [Max] (Approx. LKR [X])" 
+             data-inr="INR [Min] - [Max]" 
+             data-cny="CNY [Min] - [Max]" 
+             data-eur="€ [Min] - € [Max]" 
              style="display:none;"></div>`;
 
         try {
@@ -1604,7 +1624,6 @@ async function runGlobalAIAnalysis(mediaParts, material, soleType, additionalSpe
                 
                 document.getElementById("estAiOutput").innerHTML = aiText;
                 
-                // Extract dynamic prices from the hidden div the AI created
                 const pricingDataEl = document.getElementById('ai-pricing-data');
                 if (pricingDataEl) {
                     document.getElementById("priceLkr").innerText = pricingDataEl.getAttribute('data-lkr') || "--";
