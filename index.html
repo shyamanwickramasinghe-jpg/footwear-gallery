@@ -318,7 +318,7 @@
         <div class="input-group" style="margin-bottom: 20px; flex-wrap: wrap;">
             <div style="flex: 2; min-width: 300px;">
                 <label style="font-weight: bold;">Additional Style Specs (Keywords):</label>
-                <input type="text" id="estAdditionalSpecs" placeholder="e.g., Velcro, laser cut, digital print, etc.">
+                <textarea id="estAdditionalSpecs" rows="3" placeholder="Enter critical style specs here (e.g., snake-print strap, edge folding, primer & cementing, hidden reinforcements). The AI will read this to calculate hidden SMV." style="width: 100%; resize: vertical; padding: 10px; border-radius: 6px; background: #222; color: #fff; border: 1px solid #555; font-family: inherit; margin-bottom: 15px;"></textarea>
             </div>
             <div style="flex: 1; min-width: 200px;">
                 <label style="font-weight: bold;">Upload BOM Excel (Optional):</label>
@@ -904,7 +904,7 @@ let currentAiSuggestions = []; // Stores the 4 choices
             globalBenchYtAPI = new YT.Player('globalBenchYtPlayer', {
                 videoId: getYouTubeID(url),
                 // Added playlist parameter to ensure the loop actually works in YT API
-                playerVars: {'autoplay': 1, 'mute': 1, 'loop': 1, 'playsinline': 1, 'playlist': getYouTubeID(url)}
+                playerVars: {'controls': 0,'autoplay': 1, 'mute': 1, 'loop': 1, 'playsinline': 1, 'playlist': getYouTubeID(url)}
             });
         } else {
             document.getElementById("globalBenchYtWrapper").style.display = "none";
@@ -1450,7 +1450,7 @@ function getCostingShareText() {
         const body = encodeURIComponent(getCostingShareText() + "\n\n" + window.location.href);
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
-    async function generateGlobalEstimate() {
+async function generateGlobalEstimate() {
         const fileInput = document.getElementById("estMediaInput");
         const file = fileInput.files[0];
         if (!file) return alert("⚠️ Please upload a photo or video of the style/operation first.");
@@ -1460,6 +1460,7 @@ function getCostingShareText() {
 
         const material = document.getElementById("estMaterial").value;
         const soleType = document.getElementById("estSoleType").value;
+        const additionalSpecs = document.getElementById("estAdditionalSpecs").value.trim(); // <-- NEW: Grabs your typed specs
         const loadingMsg = document.getElementById("estLoadingMsg");
         
         loadingMsg.style.display = "block";
@@ -1495,7 +1496,7 @@ function getCostingShareText() {
                     });
                 }
                 URL.revokeObjectURL(fileURL);
-                runGlobalAIAnalysis(imageParts, material, soleType, apiKey);
+               runGlobalAIAnalysis(imageParts, material, soleType, additionalSpecs, apiKey);
             };
             video.onerror = () => {
                 alert("⚠️ Unable to process video format.");
@@ -1506,24 +1507,28 @@ function getCostingShareText() {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const base64String = e.target.result.split(',')[1];
-                runGlobalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], material, soleType, apiKey);
+                runGlobalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], material, soleType, additionalSpecs, apiKey);
             };
             reader.readAsDataURL(file);
         }
     }
 
-async function runGlobalAIAnalysis(mediaParts, material, soleType, apiKey) {
-        const promptText = `You are an expert Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style. Upper material: ${material}. Sole type: ${soleType}.
-        CRITICAL INSTRUCTION: Your baseline estimates must reflect lean, real-world factory floor conditions. 
-        - Include necessary hidden internal operations.
-        - Group essential micro-operations logically.
+async function runGlobalAIAnalysis(mediaParts, material, soleType, additionalSpecs, apiKey) {
+        const promptText = `You are a Senior Footwear Industrial Engineer. Analyze the attached media showing a footwear manufacturing style. Upper material: ${material}. Sole type: ${soleType}.
+        CRITICAL STYLE SPECS: "${additionalSpecs}"
+        
+        CRITICAL INSTRUCTION: Your baseline estimates must reflect lean, real-world factory floor conditions. Currently, you are missing hidden operations, causing SMV to be far too low. 
+        - You MUST heavily consider the "CRITICAL STYLE SPECS" provided above.
+        - You MUST include all preparatory and hidden internal operations (e.g., skiving, strap edge folding, reinforcement taping, lining attachment).
+        - You MUST include all chemical/bottoming prep (e.g., sole roughing, primer application, double cementing, heat activation, heavy pressing).
+        - Break down the micro-operations deeply so the total SMV realistically reflects a full factory production cycle (often 15 to 20 minutes for complex styles). Do not skip operations.
         - Apply a strict 10% to 15% standard allowance for fatigue and manual handling.
         
-Pricing Engine Instruction: You must act as a global footwear merchandiser. When generating the Regional Cost & Retail Projections, DO NOT use direct currency conversion from the Sri Lankan LKR base price. 
-Instead, you must:
-1. Evaluate the shoe's market segment based on the BOM and visuals (e.g., mass-market, mid-tier, specialized safety, or premium).
-2. Estimate the actual retail price range a consumer would pay for a comparable shoe natively in Sri Lanka, India, China, and Europe. 
-3. Factor in realistic regional variables including purchasing power parity, import tariffs, European retail markups, and local competitive pricing for this specific footwear category. Your output must reflect authentic regional market realities, not a mathematically flat exchange rate.
+        Pricing Engine Instruction: You must act as a global footwear merchandiser. When generating the Regional Cost & Retail Projections, DO NOT use direct currency conversion from the Sri Lankan LKR base price. 
+        Instead, you must:
+        1. Evaluate the shoe's market segment based on the BOM and visuals (e.g., mass-market, mid-tier, specialized safety, or premium).
+        2. Estimate the actual retail price range a consumer would pay for a comparable shoe natively in Sri Lanka, India, China, and Europe. 
+        3. Factor in realistic regional variables including purchasing power parity, import tariffs, European retail markups, and local competitive pricing for this specific footwear category. Your output must reflect authentic regional market realities, not a mathematically flat exchange rate.
         
         Output ONLY raw HTML exactly matching this structure. Do NOT use markdown formatting like \`\`\`html.
 
