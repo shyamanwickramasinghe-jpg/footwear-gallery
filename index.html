@@ -326,9 +326,10 @@
             </div>
         </div>
 
-        <div style="margin-bottom: 20px;">
-            <label style="font-weight: bold;">3. Upload Media (Photo/Video):</label><br>
-            <input type="file" id="estMediaInput" accept="image/*,video/mp4,video/webm" style="width: 100%; padding: 7px; background: #222; border: 1px solid #17a2b8; color: white; border-radius: 6px; margin-top: 5px;">
+<div style="margin-bottom: 20px;">
+            <label style="font-weight: bold;">3. Upload Media (Multiple Photos or 1 Video):</label><br>
+            <input type="file" id="estMediaInput" accept="image/*,video/mp4,video/webm" multiple style="width: 100%; padding: 7px; background: #222; border: 1px solid #17a2b8; color: white; border-radius: 6px; margin-top: 5px;">
+            <span style="font-size: 0.85em; color: #aaa;">Hold Ctrl/Shift to select up to 6 photos (Lateral, Medial, Outsole, Insole, Top view).</span>
         </div>
 
         <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px; background: #222; padding: 12px; border-radius: 6px; border: 1px solid #555;">
@@ -340,8 +341,7 @@
                 <strong style="color: #ffc107;">Generate Value-Engineering Matrix</strong><br>
                 <span style="font-size: 0.85em; color: #aaa;">Compare Premium vs. Low Cost/SMV construction methods for Marketing.</span>
             </div>
-        </div>
-        
+        </div>        
         <button type="button" class="btn-info" onclick="generateGlobalEstimate()" style="width: 100%; padding: 12px; font-size: 1.1em; background: #17a2b8;">🧠 Generate Global Benchmark Estimate</button>
 
         <div id="estLoadingMsg" style="display:none; color: #17a2b8; font-weight: bold; margin-top: 15px; text-align: center; background: #222; padding: 10px; border-radius: 6px; border: 1px solid #17a2b8;">
@@ -1451,87 +1451,123 @@ function getCostingShareText() {
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
 async function generateGlobalEstimate() {
-        const fileInput = document.getElementById("estMediaInput");
-        const file = fileInput.files[0];
-        if (!file) return alert("⚠️ Please upload a photo or video of the style/operation first.");
-        
-        const apiKey = getActiveApiKey();
-        if (!apiKey) return alert("⚠️ No Gemini API Key found.");
-
-        const material = document.getElementById("estMaterial").value;
-        const soleType = document.getElementById("estSoleType").value;
-        const additionalSpecs = document.getElementById("estAdditionalSpecs").value.trim(); // <-- NEW: Grabs your typed specs
-        const loadingMsg = document.getElementById("estLoadingMsg");
-        
-        loadingMsg.style.display = "block";
-        document.getElementById("estResultArea").style.display = "none";
-
-        if (file.type.startsWith('video/')) {
-            const video = document.createElement('video');
-            video.preload = 'metadata';
-            video.muted = true;
-            video.playsInline = true;
-            const fileURL = URL.createObjectURL(file);
-            video.src = fileURL;
-
-            video.onloadeddata = async () => {
-                const canvasExtract = document.createElement('canvas');
-                const ctxExtract = canvasExtract.getContext('2d');
-                const scale = Math.min(1, 640 / (video.videoWidth || 640));
-                canvasExtract.width = (video.videoWidth || 640) * scale;
-                canvasExtract.height = (video.videoHeight || 480) * scale;
-                const duration = video.duration || 5;
-                const timestamps = [duration * 0.2, duration * 0.5, duration * 0.8];
-                const imageParts = [];
-
-                for (const time of timestamps) {
-                    await new Promise((resolve) => {
-                        video.currentTime = time;
-                        video.onseeked = () => {
-                            ctxExtract.drawImage(video, 0, 0, canvasExtract.width, canvasExtract.height);
-                            const base64Data = canvasExtract.toDataURL('image/jpeg', 0.85).split(',')[1];
-                            imageParts.push({ inline_data: { mime_type: 'image/jpeg', data: base64Data } });
-                            resolve();
-                        };
-                    });
-                }
-                URL.revokeObjectURL(fileURL);
-               runGlobalAIAnalysis(imageParts, material, soleType, additionalSpecs, apiKey);
-            };
-            video.onerror = () => {
-                alert("⚠️ Unable to process video format.");
-                loadingMsg.style.display = "none";
-                fileInput.value = "";
-            };
-        } else {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64String = e.target.result.split(',')[1];
-                runGlobalAIAnalysis([{ inline_data: { mime_type: file.type, data: base64String } }], material, soleType, additionalSpecs, apiKey);
-            };
-            reader.readAsDataURL(file);
-        }
+    const fileInput = document.getElementById("estMediaInput");
+    const files = Array.from(fileInput.files);
+    
+    if (!files || files.length === 0) {
+        return alert("⚠️ Please upload photos (up to 6 angles) or a video of the style first.");
     }
+
+    const apiKey = getActiveApiKey();
+    if (!apiKey) return alert("⚠️ No Gemini API Key found.");
+
+    const material = document.getElementById("estMaterial").value;
+    const soleType = document.getElementById("estSoleType").value;
+    const additionalSpecs = document.getElementById("estAdditionalSpecs").value.trim();
+    const loadingMsg = document.getElementById("estLoadingMsg");
+
+    loadingMsg.style.display = "block";
+    document.getElementById("estResultArea").style.display = "none";
+
+    // Scenario A: User uploaded a video
+    const videoFile = files.find(f => f.type.startsWith('video/'));
+    if (videoFile) {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        const fileURL = URL.createObjectURL(videoFile);
+        video.src = fileURL;
+
+        video.onloadeddata = async () => {
+            const canvasExtract = document.createElement('canvas');
+            const ctxExtract = canvasExtract.getContext('2d');
+            const scale = Math.min(1, 640 / (video.videoWidth || 640));
+            canvasExtract.width = (video.videoWidth || 640) * scale;
+            canvasExtract.height = (video.videoHeight || 480) * scale;
+            const duration = video.duration || 5;
+            const timestamps = [duration * 0.2, duration * 0.5, duration * 0.8];
+            const imageParts = [];
+
+            for (const time of timestamps) {
+                await new Promise((resolve) => {
+                    video.currentTime = time;
+                    video.onseeked = () => {
+                        ctxExtract.drawImage(video, 0, 0, canvasExtract.width, canvasExtract.height);
+                        const base64Data = canvasExtract.toDataURL('image/jpeg', 0.85).split(',')[1];
+                        imageParts.push({ inline_data: { mime_type: 'image/jpeg', data: base64Data } });
+                        resolve();
+                    };
+                });
+            }
+            URL.revokeObjectURL(fileURL);
+            runGlobalAIAnalysis(imageParts, material, soleType, additionalSpecs, apiKey);
+        };
+
+        video.onerror = () => {
+            alert("⚠️ Unable to process video format.");
+            loadingMsg.style.display = "none";
+            fileInput.value = "";
+        };
+        return;
+    }
+
+    // Scenario B: User uploaded multiple photos (Cap at 6 images)
+    const imageFiles = files.filter(f => f.type.startsWith('image/')).slice(0, 6);
+    
+    try {
+        const imageReadPromises = imageFiles.map(file => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64String = e.target.result.split(',')[1];
+                    resolve({
+                        inline_data: {
+                            mime_type: file.type,
+                            data: base64String
+                        }
+                    });
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        });
+
+        const imageParts = await Promise.all(imageReadPromises);
+        runGlobalAIAnalysis(imageParts, material, soleType, additionalSpecs, apiKey);
+
+    } catch (err) {
+        console.error("Multi-image upload error:", err);
+        alert("⚠️ Failed to process one or more images. Please check the file types.");
+        loadingMsg.style.display = "none";
+    }
+}
 
 async function runGlobalAIAnalysis(mediaParts, material, soleType, additionalSpecs, apiKey) {
         
         // The Hidden Memory Bank: 53 Styles / 25 Excel Sheets Summarized
-        const dsiCalibrationMatrix = `
+const dsiCalibrationMatrix = `
         DSI FACTORY CALIBRATION MATRIX (Strict Mathematical Baseline):
-        You must scale your SMV estimate by cross-referencing the visual complexity of the uploaded image against these known historical benchmarks from our factory. Do not output this matrix.
-        - EVA Injection Slides: ~10.63 to 12.07 mins (100% in Assembly/AA)
-        - Basic Slip-on/Molded Sandals: ~17.52 to 17.58 mins
-        - Men's PU/Leather Sandals: ~14.09 to 20.60 mins
-        - Women's Comfort/Strappy Sandals: ~13.26 to 31.26 mins (Scales with upper complexity)
-        - Kids Velcro School Shoes: ~22.00 to 33.40 mins
-        - Kids Velcro Sneakers (Multi-panel): ~34.65 to 36.86 mins (Sewing/UU ~21-24 mins)
-        - Basic Lace-Up Sneakers: ~37.57 to 41.77 mins
-        - High-Top Kids Sneakers: ~41.60 to 41.71 mins
-        - Embellished/Strappy Women's Heels: ~46.79 to 52.62 mins
-        - Canvas Lace-Up Sneakers: 57.93 mins (Heavy sewing/lasting)
-        - High-Complexity Athletic Sneakers: ~68.04 to 78.91 mins (Sewing/UU ~36-45 mins)
-        - Tall Printed Rain Boots: ~102.20 to 118.52 mins (Assembly/AA > 90 mins)
-        - Heavy-Duty Safety Shoes: 113.23 mins (Sewing/UU ~62 mins)
+        You must scale your SMV estimate by cross-referencing the visual complexity of the uploaded image against these known historical benchmarks strictly from our factory floor. Do not output this matrix.
+        
+        1. BASIC SANDALS & SLIDES (Men's & Women's):
+        - Basic Slip-on/Molded: ~10.27 to 17.32 mins
+        - Women's Wedge/Strappy Sandals: ~11.10 to 20.28 mins
+        - Men's Flip-Flops/PU Sandals: ~14.92 to 20.03 mins
+        - High-Complexity Strappy (e.g., Braided): ~22.11 to 27.39 mins
+        
+        2. KIDS & JUNIOR SOLE FOOTWEAR:
+        - Junior Sole Basic: ~28.19 to 37.30 mins (Sewing: ~12.00 to 19.83 mins)
+        - Kids Strappy Sandals: ~16.06 to 34.66 mins
+        - Kids Velcro Sneakers (CK05/CK07): ~36.21 to 45.24 mins (Sewing: ~19.11 to 29.64 mins)
+        
+        3. ATHLETIC & CASUAL SNEAKERS:
+        - K08 Low-Top/Two-Color Sneakers: ~42.45 to 47.91 mins (Sewing: ~21.22 to 26.88 mins)
+        - Lace-up Sneakers (Style 391): ~74.19 to 84.79 mins (Sewing: ~37.95 to 46.80 mins)
+        - Men's Sport/Casual (Style 0012/13/15): ~74.19 to 80.64 mins (Sewing: ~38.09 to 45.72 mins)
+        
+        4. HEAVY DUTY & BOOTS:
+        - K08 High-Top Single Color (Style 109/107): ~62.90 mins (Sewing: ~43.77 mins)
         `;
 
         const promptText = `You are a Senior Footwear Industrial Engineer acting as an independent value-auditor. Analyze the attached media showing a footwear manufacturing style. Upper material: ${material}. Sole type: ${soleType}.
@@ -1540,7 +1576,7 @@ async function runGlobalAIAnalysis(mediaParts, material, soleType, additionalSpe
         ${dsiCalibrationMatrix}
         
         CRITICAL INSTRUCTION: Your baseline estimates must reflect our real-world factory floor conditions. 
-        1. Perform a visual decomposition of the new image (closure type, upper complexity, bottoming method).
+        1. Perform a visual decomposition across ALL provided angles/images (inspect lateral paneling, medial stitching, tongue/closure attachments, collar lining, and outsole tread/bottoming construction).
         2. Silently match the new image to the closest category in the DSI FACTORY CALIBRATION MATRIX.
         3. Algorithmically adjust the SMV based on the structural differences between the new shoe and the baseline category.
         4. Apply a strict 10% to 15% standard allowance for fatigue and manual handling.
