@@ -472,15 +472,15 @@
             <h3 style="margin-top: 0;">Step 1: Operation Master List Selection</h3>
             <p style="color: #ffc107; font-size: 0.85em; margin-top: -10px;">⚠️ <strong>API Key Required:</strong> To use the AI Visual Scan, set your free API Key in the 'Manage' tab.</p>
             
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
                 <input type="search" id="bulletinSearch" autocomplete="off" onkeyup="renderBulletinList()" placeholder="Search to filter..." style="flex: 1; min-width: 200px; margin: 0;">
+                
                 <button type="button" class="btn-warning" onclick="document.getElementById('aiImageInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">📸 AI Visual Scan</button>
-                <input type="file" id="aiImageInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleAIScan(event)">
+                <input type="file" id="aiImageInput" accept="image/*,video/mp4,video/webm" multiple onchange="handleAIScan(event)" style="display: none;">
                 
                 <button type="button" class="btn-info" onclick="document.getElementById('aiWebInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">🌐 Web & YouTube Match</button>
-                <input type="file" id="aiWebInput" accept="image/*,video/mp4,video/webm,video/quicktime" style="display: none;" onchange="handleWebScan(event)">
+                <input type="file" id="aiWebInput" accept="image/*,video/mp4,video/webm,video/quicktime" multiple style="display: none;" onchange="handleWebScan(event)">
             </div>
-            
             <div id="aiLoadingMsg" style="display:none; color: #ffc107; font-weight: bold; margin-bottom: 15px; text-align: center; background: #333; padding: 10px; border-radius: 6px; border: 1px solid #ffc107;">
                 🤖 AI is scanning your media... Please wait...
             </div>
@@ -1927,17 +1927,18 @@ const dsiCalibrationMatrix = `
         };
     }
 
-    async function runLocalAIAnalysis(mediaParts, apiKey) {
-        const listText = operations.map((op, i) => `${i}: ${op.name}`).join("\n");
-        const promptText = `You are a Senior Footwear Industrial Engineer. Analyze the attached media.
-        Step 1: Identify the shoe component (Toe, Heel, Tongue, Sole, etc.).
-        Step 2: Identify the specific manufacturing action (Stitching, Attaching, Punching, Skiving, etc.).
-        Step 3: Compare your findings against our database of operations:
+async function runLocalAIAnalysis(mediaParts, apiKey) {
+        const listText = operations.map((op, i) => `${i}:${op.name}`).join("\n");
+        
+        const promptText = `You are a Senior Footwear Industrial Engineer. Analyze the attached multi-angle media of a footwear sample.
+        Step 1: Perform a complete visual teardown (identify closures, upper paneling, collar details, bottoming method, etc.).
+        Step 2: Cross-reference your visual findings against our factory database of operations:
         ${listText}
+        Step 3: Select the 10 to 15 most critical operations required to manufacture this exact shoe.
         CRITICAL: Reply ONLY with a valid JSON object using this exact structure. Do not use markdown code blocks like \`\`\`json.
         {
-          "analysis": "Briefly describe the shoe part and machine action.",
-          "matching_ids": [List the top 2 to 4 index numbers that best match]
+          "analysis": "Briefly describe the shoe's construction and primary components.",
+          "matching_ids": [List the 10 to 15 index numbers that best match the required operations]
         }`;
 
         try {
@@ -1970,10 +1971,13 @@ const dsiCalibrationMatrix = `
             }
 
             if (matchedIndices.length === 0) return alert("AI could not find local matches.");
+            
+            // Apply the filter and update the UI
             currentAiFilter = [...new Set(matchedIndices)]; 
             document.getElementById("aiResultContainer").style.display = "flex";
-            document.getElementById("aiResultText").innerText = `✅ AI Scan Complete! Filtered list below to show ${currentAiFilter.length} suggested operation(s).`;
+            document.getElementById("aiResultText").innerText = `✅ AI Teardown Complete! Filtered list below to show ${currentAiFilter.length} required operation(s) for this sample.`;
             renderBulletinList();
+            
         } catch (error) {
             alert("⚠️ Network Error.");
         } finally {
