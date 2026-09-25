@@ -1625,7 +1625,8 @@ async function generateGlobalEstimate() {
     document.getElementById("estResultArea").style.display = "none";
 
     // Scenario A: User uploaded a video
-    const videoFile = files.find(f => f.type.startsWith('video/'));
+    // Fix: Catch .mp4 even if file.type is empty
+const videoFile = files.find(f => f.type.startsWith('video/') || f.name.toLowerCase().endsWith('.mp4'));
     if (videoFile) {
         const video = document.createElement('video');
         video.preload = 'metadata';
@@ -1633,6 +1634,9 @@ async function generateGlobalEstimate() {
         video.playsInline = true;
         const fileURL = URL.createObjectURL(videoFile);
         video.src = fileURL;
+
+        // Force browser to load and check the codec
+        video.load();
 
         video.onloadeddata = async () => {
             const canvasExtract = document.createElement('canvas');
@@ -1660,9 +1664,10 @@ async function generateGlobalEstimate() {
         };
 
         video.onerror = () => {
-            alert("⚠️ Unable to process video format.");
+            alert("⚠️ Browser cannot decode this video's codec (likely iPhone H.265). Please convert to standard H.264 MP4.");
             loadingMsg.style.display = "none";
             fileInput.value = "";
+            URL.revokeObjectURL(fileURL);
         };
         return;
     }
