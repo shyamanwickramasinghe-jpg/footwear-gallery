@@ -24,6 +24,29 @@
     transform: translateZ(0); 
 }
 iframe { transform: translateZ(0); }
+/* --- FIX BENCHMARK VIDEO SIZING --- */
+#globalBenchYtWrapper iframe {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 6px;
+}
+
+#sidebarAlternatives div {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    margin-bottom: 5px;
+}
+
+#sidebarAlternatives iframe {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 90px !important;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
         .tab-content{display:none;}
         .tab-content.active{display:block;}
         .btn-info { position: relative; display: block; width: 100%; margin-top: 20px; margin-bottom: 20px; }
