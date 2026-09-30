@@ -742,36 +742,10 @@
     </div>
 </div>
 
-
 <script>
 // --- Benchmark Dashboard Controllers (AI Upgraded) ---
     let currentBenchmarkFrames = [];
 
-// Find your "Load Benchmark" button by its ID and listen for the click
-document.getElementById('load-benchmark-btn').addEventListener('click', function() {
-    
-    // 1. Pull the established per-pair SMV directly from the Estimator tab
-    const estimatorOutput = document.getElementById('estimator-smv-output').innerText;
-    const targetSMV = parseFloat(estimatorOutput);
-
-    // 2. Extract the local operator's time from the uploaded footage
-    const localVideoInput = document.getElementById('local-video-time-extracted').value;
-    let localTime = parseFloat(localVideoInput);
-
-    // 3. Normalize to a per-pair cycle if the video only shows one shoe
-    const isSingleShoe = document.getElementById('single-shoe-toggle').checked;
-    if (isSingleShoe) {
-        localTime = localTime * 2;
-    }
-
-    // 4. Calculate Variance and Efficiency based on matching per-pair metrics
-    const timeVariance = localTime - targetSMV;
-    const operatorEfficiency = (targetSMV / localTime) * 100;
-
-    // 5. Push the calculated results to the Benchmark dashboard UI
-    document.getElementById('variance-display').innerText = (timeVariance > 0 ? "+" : "") + timeVariance.toFixed(2) + " min";
-    document.getElementById('efficiency-display').innerText = operatorEfficiency.toFixed(1) + "%";
-});
 
 // --- NEW LOGIC: Toggle Admin Form Fields ---
 function toggleFields() {
