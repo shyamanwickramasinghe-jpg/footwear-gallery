@@ -1159,40 +1159,25 @@ let currentAiSuggestions = []; // Stores the 4 choices
         const apiKey = getActiveApiKey();
         if (!apiKey) return;
 
-        // ---> START OF EXECUTIVE TRICK-TEST SAFEGUARD <---
-        // Grab the file input element (assuming you are using a standard file input)
-        const localFileInput = document.querySelector('input[type="file"]'); 
-        
-        if (localFileInput && localFileInput.files.length > 0) {
-            const uploadedFileName = localFileInput.files[0].name;
-            
-            // If the uploaded file name matches or contains the benchmark operation name
-            if (uploadedFileName.includes(operationName) || uploadedFileName === operationName + ".mp4") {
-                document.getElementById("benchVariance").innerText = "0.00 min";
-                document.getElementById("benchVariance").style.color = "#6c757d"; 
-                document.getElementById("benchOee").innerText = "100%";
-                document.getElementById("benchAiAnalysis").innerHTML = `
-                    <h4 style="color:#28a745; margin-top:0;">✅ Validation Passed</h4>
-                    <p style="color:#aaa;">Identical source footage detected. Mathematical variance is absolute zero.</p>
-                `;
-                return; // Stop the function here. Do not execute the AI prompt below.
-            }
-        }
-        // ---> END OF EXECUTIVE TRICK-TEST SAFEGUARD <---
-
         document.getElementById("benchOee").innerText = "⏳...";
         document.getElementById("benchVariance").innerText = "⏳...";
-        document.getElementById("benchAiAnalysis").innerHTML = `<h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown</h4><p style="color:#aaa;">Generating specific diagnostic report...</p>`;
+        document.getElementById("benchAiAnalysis").innerHTML = `<h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown</h4><p style="color:#aaa;">Analyzing specific video frames...</p>`;
 
-        const promptText = `You are a Lean Manufacturing AI. Based on the uploaded footwear factory video frames and the target benchmark operation: "${operationName}".
-        Generate a highly specific, realistic efficiency comparison. DO NOT USE generic or hardcoded figures. Analyze visual posture, grip, machine layout, and cycle speed.
+        // NEW AI PROMPT: Tells the AI to visually check the frames for perfection
+        const promptText = `You are a Lean Manufacturing AI. Analyze the uploaded footwear factory video frames for the operation: "${operationName}".
+        
+        CRITICAL VISUAL ANALYSIS RULE:
+        1. Visually assess the efficiency, speed, and motion in THESE SPECIFIC FRAMES.
+        2. If the operator in these frames is performing perfectly, demonstrating ideal benchmark-level efficiency with zero wasted motion (i.e. this IS the benchmark video), you MUST output exactly "100%" for oee, "0.00 min" for variance, and state "Ideal benchmark execution. No Muda detected."
+        3. ONLY if you visually detect actual wasted motion, hesitation, double-handling, or suboptimal posture in the frames, generate a realistic lower OEE (e.g., 74.3%) and a positive time variance (e.g., +0.14 min).
+
         Return ONLY a valid JSON object strictly matching this exact structure:
         {
-          "oee": "Generate a unique realistic OEE percentage (e.g., 72.8%)",
-          "variance": "Generate a unique realistic time variance (e.g., +0.18 min)",
-          "muda": "Write 1 specific sentence identifying wasted motion (Muda) like overreaching, awkward hand positioning, or double-handling observed.",
-          "fatigue": "Write 1 specific sentence estimating fatigue impact based on posture or repetition.",
-          "recommendation": "Write 1 specific lean manufacturing or ergonomic improvement specific to this footwear operation."
+          "oee": "e.g., 100% or 74.3%",
+          "variance": "e.g., 0.00 min or +0.14 min",
+          "muda": "Identify specific wasted motion visually detected in the frames, or 'No Muda detected'.",
+          "fatigue": "Estimate fatigue based on posture visually detected.",
+          "recommendation": "Suggest an improvement."
         }`;
 
         try {
@@ -1209,7 +1194,13 @@ let currentAiSuggestions = []; // Stores the 4 choices
             document.getElementById("benchOee").innerText = result.oee;
             document.getElementById("benchVariance").innerText = result.variance;
             
-            // Note: The slashes have been removed from the variables here so the code executes correctly!
+            // If the AI gives 100%, change the variance text color from red to grey
+            if(result.oee === "100%") {
+                document.getElementById("benchVariance").style.color = "#6c757d"; 
+            } else {
+                document.getElementById("benchVariance").style.color = "#dc3545"; 
+            }
+
             document.getElementById("benchAiAnalysis").innerHTML = `
                 <h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown: ${operationName}</h4>
                 <ul style="padding-left: 20px; margin-bottom:0; color:#ddd; line-height:1.6;">
