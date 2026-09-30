@@ -745,6 +745,38 @@
 <script>
 // --- Benchmark Dashboard Controllers (AI Upgraded) ---
     let currentBenchmarkFrames = [];
+// --- NEW LOGIC: Calculate Benchmark Efficiency ---
+document.addEventListener('DOMContentLoaded', function() {
+    const loadBenchmarkBtn = document.getElementById('load-benchmark-btn');
+    if (loadBenchmarkBtn) {
+        loadBenchmarkBtn.addEventListener('click', function() {
+            
+            const estimatorOutput = document.getElementById('estimator-smv-output');
+            if (!estimatorOutput) return; 
+            
+            const targetSMV = parseFloat(estimatorOutput.innerText) || 0.411; 
+            
+            const localVideoInput = document.getElementById('local-video-time-extracted');
+            let localTime = localVideoInput ? parseFloat(localVideoInput.value) : 0.551; 
+
+            const singleShoeToggle = document.getElementById('single-shoe-toggle');
+            if (singleShoeToggle && singleShoeToggle.checked) {
+                localTime = localTime * 2;
+            }
+
+            if (localTime > 0) {
+                const timeVariance = localTime - targetSMV;
+                const operatorEfficiency = (targetSMV / localTime) * 100;
+                
+                const varianceDisplay = document.getElementById('benchVariance');
+                const efficiencyDisplay = document.getElementById('benchOee');
+                
+                if (varianceDisplay) varianceDisplay.innerText = (timeVariance > 0 ? "+" : "") + timeVariance.toFixed(2) + " min";
+                if (efficiencyDisplay) efficiencyDisplay.innerText = operatorEfficiency.toFixed(1) + "%";
+            }
+        });
+    }
+});
 // --- NEW LOGIC: Toggle Admin Form Fields ---
 function toggleFields() {
         const opType = document.getElementById("newOpCategory").value;
