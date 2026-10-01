@@ -791,43 +791,86 @@ iframe { transform: translateZ(0); }
 </div>
 
 <script>
-// --- SILENT AUTO-RETRY ENGINE FOR ALL AI TABS ---
+// --- SILENT AUTO-RETRY ENGINE WITH AUTOMATIC CLEAR/CANCEL ---
+window.activeAiScanId = 0;
+window.activeAbortController = null;
+
+window.cancelActiveAiScans = function(hideLoaders) {
+    window.activeAiScanId++; // Instantly invalidates any running retry loop
+    if (window.activeAbortController) {
+        try { window.activeAbortController.abort(); } catch (e) {}
+    }
+    if (hideLoaders) {
+        ["estLoadingMsg", "benchLoadingMsg", "aiLoadingMsg", "sourceLoadingMsg"].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = "none";
+        });
+    }
+};
+
+// Automatically cancel running AI scans whenever ANY Clear button or Tab button is clicked
+document.addEventListener("click", function(e) {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const onclickAttr = btn.getAttribute("onclick") || "";
+    if (onclickAttr.toLowerCase().includes("clear") || onclickAttr.includes("openTab")) {
+        window.cancelActiveAiScans(true);
+    }
+}, true);
+
 const _originalFetch = window.fetch;
 window.fetch = async function(url, options) {
     if (typeof url === "string" && url.includes("generativelanguage.googleapis.com")) {
-        const backupModels = ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-2.5-flash-lite"];
+        // Starting a new scan automatically kills any previous scan that was still retrying!
+        window.cancelActiveAiScans(false);
+        const myScanId = window.activeAiScanId;
+        const backupModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-3.5-flash", "gemini-2.0-flash"];
         let attempt = 0;
 
-        while (true) {
+        while (myScanId === window.activeAiScanId) {
             const currentModel = backupModels[attempt % backupModels.length];
             const activeUrl = url.replace(/models\/[^:?]+/, "models/" + currentModel);
 
+            window.activeAbortController = new AbortController();
+            const fetchOptions = Object.assign({}, options, { signal: window.activeAbortController.signal });
+
             try {
-                const response = await _originalFetch(activeUrl, options);
+                const response = await _originalFetch(activeUrl, fetchOptions);
+
+                if (myScanId !== window.activeAiScanId) {
+                    return new Promise(() => {}); // Silently freeze old cancelled scan
+                }
 
                 // If success, or if the API key itself is invalid (400/403), return immediately
                 if (response.ok || response.status === 400 || response.status === 403) {
                     return response;
                 }
 
-                // If High Demand (503) or Rate Limit (429), keep retrying silently
                 console.warn(`AI Busy (HTTP ${response.status}) on ${currentModel}. Auto-retrying...`);
             } catch (networkErr) {
+                if (myScanId !== window.activeAiScanId) {
+                    return new Promise(() => {}); // Silently freeze old cancelled scan
+                }
                 console.warn(`Network timeout on ${currentModel}. Auto-retrying...`);
             }
 
             attempt++;
-            // Update whichever loading message is currently visible on screen
             ["estLoadingMsg", "benchLoadingMsg", "aiLoadingMsg", "sourceLoadingMsg"].forEach(id => {
                 const el = document.getElementById(id);
-                if (el && el.style.display !== "none") {
+                if (el && el.style.display !== "none" && myScanId === window.activeAiScanId) {
                     el.innerText = `⏳ AI Server busy — auto-retrying silently (Attempt ${attempt + 1})... Please wait...`;
                 }
             });
 
-            // Wait 2 seconds before next automatic retry
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Wait 3 seconds before next retry (checks every 200ms if user clicked Clear Tab)
+            for (let w = 0; w < 15; w++) {
+                if (myScanId !== window.activeAiScanId) {
+                    return new Promise(() => {}); // Silently freeze old cancelled scan
+                }
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
         }
+        return new Promise(() => {});
     }
     return _originalFetch(url, options);
 };
