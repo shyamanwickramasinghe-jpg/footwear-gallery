@@ -523,11 +523,30 @@ iframe { transform: translateZ(0); }
 <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
                 <input type="search" id="bulletinSearch" autocomplete="off" onkeyup="renderBulletinList()" placeholder="Search to filter..." style="flex: 1; min-width: 200px; margin: 0;">
                 
+                <button type="button" onclick="toggleShapeSearchBox()" style="margin: 0; padding: 10px 15px; border-radius: 6px; background: #111; color: #ffc107; border: 2px solid #ffc107; font-weight: bold;">✏️ Draw Shape to Search</button>
+
                 <button type="button" class="btn-warning" onclick="document.getElementById('aiImageInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">📸 AI Visual Scan</button>
                 <input type="file" id="aiImageInput" accept="image/*,video/mp4,video/webm" multiple onchange="handleAIScan(event)" style="display: none;">
                 
                 <button type="button" class="btn-info" onclick="document.getElementById('aiWebInput').click()" style="margin: 0; padding: 10px 15px; border-radius: 6px;">🌐 Web & YouTube Match</button>
                 <input type="file" id="aiWebInput" accept="image/*,video/mp4,video/webm,video/quicktime" multiple style="display: none;" onchange="handleWebScan(event)">
+            </div>
+
+            <!-- LIVE SHAPE-TO-SEARCH BLACK BOX -->
+            <div id="shapeSearchBox" style="display: none; background: #141414; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.8);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                    <div>
+                        <strong style="color: #ffc107; font-size: 1.05em;">✏️ Live Pattern Shape Matcher</strong>
+                        <span id="shapeMatchStatus" style="margin-left: 12px; font-size: 0.9em; color: #00ffff;">Click grid dots below — matching operations filter & rank automatically as you draw!</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn-warning" onclick="undoShapeSearch()" style="margin: 0; padding: 5px 12px; font-size: 0.85em; color: #000;">🔙 Undo</button>
+                        <button type="button" onclick="clearShapeSearch()" style="margin: 0; padding: 5px 12px; font-size: 0.85em; background: #dc3545; color: #fff;">🗑️ Clear & Show All</button>
+                        <button type="button" onclick="toggleShapeSearchBox()" style="margin: 0; padding: 5px 12px; font-size: 0.85em; background: #444; color: #fff;">✖ Hide Box</button>
+                    </div>
+                </div>
+                <canvas id="shapeSearchCanvas" width="600" height="240" style="background: #050505; border: 1px solid #555; border-radius: 6px; cursor: crosshair; touch-action: none; display: block; width: 100%; max-width: 600px; height: 240px; margin: 0 auto;"></canvas>
+                <p style="font-size: 0.82em; color: #aaa; text-align: center; margin: 8px 0 0 0;">Click dots to draw the pattern outline, and drag the <strong style="color: #007bff;">Blue Handles</strong> to curve lines. Closest matching shapes jump to the top of the list below.</p>
             </div>
             <div id="aiLoadingMsg" style="display:none; color: #ffc107; font-weight: bold; margin-bottom: 15px; text-align: center; background: #333; padding: 10px; border-radius: 6px; border: 1px solid #ffc107;">
                 🤖 AI is scanning your media... Please wait...
@@ -2941,9 +2960,319 @@ function clearEstimator() {
         if(helpModal) helpModal.style.display = "block";
     }
 
-    function closeHelpModal() {
+function closeHelpModal() {
         const helpModal = document.getElementById("helpModal");
         if(helpModal) helpModal.style.display = "none";
+    }
+
+    // --- LIVE SHAPE-TO-SEARCH ENGINE (IE BULLETIN) ---
+    let sCanvas, sCtx;
+    let sAnchors = [];
+    let sControls = [];
+    let sDragIdx = -1;
+    let sDragType = null;
+    let sIsDragging = false;
+    const sGridSize = 10;
+    let opShapeSignatures = [];
+
+    function toggleShapeSearchBox() {
+        const box = document.getElementById("shapeSearchBox");
+        if (!box) return;
+        if (box.style.display === "none") {
+            box.style.display = "block";
+            initShapeSearchCanvas();
+            buildOpShapeSignatures();
+        } else {
+            box.style.display = "none";
+        }
+    }
+
+    function initShapeSearchCanvas() {
+        sCanvas = document.getElementById("shapeSearchCanvas");
+        if (!sCanvas) return;
+        sCtx = sCanvas.getContext("2d");
+        if (!sCanvas.dataset.initialized) {
+            sCanvas.addEventListener("mousedown", sHandleDown);
+            sCanvas.addEventListener("mousemove", sHandleMove);
+            sCanvas.addEventListener("mouseup", sHandleUp);
+            sCanvas.addEventListener("mouseout", sHandleUp);
+            sCanvas.addEventListener("touchstart", (e) => { e.preventDefault(); sHandleDown(e); }, { passive: false });
+            sCanvas.addEventListener("touchmove", (e) => { e.preventDefault(); sHandleMove(e); }, { passive: false });
+            sCanvas.addEventListener("touchend", sHandleUp);
+            sCanvas.dataset.initialized = "true";
+        }
+        drawShapeSearchGrid();
+    }
+
+    function drawShapeSearchGrid() {
+        if (!sCtx || !sCanvas) return;
+        sCtx.clearRect(0, 0, sCanvas.width, sCanvas.height);
+        sCtx.fillStyle = "#444";
+        for (let x = sGridSize; x < sCanvas.width; x += sGridSize) {
+            for (let y = sGridSize; y < sCanvas.height; y += sGridSize) {
+                sCtx.beginPath();
+                sCtx.arc(x, y, 1.3, 0, Math.PI * 2);
+                sCtx.fill();
+            }
+        }
+        if (sAnchors.length > 0) {
+            sCtx.beginPath();
+            sCtx.strokeStyle = "#ffc107";
+            sCtx.lineWidth = 3;
+            sCtx.lineCap = "round";
+            sCtx.lineJoin = "round";
+            sCtx.moveTo(sAnchors[0].x, sAnchors[0].y);
+            for (let i = 1; i < sAnchors.length; i++) {
+                sCtx.quadraticCurveTo(sControls[i - 1].x, sControls[i - 1].y, sAnchors[i].x, sAnchors[i].y);
+            }
+            sCtx.stroke();
+
+            sCtx.fillStyle = "#fff";
+            for (let i = 0; i < sAnchors.length; i++) {
+                sCtx.beginPath();
+                sCtx.arc(sAnchors[i].x, sAnchors[i].y, 4, 0, Math.PI * 2);
+                sCtx.fill();
+            }
+            sCtx.fillStyle = "#007bff";
+            for (let i = 0; i < sControls.length; i++) {
+                sCtx.beginPath();
+                sCtx.arc(sControls[i].x, sControls[i].y, 6, 0, Math.PI * 2);
+                sCtx.fill();
+            }
+        }
+    }
+
+    function sGetPos(e) {
+        const rect = sCanvas.getBoundingClientRect();
+        let cx = e.clientX, cy = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+            cx = e.touches[0].clientX;
+            cy = e.touches[0].clientY;
+        }
+        return {
+            x: (cx - rect.left) * (sCanvas.width / rect.width),
+            y: (cy - rect.top) * (sCanvas.height / rect.height)
+        };
+    }
+
+    function sHandleDown(e) {
+        const pos = sGetPos(e);
+        for (let i = 0; i < sControls.length; i++) {
+            if (Math.hypot(pos.x - sControls[i].x, pos.y - sControls[i].y) < 15) {
+                sDragIdx = i; sDragType = "control"; sIsDragging = true; return;
+            }
+        }
+        for (let i = 0; i < sAnchors.length; i++) {
+            if (Math.hypot(pos.x - sAnchors[i].x, pos.y - sAnchors[i].y) < 15) {
+                sDragIdx = i; sDragType = "anchor"; sIsDragging = true; return;
+            }
+        }
+        let sx = Math.max(0, Math.min(sCanvas.width, Math.round(pos.x / sGridSize) * sGridSize));
+        let sy = Math.max(0, Math.min(sCanvas.height, Math.round(pos.y / sGridSize) * sGridSize));
+        sAnchors.push({ x: sx, y: sy });
+        if (sAnchors.length > 1) {
+            let prev = sAnchors[sAnchors.length - 2];
+            sControls.push({ x: (prev.x + sx) / 2, y: (prev.y + sy) / 2 });
+        }
+        drawShapeSearchGrid();
+        runLiveShapeMatch();
+    }
+
+    function sHandleMove(e) {
+        if (sIsDragging && sDragIdx !== -1) {
+            const pos = sGetPos(e);
+            let fx = Math.max(0, Math.min(sCanvas.width, Math.round(pos.x / sGridSize) * sGridSize));
+            let fy = Math.max(0, Math.min(sCanvas.height, Math.round(pos.y / sGridSize) * sGridSize));
+            if (sDragType === "control") sControls[sDragIdx] = { x: fx, y: fy };
+            else if (sDragType === "anchor") sAnchors[sDragIdx] = { x: fx, y: fy };
+            drawShapeSearchGrid();
+            runLiveShapeMatch();
+        }
+    }
+
+    function sHandleUp() {
+        sIsDragging = false; sDragIdx = -1; sDragType = null;
+    }
+
+    function undoShapeSearch() {
+        if (sAnchors.length > 0) {
+            sAnchors.pop();
+            if (sControls.length > 0 && sControls.length >= sAnchors.length) sControls.pop();
+            drawShapeSearchGrid();
+            runLiveShapeMatch();
+        }
+    }
+
+    function clearShapeSearch() {
+        sAnchors = [];
+        sControls = [];
+        drawShapeSearchGrid();
+        currentAiFilter = null;
+        document.getElementById("aiResultContainer").style.display = "none";
+        const statusEl = document.getElementById("shapeMatchStatus");
+        if (statusEl) statusEl.innerText = "Click grid dots below — matching operations filter & rank automatically as you draw!";
+        renderBulletinList();
+    }
+
+    // Crops any shape to its bounding box and creates a 24x24 blurred geometric fingerprint
+    function extractShapeSignatureFromSource(imgOrCanvas, w, h) {
+        const tempC = document.createElement("canvas");
+        tempC.width = w; tempC.height = h;
+        const tCtx = tempC.getContext("2d");
+        tCtx.drawImage(imgOrCanvas, 0, 0, w, h);
+        const imgData = tCtx.getImageData(0, 0, w, h).data;
+
+        let minX = w, minY = h, maxX = 0, maxY = 0, found = false;
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                const idx = (y * w + x) * 4;
+                if (imgData[idx + 3] > 40 && imgData[idx] > 100) {
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                    found = true;
+                }
+            }
+        }
+        if (!found) return null;
+
+        const bw = Math.max(6, maxX - minX + 1);
+        const bh = Math.max(6, maxY - minY + 1);
+        const aspect = bw / bh;
+
+        const normSize = 24;
+        const normC = document.createElement("canvas");
+        normC.width = normSize; normC.height = normSize;
+        const nCtx = normC.getContext("2d");
+        nCtx.drawImage(tempC, minX, minY, bw, bh, 2, 2, normSize - 4, normSize - 4);
+        const nData = nCtx.getImageData(0, 0, normSize, normSize).data;
+
+        const rawGrid = new Float32Array(normSize * normSize);
+        for (let i = 0; i < normSize * normSize; i++) {
+            rawGrid[i] = nData[i * 4 + 3] > 20 ? 1 : 0;
+        }
+
+        // 3x3 Gaussian-like neighborhood blur for smooth tolerance on hand-drawn curves
+        const grid = new Float32Array(normSize * normSize);
+        let magSq = 0;
+        for (let y = 0; y < normSize; y++) {
+            for (let x = 0; x < normSize; x++) {
+                let sum = 0;
+                for (let dy = -2; dy <= 2; dy++) {
+                    for (let dx = -2; dx <= 2; dx++) {
+                        const ny = y + dy, nx = x + dx;
+                        if (ny >= 0 && ny < normSize && nx >= 0 && nx < normSize) {
+                            const dist = Math.hypot(dx, dy);
+                            const weight = Math.max(0, 1 - dist / 3);
+                            sum += rawGrid[ny * normSize + nx] * weight;
+                        }
+                    }
+                }
+                grid[y * normSize + x] = sum;
+                magSq += sum * sum;
+            }
+        }
+        return { grid, mag: Math.sqrt(magSq) || 1, aspect };
+    }
+
+    function buildOpShapeSignatures() {
+        opShapeSignatures = new Array(operations.length).fill(null);
+        operations.forEach((op, idx) => {
+            if (op.shape && op.shape.startsWith("data:image")) {
+                const img = new Image();
+                img.onload = () => {
+                    opShapeSignatures[idx] = extractShapeSignatureFromSource(img, 300, 150);
+                };
+                img.src = op.shape;
+            }
+        });
+    }
+    setTimeout(buildOpShapeSignatures, 600);
+
+    function runLiveShapeMatch() {
+        if (sAnchors.length < 2) {
+            currentAiFilter = null;
+            const statusEl = document.getElementById("shapeMatchStatus");
+            if (statusEl) statusEl.innerText = "Click a 2nd dot to start live shape matching...";
+            renderBulletinList();
+            return;
+        }
+
+        const offC = document.createElement("canvas");
+        offC.width = sCanvas.width; offC.height = sCanvas.height;
+        const oCtx = offC.getContext("2d");
+        oCtx.beginPath();
+        oCtx.strokeStyle = "#ffc107";
+        oCtx.lineWidth = 4;
+        oCtx.lineCap = "round";
+        oCtx.lineJoin = "round";
+        oCtx.moveTo(sAnchors[0].x, sAnchors[0].y);
+        for (let i = 1; i < sAnchors.length; i++) {
+            oCtx.quadraticCurveTo(sControls[i - 1].x, sControls[i - 1].y, sAnchors[i].x, sAnchors[i].y);
+        }
+        oCtx.stroke();
+
+        const userSig = extractShapeSignatureFromSource(offC, offC.width, offC.height);
+        if (!userSig) return;
+
+        let scoredMatches = [];
+        operations.forEach((op, idx) => {
+            const opSig = opShapeSignatures[idx];
+            if (!opSig) return;
+
+            // 1. Cosine Similarity on 24x24 blurred shape field
+            let dot = 0;
+            for (let i = 0; i < userSig.grid.length; i++) {
+                dot += userSig.grid[i] * opSig.grid[i];
+            }
+            const cosineSim = dot / (userSig.mag * opSig.mag);
+
+            // 2. Aspect Ratio Similarity
+            const ratioDiff = Math.abs(Math.log((userSig.aspect + 0.1) / (opSig.aspect + 0.1)));
+            const aspectSim = Math.max(0, 1 - ratioDiff * 0.55);
+
+            const finalScore = (cosineSim * 0.72) + (aspectSim * 0.28);
+            if (finalScore >= 0.35) {
+                scoredMatches.push({ idx, score: finalScore });
+            }
+        });
+
+        scoredMatches.sort((a, b) => b.score - a.score);
+
+        const statusEl = document.getElementById("shapeMatchStatus");
+        if (scoredMatches.length > 0) {
+            const topMatches = scoredMatches.slice(0, 10);
+            currentAiFilter = topMatches.map(m => m.idx);
+            const bestPct = Math.min(99, Math.round(topMatches[0].score * 115));
+            if (statusEl) statusEl.innerText = `🎯 Found ${topMatches.length} matching shape(s)! (Top match: ${bestPct}% similarity)`;
+            renderBulletinList();
+
+            // Re-order table rows so the #1 closest shape match is at the very top
+            const tbody = document.getElementById("bulletinSelectionListBody");
+            if (tbody) {
+                const rowMap = {};
+                Array.from(tbody.querySelectorAll("tr")).forEach(tr => {
+                    const chk = tr.querySelector(".bulletin-checkbox");
+                    if (chk) rowMap[chk.value] = tr;
+                });
+                topMatches.forEach(m => {
+                    const tr = rowMap[m.idx];
+                    if (tr) {
+                        const pct = Math.min(99, Math.round(m.score * 115));
+                        const lbl = tr.querySelector("label");
+                        if (lbl && !lbl.querySelector(".shape-score-badge")) {
+                            lbl.insertAdjacentHTML("beforeend", `<span class="shape-score-badge" style="margin-left:10px; background:#198754; color:#fff; font-size:0.75em; padding:2px 8px; border-radius:12px;">🎯 ${pct}% Match</span>`);
+                        }
+                        tbody.appendChild(tr);
+                    }
+                });
+            }
+        } else {
+            currentAiFilter = [];
+            if (statusEl) statusEl.innerText = "🔍 Keep drawing/curving — no close shape match yet...";
+            renderBulletinList();
+        }
     }
 </script>
 
