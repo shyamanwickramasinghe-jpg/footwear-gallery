@@ -791,6 +791,47 @@ iframe { transform: translateZ(0); }
 </div>
 
 <script>
+// --- SILENT AUTO-RETRY ENGINE FOR ALL AI TABS ---
+const _originalFetch = window.fetch;
+window.fetch = async function(url, options) {
+    if (typeof url === "string" && url.includes("generativelanguage.googleapis.com")) {
+        const backupModels = ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-2.5-flash-lite"];
+        let attempt = 0;
+
+        while (true) {
+            const currentModel = backupModels[attempt % backupModels.length];
+            const activeUrl = url.replace(/models\/[^:?]+/, "models/" + currentModel);
+
+            try {
+                const response = await _originalFetch(activeUrl, options);
+
+                // If success, or if the API key itself is invalid (400/403), return immediately
+                if (response.ok || response.status === 400 || response.status === 403) {
+                    return response;
+                }
+
+                // If High Demand (503) or Rate Limit (429), keep retrying silently
+                console.warn(`AI Busy (HTTP ${response.status}) on ${currentModel}. Auto-retrying...`);
+            } catch (networkErr) {
+                console.warn(`Network timeout on ${currentModel}. Auto-retrying...`);
+            }
+
+            attempt++;
+            // Update whichever loading message is currently visible on screen
+            ["estLoadingMsg", "benchLoadingMsg", "aiLoadingMsg", "sourceLoadingMsg"].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.style.display !== "none") {
+                    el.innerText = `⏳ AI Server busy — auto-retrying silently (Attempt ${attempt + 1})... Please wait...`;
+                }
+            });
+
+            // Wait 2 seconds before next automatic retry
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+    }
+    return _originalFetch(url, options);
+};
+
 // --- Benchmark Dashboard Controllers (AI Upgraded) ---
     let currentBenchmarkFrames = [];
 // --- NEW LOGIC: Calculate Benchmark Efficiency ---
@@ -928,21 +969,25 @@ async function generateSourcingAlternatives() {
 
         const imageParts = await Promise.all(imageReadPromises);
         
-        const promptText = `You are a Global Footwear Sourcing Expert and Value Engineer. Analyze the attached close-up images of a footwear component.
+const promptText = `You are a Global Footwear Sourcing Expert and Value Engineer. Analyze the attached close-up images of a footwear component.
         Component Category: ${compType}
         Design Constraints/Notes: ${notes}
         
-        Provide a structured plan to reduce the Bill of Materials (BOM) cost of this specific component while maintaining visual market appeal. 
+        CRITICAL SOURCING RULES:
+        1. Identify the EXACT shoe component shown in the image (e.g., riveted metal D-ring eyelet, metal lace hook, buckle, sole unit, etc.).
+        2. Suggest realistic footwear-industry alternatives that match the component's function (e.g., for a metal D-ring: suggest stamped steel/aluminum D-ring, standard punched metal eyelet, or stitched nylon webbing lace loop). Do NOT suggest unrelated plastic injection molds.
+        3. For the Google search link at the bottom, ALWAYS search for the identified footwear component using words like "shoe hardware accessories wholesale" and NEVER use words like "injection molded" or "mold".
+
         Output ONLY raw HTML matching this exact structure. Do NOT use markdown code blocks like \`\`\`html.
         
-        <h3 style="color:#28a745; margin-top:0;">Alternative Sourcing Strategy</h3>
-        <p style="color:#ddd;">[Write 2 sentences analyzing the uploaded component's likely current material, manufacturing complexity, and primary cost drivers.]</p>
+        <h3 style="color:#28a745; margin-top:0;">Alternative Sourcing Strategy: [Exact Component Name]</h3>
+        <p style="color:#ddd;">[Write 2 sentences analyzing the uploaded component's current material, attachment method, and primary cost drivers.]</p>
         
         <table class="bulletin-table" style="margin-top: 15px; margin-bottom: 20px;">
             <thead>
                 <tr>
                     <th>Premium / Current Specification</th>
-                    <th>Suggested Low-Cost Alternative</th>
+                    <th>Suggested Low-Cost Footwear Alternative</th>
                     <th>Est. Cost Reduction</th>
                     <th>Quality / Visual Trade-off</th>
                 </tr>
@@ -950,19 +995,19 @@ async function generateSourcingAlternatives() {
             <tbody>
                 <tr>
                     <td>[Identify current material/hardware]</td>
-                    <td><strong style="color:#ffc107;">[Alternative 1: e.g., High-Frequency TPU instead of Metal]</strong></td>
+                    <td><strong style="color:#ffc107;">[Footwear Alternative 1]</strong></td>
                     <td>[High / Medium / Low]</td>
                     <td>[Brief note on durability or look]</td>
                 </tr>
                 <tr>
                     <td>[Current process/material]</td>
-                    <td><strong style="color:#ffc107;">[Alternative 2: e.g., Microfiber lining instead of Leather]</strong></td>
+                    <td><strong style="color:#ffc107;">[Footwear Alternative 2]</strong></td>
                     <td>[High / Medium / Low]</td>
                     <td>[Brief note on durability or look]</td>
                 </tr>
                 <tr>
                     <td>[Current process/material]</td>
-                    <td><strong style="color:#ffc107;">[Alternative 3: e.g., Printed logo instead of Embossed Rubber Badge]</strong></td>
+                    <td><strong style="color:#ffc107;">[Footwear Alternative 3]</strong></td>
                     <td>[High / Medium / Low]</td>
                     <td>[Brief note on durability or look]</td>
                 </tr>
@@ -971,10 +1016,10 @@ async function generateSourcingAlternatives() {
         
         <div style="background: #222; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px;">
             <h4 style="color:#ffc107; margin-top:0;">Manufacturing Process Modification</h4>
-            <p style="margin-bottom:0; color:#ddd;">[Suggest 1 specific change to the assembly or stitching process that would eliminate labor time associated with this specific component (e.g., utilizing automatic strap jointing, pre-molded details, or eliminating a skiving step).]</p>
+            <p style="margin-bottom:0; color:#ddd;">[Suggest 1 specific change to the shoe assembly or stitching process that reduces labor time for this component.]</p>
             
             <div style="margin-top: 15px;">
-                <a href="https://www.google.com/search?q=[Insert specific search query for wholesale suppliers of Alternative 1, e.g., 'wholesale High-Frequency TPU badge supplier']" target="_blank" style="background:#007bff; color:white; padding:8px 12px; text-decoration:none; border-radius:4px; font-weight:bold; display:inline-block;">🌍 Search Global Suppliers</a>
+                <a href="https://www.google.com/search?tbm=isch&q=[Insert specific footwear component search query, e.g., shoe metal D-ring lace loop hardware wholesale]" target="_blank" style="background:#007bff; color:white; padding:8px 12px; text-decoration:none; border-radius:4px; font-weight:bold; display:inline-block;">🌍 Search Global Footwear Suppliers</a>
             </div>
         </div>
         `;
@@ -1447,6 +1492,7 @@ defaultOperations.sort((a, b) => {
     
     return a.name.localeCompare(b.name);
 });
+    let activeVideoIndex = -1;
     let operations = defaultOperations;
     let currentBaseSMV = 0; 
     let ytPlayerAPI_Normal, ytPlayerAPI_Slomo, modalYtAPI;
