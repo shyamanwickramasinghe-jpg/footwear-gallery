@@ -1275,7 +1275,7 @@ let currentAiSuggestions = []; // Stores the 4 choices
         }
     }
 
-// 5. Pure AI Micro-Motion Analysis + Visual Muda-Cut Simulator (Skips Wasted Motion!)
+// 5. Pure AI Micro-Motion Analysis + Dual Side-by-Side Muda-Cut Video Comparison
     window.simState = null;
     window.mudaLoopHandler = null;
 
@@ -1284,13 +1284,18 @@ let currentAiSuggestions = []; // Stores the 4 choices
         if (vid && vid.duration) {
             vid.currentTime = vid.duration * pct;
             vid.pause();
+            vid.scrollIntoView({ behavior: "smooth", block: "center" });
         }
     };
 
     window.toggleMudaSimulation = function() {
         const st = window.simState;
         if (!st) return;
-        const vid = document.getElementById("dsiBenchVideo");
+
+        const mainFloorVid = document.getElementById("dsiBenchVideo");
+        const compareBox = document.getElementById("sideBySideMudaBox");
+        const origSimVid = document.getElementById("simOrigVideo");
+        const cutSimVid = document.getElementById("simCutVideo");
         const btn = document.getElementById("simMudaBtn");
         const oeeEl = document.getElementById("benchOee");
         const varEl = document.getElementById("benchVariance");
@@ -1299,28 +1304,41 @@ let currentAiSuggestions = []; // Stores the 4 choices
 
         st.active = !st.active;
 
-        // Remove any existing timeupdate listener
-        if (vid && window.mudaLoopHandler) {
-            vid.removeEventListener("timeupdate", window.mudaLoopHandler);
+        if (cutSimVid && window.mudaLoopHandler) {
+            cutSimVid.removeEventListener("timeupdate", window.mudaLoopHandler);
             window.mudaLoopHandler = null;
         }
 
         if (st.active) {
-            // 1. Auto-skip the Red Muda Zone in the video so audience sees the cycle WITHOUT wasted motion!
-            if (vid) {
-                vid.style.border = "2px solid #28a745";
-                vid.style.boxShadow = "0 0 15px rgba(40,167,69,0.6)";
-                vid.playbackRate = 1.08; // Smooth natural pace
+            // Show the Side-by-Side Dual Video Comparison Box right in front of the user!
+            if (compareBox && mainFloorVid) {
+                compareBox.style.display = "block";
+                origSimVid.src = mainFloorVid.src;
+                cutSimVid.src = mainFloorVid.src;
+                origSimVid.muted = true;
+                cutSimVid.muted = true;
+
+                // Sync both videos at 0.0s so audience sees the race side-by-side
+                origSimVid.currentTime = 0;
+                cutSimVid.currentTime = 0;
+                origSimVid.play();
+                cutSimVid.play();
+
+                // Cut the Red Muda Zone ONLY on the Right (95% Target) Video!
                 window.mudaLoopHandler = function() {
-                    const cutPoint = (vid.duration || 5) * (st.vaRatio / 100);
-                    if (vid.currentTime >= cutPoint) {
-                        vid.currentTime = 0; // Skip the wasted motion tail and start next piece!
-                        vid.play();
+                    const dur = cutSimVid.duration || 5;
+                    const cutPoint = dur * (st.vaRatio / 100);
+                    const timerEl = document.getElementById("simCutTimer");
+                    if (timerEl) {
+                        timerEl.innerText = `⏱️ Cycle Cut at ${cutPoint.toFixed(1)}s (Skipped ${(dur - cutPoint).toFixed(1)}s Muda!)`;
+                    }
+                    if (cutSimVid.currentTime >= cutPoint) {
+                        cutSimVid.currentTime = 0; // Immediately start next piece!
+                        cutSimVid.play();
                     }
                 };
-                vid.addEventListener("timeupdate", window.mudaLoopHandler);
-                vid.currentTime = 0;
-                vid.play();
+                cutSimVid.addEventListener("timeupdate", window.mudaLoopHandler);
+                compareBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
             }
 
             if (barRed) {
@@ -1331,7 +1349,7 @@ let currentAiSuggestions = []; // Stores the 4 choices
             oeeEl.innerText = "95.0% (Target Met)";
             oeeEl.style.color = "#28a745";
             if (document.getElementById("benchOeeSub")) {
-                document.getElementById("benchOeeSub").innerText = `✂️ Red Muda Zone skipped in video player!`;
+                document.getElementById("benchOeeSub").innerText = `✂️ Side-by-Side Muda-Cut Active Below!`;
             }
 
             varEl.innerText = "+" + st.target95WastedMin.toFixed(2) + " min";
@@ -1349,21 +1367,20 @@ let currentAiSuggestions = []; // Stores the 4 choices
             }
 
             if (btn) {
-                btn.innerHTML = "🔄 Show Original Floor Video (" + st.actualEff.toFixed(1) + "% with Muda)";
+                btn.innerHTML = "✖ Close Side-by-Side Simulation & Reset KPIs";
                 btn.style.background = "#dc3545";
             }
         } else {
-            // Restore original full video with Muda
-            if (vid) {
-                vid.playbackRate = parseFloat(document.getElementById("masterSlomo").value) || 1.0;
-                vid.style.border = "none";
-                vid.style.boxShadow = "none";
-                vid.play();
+            // Hide the Side-by-Side Comparison Box and restore original KPIs
+            if (compareBox) {
+                compareBox.style.display = "none";
+                if (origSimVid) origSimVid.pause();
+                if (cutSimVid) cutSimVid.pause();
             }
 
             if (barRed) {
                 barRed.style.opacity = "1";
-                barRed.innerHTML = `🚨 ${100 - st.vaRatio}% WASTED MOTION (MUDA) — CLICK SIMULATE TO CUT`;
+                barRed.innerHTML = `🚨 ${100 - st.vaRatio}% WASTED MOTION (MUDA)`;
             }
 
             oeeEl.innerText = st.actualEff.toFixed(1) + "%";
@@ -1387,7 +1404,7 @@ let currentAiSuggestions = []; // Stores the 4 choices
             }
 
             if (btn) {
-                btn.innerHTML = "⚡ Simulate 95% Target (Cut Wasted Motion in Video)";
+                btn.innerHTML = "⚡ Simulate 95% Target (Open Side-by-Side Muda-Cut Video)";
                 btn.style.background = "#28a745";
             }
         }
@@ -1438,7 +1455,7 @@ let currentAiSuggestions = []; // Stores the 4 choices
             const result = JSON.parse(aiText);
 
             const effNum = Math.min(96, Math.max(58, parseFloat(result.efficiency_number) || 74.2));
-            const vaRatio = Math.round(effNum); // % of video that is Value-Added
+            const vaRatio = Math.round(effNum);
 
             // Actual Floor Math
             const actualSmvMin = targetSmvMin / (effNum / 100);
@@ -1470,14 +1487,6 @@ let currentAiSuggestions = []; // Stores the 4 choices
                 gainedPairsHr: gainedPairsHr
             };
 
-            const vid = document.getElementById("dsiBenchVideo");
-            if (vid) {
-                if (window.mudaLoopHandler) vid.removeEventListener("timeupdate", window.mudaLoopHandler);
-                vid.playbackRate = parseFloat(document.getElementById("masterSlomo").value) || 1.0;
-                vid.style.border = "none";
-                vid.style.boxShadow = "none";
-            }
-
             // Populate initial Floor State
             const oeeEl = document.getElementById("benchOee");
             const varEl = document.getElementById("benchVariance");
@@ -1503,13 +1512,12 @@ let currentAiSuggestions = []; // Stores the 4 choices
                 }
             }
 
-            // Build clickable 4-Frame Visual Audit Strip with AI captions
             const pcts = [0.15, 0.40, 0.65, 0.85];
             const defaultNotes = ["✅ KEEP: Pick & Feed", "✅ KEEP: Main Operation", "⚠️ FIX: Alignment / Check", "❌ CUT MUDA: High Reach"];
             const notesArr = Array.isArray(result.frame_notes) && result.frame_notes.length === 4 ? result.frame_notes : defaultNotes;
 
             const frameStripHtml = currentBenchmarkFrames.map((f, idx) => `
-                <div onclick="jumpToVideoPhase(${pcts[idx]})" title="Click to jump video to this exact moment" style="flex:1; min-width:130px; background:#151515; padding:8px; border-radius:6px; border:2px solid ${idx >= 2 ? '#dc3545' : '#28a745'}; text-align:center; cursor:pointer; transition:transform 0.2s;">
+                <div onclick="jumpToVideoPhase(${pcts[idx]})" title="Click to jump video to this exact moment" style="flex:1; min-width:130px; background:#151515; padding:8px; border-radius:6px; border:2px solid ${idx >= 2 ? '#dc3545' : '#28a745'}; text-align:center; cursor:pointer;">
                     <div style="font-size:0.72em; color:#aaa; margin-bottom:4px;">📍 Click to View (${Math.round(pcts[idx]*100)}% of cycle)</div>
                     <img src="data:image/jpeg;base64,${f.inline_data.data}" style="width:100%; height:80px; object-fit:cover; border-radius:4px;">
                     <div style="font-size:0.78em; color:${idx >= 2 ? '#ff8080' : '#80ffaa'}; margin-top:6px; font-weight:bold; line-height:1.3;">${notesArr[idx]}</div>
@@ -1519,7 +1527,27 @@ let currentAiSuggestions = []; // Stores the 4 choices
             document.getElementById("benchAiAnalysis").innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px; border-bottom:1px solid #444; padding-bottom:10px;">
                     <h4 style="color:#ffc107; margin:0;">🤖 Visual Micro-Motion Audit: ${operationName}</h4>
-                    <button type="button" id="simMudaBtn" onclick="toggleMudaSimulation()" style="background:#28a745; color:#fff; border:none; padding:9px 16px; border-radius:6px; font-weight:bold; cursor:pointer; margin:0; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">⚡ Simulate 95% Target (Cut Wasted Motion in Video)</button>
+                    <button type="button" id="simMudaBtn" onclick="toggleMudaSimulation()" style="background:#28a745; color:#fff; border:none; padding:9px 16px; border-radius:6px; font-weight:bold; cursor:pointer; margin:0; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">⚡ Simulate 95% Target (Open Side-by-Side Muda-Cut Video)</button>
+                </div>
+
+                <!-- NEW: SIDE-BY-SIDE ORIGINAL VS MUDA-CUT VIDEO COMPARISON BOX -->
+                <div id="sideBySideMudaBox" style="display:none; background:#111; border:2px solid #28a745; border-radius:8px; padding:15px; margin-bottom:18px; box-shadow: 0 6px 24px rgba(0,0,0,0.8);">
+                    <div style="text-align:center; margin-bottom:10px;">
+                        <strong style="color:#00ffff; font-size:1.05em;">🎬 Live Side-by-Side Visual Proof: Original Floor Cycle vs. 95% Target (Muda Removed)</strong>
+                        <p style="margin:4px 0 0 0; font-size:0.82em; color:#aaa;">Watch both videos below: The right player automatically cuts out the final ${100 - vaRatio}% wasted motion (Muda) and starts the next piece immediately!</p>
+                    </div>
+                    <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                        <div style="flex:1; min-width:260px; background:#1a1a1a; padding:10px; border-radius:6px; border:2px solid #dc3545; text-align:center;">
+                            <div style="color:#ff6b6b; font-weight:bold; font-size:0.9em; margin-bottom:6px;">❌ BEFORE: Original Floor Video (${effNum.toFixed(1)}% Eff | ${actualPairsHr} prs/hr)</div>
+                            <video id="simOrigVideo" controls loop muted playsinline style="width:100%; height:220px; object-fit:cover; background:#000; border-radius:4px;"></video>
+                            <div style="font-size:0.78em; color:#ff9999; margin-top:5px;">Plays full unedited clip including wasted reach & inspection pauses</div>
+                        </div>
+                        <div style="flex:1; min-width:260px; background:#1a1a1a; padding:10px; border-radius:6px; border:2px solid #28a745; text-align:center;">
+                            <div style="color:#51cf66; font-weight:bold; font-size:0.9em; margin-bottom:6px;">✅ AFTER: 95% Target Simulation (Muda Cut | ${target95PairsHr} prs/hr)</div>
+                            <video id="simCutVideo" controls muted playsinline style="width:100%; height:220px; object-fit:cover; background:#000; border-radius:4px;"></video>
+                            <div id="simCutTimer" style="font-size:0.78em; color:#80ffaa; margin-top:5px; font-weight:bold;">✂️ Auto-skipping final ${100 - vaRatio}% wasted motion tail!</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- VISUAL CYCLE TIMELINE BAR (GREEN VA VS RED MUDA) -->
@@ -1556,8 +1584,7 @@ let currentAiSuggestions = []; // Stores the 4 choices
             console.error(e);
             document.getElementById("benchAiAnalysis").innerHTML = `<p style="color:red;">⚠️ AI Failed to analyze the video. Please check your API key.</p>`;
         }
-    }
-// --- Category Filtering & Smart Search (Amendment 4) ---
+    }// --- Category Filtering & Smart Search (Amendment 4) ---
     let currentCategoryFilter = 'All';
 
     function filterByCategory(category, el) {
