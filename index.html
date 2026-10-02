@@ -1275,7 +1275,124 @@ let currentAiSuggestions = []; // Stores the 4 choices
         }
     }
 
-// 5. Pure AI Micro-Motion Analysis & Management KPI Calculator
+// 5. Pure AI Micro-Motion Analysis + Visual Muda-Cut Simulator (Skips Wasted Motion!)
+    window.simState = null;
+    window.mudaLoopHandler = null;
+
+    window.jumpToVideoPhase = function(pct) {
+        const vid = document.getElementById("dsiBenchVideo");
+        if (vid && vid.duration) {
+            vid.currentTime = vid.duration * pct;
+            vid.pause();
+        }
+    };
+
+    window.toggleMudaSimulation = function() {
+        const st = window.simState;
+        if (!st) return;
+        const vid = document.getElementById("dsiBenchVideo");
+        const btn = document.getElementById("simMudaBtn");
+        const oeeEl = document.getElementById("benchOee");
+        const varEl = document.getElementById("benchVariance");
+        const hrEl = document.getElementById("benchHourlyImpact");
+        const barRed = document.getElementById("mudaRedZoneBar");
+
+        st.active = !st.active;
+
+        // Remove any existing timeupdate listener
+        if (vid && window.mudaLoopHandler) {
+            vid.removeEventListener("timeupdate", window.mudaLoopHandler);
+            window.mudaLoopHandler = null;
+        }
+
+        if (st.active) {
+            // 1. Auto-skip the Red Muda Zone in the video so audience sees the cycle WITHOUT wasted motion!
+            if (vid) {
+                vid.style.border = "2px solid #28a745";
+                vid.style.boxShadow = "0 0 15px rgba(40,167,69,0.6)";
+                vid.playbackRate = 1.08; // Smooth natural pace
+                window.mudaLoopHandler = function() {
+                    const cutPoint = (vid.duration || 5) * (st.vaRatio / 100);
+                    if (vid.currentTime >= cutPoint) {
+                        vid.currentTime = 0; // Skip the wasted motion tail and start next piece!
+                        vid.play();
+                    }
+                };
+                vid.addEventListener("timeupdate", window.mudaLoopHandler);
+                vid.currentTime = 0;
+                vid.play();
+            }
+
+            if (barRed) {
+                barRed.style.opacity = "0.25";
+                barRed.innerHTML = `<s style="color:#fff;">✂️ MUDA CUT (-${st.savedSec}s)</s>`;
+            }
+
+            oeeEl.innerText = "95.0% (Target Met)";
+            oeeEl.style.color = "#28a745";
+            if (document.getElementById("benchOeeSub")) {
+                document.getElementById("benchOeeSub").innerText = `✂️ Red Muda Zone skipped in video player!`;
+            }
+
+            varEl.innerText = "+" + st.target95WastedMin.toFixed(2) + " min";
+            varEl.style.color = "#28a745";
+            if (document.getElementById("benchVarSub")) {
+                document.getElementById("benchVarSub").innerText = `Saved ~${st.savedSec} sec per pair!`;
+            }
+
+            if (hrEl) {
+                hrEl.innerText = `${st.target95PairsHr} / ${st.benchPairsHr} prs`;
+                hrEl.style.color = "#28a745";
+                if (document.getElementById("benchHourlySub")) {
+                    document.getElementById("benchHourlySub").innerText = `🚀 Output jumps by +${st.gainedPairsHr} pairs/hr!`;
+                }
+            }
+
+            if (btn) {
+                btn.innerHTML = "🔄 Show Original Floor Video (" + st.actualEff.toFixed(1) + "% with Muda)";
+                btn.style.background = "#dc3545";
+            }
+        } else {
+            // Restore original full video with Muda
+            if (vid) {
+                vid.playbackRate = parseFloat(document.getElementById("masterSlomo").value) || 1.0;
+                vid.style.border = "none";
+                vid.style.boxShadow = "none";
+                vid.play();
+            }
+
+            if (barRed) {
+                barRed.style.opacity = "1";
+                barRed.innerHTML = `🚨 ${100 - st.vaRatio}% WASTED MOTION (MUDA) — CLICK SIMULATE TO CUT`;
+            }
+
+            oeeEl.innerText = st.actualEff.toFixed(1) + "%";
+            oeeEl.style.color = st.actualEff >= 85 ? "#28a745" : (st.actualEff >= 72 ? "#ffc107" : "#dc3545");
+            if (document.getElementById("benchOeeSub")) {
+                document.getElementById("benchOeeSub").innerText = st.actualEff >= 85 ? "✅ High Floor Pace" : (st.actualEff >= 72 ? "⚠️ Moderate Muda Detected" : "🚨 High Motion Loss");
+            }
+
+            varEl.innerText = "+" + st.actualWastedMin.toFixed(2) + " min";
+            varEl.style.color = st.actualWastedSec <= 1 ? "#28a745" : "#dc3545";
+            if (document.getElementById("benchVarSub")) {
+                document.getElementById("benchVarSub").innerText = `Losing ~${st.actualWastedSec} sec on every pair`;
+            }
+
+            if (hrEl) {
+                hrEl.innerText = `${st.actualPairsHr} / ${st.benchPairsHr} prs`;
+                hrEl.style.color = "#17a2b8";
+                if (document.getElementById("benchHourlySub")) {
+                    document.getElementById("benchHourlySub").innerText = `Losing ${st.lostPairsHr} pairs per hour`;
+                }
+            }
+
+            if (btn) {
+                btn.innerHTML = "⚡ Simulate 95% Target (Cut Wasted Motion in Video)";
+                btn.style.background = "#28a745";
+            }
+        }
+    };
+
     async function generateDynamicEfficiencyAnalysis(operationName) {
         const apiKey = getActiveApiKey();
         if (!apiKey) return;
@@ -1285,21 +1402,28 @@ let currentAiSuggestions = []; // Stores the 4 choices
         if (document.getElementById("benchHourlyImpact")) document.getElementById("benchHourlyImpact").innerText = "⏳...";
         document.getElementById("benchAiAnalysis").innerHTML = `<h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown</h4><p style="color:#aaa;">Auditing operator hand micro-motions across 4 video frames...</p>`;
 
-        // Look up the matched operation's standard SMV from our database
         const matchedOp = operations.find(op => op.name === operationName);
         const targetSmvMin = (matchedOp && matchedOp.smvPair > 0) ? matchedOp.smvPair : 0.2200;
 
         const promptText = `You are a Senior Footwear Industrial Engineer conducting a strict MTM (Methods-Time Measurement) visual micro-motion audit for: "${operationName}".
-        Do NOT guess based on video length. Analyze ONLY the operator's physical hand movements, posture, material handling, and workstation layout across the 4 attached video frames:
-        - Deduct efficiency for any non-value-added micro-motions: pausing to flip/inspect the part, re-grasping or adjusting alignment, reaching high above elbow level to place finished parts, or one hand waiting while the other works.
-        - Grade the operator's real floor efficiency strictly between 64% and 94% based on the micro-motions visible in these frames.
+        Start from a 100% baseline and deduct exact penalty points based on what you visually observe across the 4 frames (15%, 40%, 65%, 85% of the video):
+        1. Reach & Placement Penalty (0 to -14%): Deduct points if the operator reaches far/high or places parts awkwardly.
+        2. Alignment & Re-Grasp Penalty (0 to -12%): Deduct points if the operator pauses to reposition, re-grip, or guide the material slowly by hand.
+        3. Inspection / Idle Hand Penalty (0 to -10%): Deduct points if one hand is just holding/waiting or the operator pauses to visually check the work.
+        CRITICAL: Do NOT default to 78.5% or 76.5%. Calculate a unique, exact decimal efficiency (e.g., 68.4, 73.2, 81.6, 86.3) based strictly on summing your deductions for this specific video.
 
         Return ONLY a valid JSON object strictly matching this exact structure (no markdown):
         {
-          "efficiency_number": 76.5,
-          "muda": "Specifically describe the wasted hand/arm micro-motions seen in the frames.",
-          "fatigue": "Estimate ergonomic fatigue based on arm reach, wrist angle, and posture.",
-          "recommendation": "Give a concrete IE workstation or method fix to eliminate the wasted motion."
+          "efficiency_number": "<insert calculated decimal number between 63.0 and 92.0>",
+          "frame_notes": [
+            "✅ KEEP: [1 short phrase on Frame 1 action]",
+            "✅ KEEP: [1 short phrase on Frame 2 main operation]",
+            "⚠️ FIX: [1 short phrase on Frame 3 hesitation/alignment]",
+            "❌ CUT MUDA: [1 short phrase on Frame 4 wasted reach/disposal]"
+          ],
+          "muda": "Specifically describe WHERE in the cycle the wasted hand/arm motion happens.",
+          "how_to_hit_95": "Exact 2-step physical change the operator & IE must make to reach 95% efficiency.",
+          "fatigue": "Estimate ergonomic fatigue based on arm reach, wrist angle, and posture."
         }`;
 
         try {
@@ -1313,19 +1437,48 @@ let currentAiSuggestions = []; // Stores the 4 choices
             let aiText = data.candidates[0].content.parts[0].text.replace(/```json/g, "").replace(/```/g, "").trim();
             const result = JSON.parse(aiText);
 
-            // 1. Get pure visual efficiency % from AI
-            const effNum = Math.min(98, Math.max(55, parseFloat(result.efficiency_number) || 76.0));
-            
-            // 2. Calculate Actual SMV, Wasted Time (min & sec), and Hourly Pairs from the AI's efficiency score
+            const effNum = Math.min(96, Math.max(58, parseFloat(result.efficiency_number) || 74.2));
+            const vaRatio = Math.round(effNum); // % of video that is Value-Added
+
+            // Actual Floor Math
             const actualSmvMin = targetSmvMin / (effNum / 100);
             const wastedMin = Math.max(0, actualSmvMin - targetSmvMin);
-            const wastedSec = Math.round(wastedMin * 60);
-
-            const targetPairsHr = Math.floor(60 / targetSmvMin);
+            const wastedSec = Math.max(1, Math.round(wastedMin * 60));
+            const benchPairsHr = Math.floor(60 / targetSmvMin);
             const actualPairsHr = Math.floor(60 / actualSmvMin);
-            const lostPairsHr = Math.max(0, targetPairsHr - actualPairsHr);
+            const lostPairsHr = Math.max(0, benchPairsHr - actualPairsHr);
 
-            // 3. Update Dashboard Cards with clear explanations for Management
+            // 95% Target Simulation Math
+            const target95SmvMin = targetSmvMin / 0.95;
+            const target95WastedMin = Math.max(0, target95SmvMin - targetSmvMin);
+            const target95PairsHr = Math.floor(60 / target95SmvMin);
+            const savedSec = Math.max(1, Math.round((actualSmvMin - target95SmvMin) * 60));
+            const gainedPairsHr = Math.max(1, target95PairsHr - actualPairsHr);
+
+            window.simState = {
+                active: false,
+                actualEff: effNum,
+                vaRatio: vaRatio,
+                actualWastedMin: wastedMin,
+                actualWastedSec: wastedSec,
+                benchPairsHr: benchPairsHr,
+                actualPairsHr: actualPairsHr,
+                lostPairsHr: lostPairsHr,
+                target95WastedMin: target95WastedMin,
+                target95PairsHr: target95PairsHr,
+                savedSec: savedSec,
+                gainedPairsHr: gainedPairsHr
+            };
+
+            const vid = document.getElementById("dsiBenchVideo");
+            if (vid) {
+                if (window.mudaLoopHandler) vid.removeEventListener("timeupdate", window.mudaLoopHandler);
+                vid.playbackRate = parseFloat(document.getElementById("masterSlomo").value) || 1.0;
+                vid.style.border = "none";
+                vid.style.boxShadow = "none";
+            }
+
+            // Populate initial Floor State
             const oeeEl = document.getElementById("benchOee");
             const varEl = document.getElementById("benchVariance");
             const hrEl = document.getElementById("benchHourlyImpact");
@@ -1343,20 +1496,61 @@ let currentAiSuggestions = []; // Stores the 4 choices
             }
 
             if (hrEl) {
-                hrEl.innerText = `${actualPairsHr} / ${targetPairsHr} prs`;
+                hrEl.innerText = `${actualPairsHr} / ${benchPairsHr} prs`;
                 hrEl.style.color = "#17a2b8";
                 if (document.getElementById("benchHourlySub")) {
                     document.getElementById("benchHourlySub").innerText = `Losing ${lostPairsHr} pairs per hour`;
                 }
             }
 
+            // Build clickable 4-Frame Visual Audit Strip with AI captions
+            const pcts = [0.15, 0.40, 0.65, 0.85];
+            const defaultNotes = ["✅ KEEP: Pick & Feed", "✅ KEEP: Main Operation", "⚠️ FIX: Alignment / Check", "❌ CUT MUDA: High Reach"];
+            const notesArr = Array.isArray(result.frame_notes) && result.frame_notes.length === 4 ? result.frame_notes : defaultNotes;
+
+            const frameStripHtml = currentBenchmarkFrames.map((f, idx) => `
+                <div onclick="jumpToVideoPhase(${pcts[idx]})" title="Click to jump video to this exact moment" style="flex:1; min-width:130px; background:#151515; padding:8px; border-radius:6px; border:2px solid ${idx >= 2 ? '#dc3545' : '#28a745'}; text-align:center; cursor:pointer; transition:transform 0.2s;">
+                    <div style="font-size:0.72em; color:#aaa; margin-bottom:4px;">📍 Click to View (${Math.round(pcts[idx]*100)}% of cycle)</div>
+                    <img src="data:image/jpeg;base64,${f.inline_data.data}" style="width:100%; height:80px; object-fit:cover; border-radius:4px;">
+                    <div style="font-size:0.78em; color:${idx >= 2 ? '#ff8080' : '#80ffaa'}; margin-top:6px; font-weight:bold; line-height:1.3;">${notesArr[idx]}</div>
+                </div>
+            `).join("");
+
             document.getElementById("benchAiAnalysis").innerHTML = `
-                <h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown: ${operationName}</h4>
-                <ul style="padding-left: 20px; margin-bottom:0; color:#ddd; line-height:1.6;">
-                    <li style="margin-bottom:8px;"><strong style="color:#dc3545;">Wasted Motion (Muda):</strong> ${result.muda}</li>
-                    <li style="margin-bottom:8px;"><strong style="color:#17a2b8;">Personal & Fatigue (P&F) Impact:</strong> ${result.fatigue}</li>
-                    <li><strong style="color:#28a745;">IE Workstation Recommendation:</strong> ${result.recommendation}</li>
-                </ul>
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px; border-bottom:1px solid #444; padding-bottom:10px;">
+                    <h4 style="color:#ffc107; margin:0;">🤖 Visual Micro-Motion Audit: ${operationName}</h4>
+                    <button type="button" id="simMudaBtn" onclick="toggleMudaSimulation()" style="background:#28a745; color:#fff; border:none; padding:9px 16px; border-radius:6px; font-weight:bold; cursor:pointer; margin:0; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">⚡ Simulate 95% Target (Cut Wasted Motion in Video)</button>
+                </div>
+
+                <!-- VISUAL CYCLE TIMELINE BAR (GREEN VA VS RED MUDA) -->
+                <div style="margin-bottom:15px;">
+                    <div style="font-size:0.8em; color:#ccc; margin-bottom:4px; display:flex; justify-content:space-between;">
+                        <span><strong>Cycle Time Breakdown:</strong> Where time is spent in your video</span>
+                        <span>Target: Cut the Red Zone to hit 95%</span>
+                    </div>
+                    <div style="display:flex; width:100%; height:26px; border-radius:6px; overflow:hidden; font-size:0.78em; font-weight:bold; line-height:26px; text-align:center;">
+                        <div style="width:${vaRatio}%; background:#198754; color:#fff;">✅ ${vaRatio}% VALUE-ADDED WORK (KEEP)</div>
+                        <div id="mudaRedZoneBar" style="width:${100 - vaRatio}%; background:#dc3545; color:#fff; transition:opacity 0.3s;">🚨 ${100 - vaRatio}% WASTED MOTION (MUDA)</div>
+                    </div>
+                </div>
+
+                <!-- 4 CLICKABLE VIDEO FRAMES -->
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">${frameStripHtml}</div>
+
+                <!-- BEFORE vs AFTER TABLE FOR MANAGEMENT -->
+                <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
+                    <div style="flex:1; min-width:250px; background:rgba(220,53,69,0.12); border-left:4px solid #dc3545; padding:12px; border-radius:4px;">
+                        <strong style="color:#ff6b6b; display:block; margin-bottom:4px;">❌ WHERE WASTED MOTION HAPPENS (Frames 3 & 4):</strong>
+                        <span style="color:#ddd; font-size:0.92em; line-height:1.5;">${result.muda}</span>
+                    </div>
+                    <div style="flex:1; min-width:250px; background:rgba(40,167,69,0.12); border-left:4px solid #28a745; padding:12px; border-radius:4px;">
+                        <strong style="color:#51cf66; display:block; margin-bottom:4px;">✅ HOW TO MEET 95% TARGET (+${gainedPairsHr} pairs/hr):</strong>
+                        <span style="color:#ddd; font-size:0.92em; line-height:1.5;">${result.how_to_hit_95 || result.recommendation}</span>
+                    </div>
+                </div>
+                <div style="margin-top:10px; font-size:0.88em; color:#aaa;">
+                    <strong style="color:#17a2b8;">Ergonomic & Fatigue Note:</strong> ${result.fatigue}
+                </div>
             `;
         } catch (e) {
             console.error(e);
