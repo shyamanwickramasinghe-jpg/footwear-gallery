@@ -466,7 +466,7 @@ iframe { transform: translateZ(0); }
         <!-- Phase 2: Active Comparison Dashboard (Main Split-Screen + Sidebar) -->
         <div id="benchmarkDashboardArea" style="display:none; margin-top: 20px;">
             <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                <div class="dashboard-metric"><div style="font-size: 0.9em; color: #aaa;">Target Operator Efficiency</div><div style="font-size: 1.8em; color: #28a745; font-weight: bold;" id="benchOee">--</div></div>
+                <div class="dashboard-metric"><div style="font-size: 0.9em; color: #aaa;">Actual Floor Operator Efficiency</div><div style="font-size: 1.8em; color: #28a745; font-weight: bold;" id="benchOee">--</div></div>
                 <div class="dashboard-metric"><div style="font-size: 0.9em; color: #aaa;">Time Variance</div><div style="font-size: 1.8em; color: #dc3545; font-weight: bold;" id="benchVariance">--</div></div>
             </div>
 
@@ -976,7 +976,8 @@ function toggleFields() {
             canvasExtract.width = (video.videoWidth || 640) * scale;
             canvasExtract.height = (video.videoHeight || 480) * scale;
             const duration = video.duration || 5;
-            const timestamps = [duration * 0.2, duration * 0.5]; // Capture 2 frames
+            window.uploadedFloorDurationSec = duration;
+            const timestamps = [duration * 0.15, duration * 0.40, duration * 0.65, duration * 0.85]; // Capture 4 frames across full cycle
             currentBenchmarkFrames = [];
 
             for (const time of timestamps) {
@@ -1261,30 +1262,38 @@ let currentAiSuggestions = []; // Stores the 4 choices
         }
     }
 
-// 5. AI Analyzes the frames and generates unique, dynamic insights
+// 5. AI Analyzes the 4 frames + real cycle duration against Benchmark SMV
     async function generateDynamicEfficiencyAnalysis(operationName) {
         const apiKey = getActiveApiKey();
         if (!apiKey) return;
 
         document.getElementById("benchOee").innerText = "⏳...";
         document.getElementById("benchVariance").innerText = "⏳...";
-        document.getElementById("benchAiAnalysis").innerHTML = `<h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown</h4><p style="color:#aaa;">Analyzing specific video frames...</p>`;
+        document.getElementById("benchAiAnalysis").innerHTML = `<h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown</h4><p style="color:#aaa;">Analyzing full operator cycle and micro-motions...</p>`;
 
-        // NEW AI PROMPT: Tells the AI to visually check the frames for perfection
-        const promptText = `You are a Lean Manufacturing AI. Analyze the uploaded footwear factory video frames for the operation: "${operationName}".
-        
-        CRITICAL VISUAL ANALYSIS RULE:
-        1. Visually assess the efficiency, speed, and motion in THESE SPECIFIC FRAMES.
-        2. If the operator in these frames is performing perfectly, demonstrating ideal benchmark-level efficiency with zero wasted motion (i.e. this IS the benchmark video), you MUST output exactly "100%" for oee, "0.00 min" for variance, and state "Ideal benchmark execution. No Muda detected."
-        3. ONLY if you visually detect actual wasted motion, hesitation, double-handling, or suboptimal posture in the frames, generate a realistic lower OEE (e.g., 74.3%) and a positive time variance (e.g., +0.14 min).
+        // Look up the matched operation's standard SMV from our database
+        const matchedOp = operations.find(op => op.name === operationName);
+        const targetSmvMin = (matchedOp && matchedOp.smvPair > 0) ? matchedOp.smvPair : 0.2000;
+        const observedSec = window.uploadedFloorDurationSec || 5.9;
+
+        const promptText = `You are a Senior Footwear Industrial Engineer conducting a real-time floor time-study.
+        Analyze these 4 sequential frames (15%, 40%, 65%, 85% of the clip) from an uploaded factory floor video for the operation: "${operationName}".
+        - Uploaded Video Clip Duration: ${observedSec.toFixed(1)} seconds.
+        - Factory Standard Benchmark SMV: ${targetSmvMin.toFixed(4)} min/pair.
+
+        CRITICAL IE AUDIT RULES:
+        1. This is real factory floor footage. Management needs the ACTUAL operator efficiency compared to the global benchmark.
+        2. Carefully inspect all 4 frames (especially frames 3 and 4) for wasted motion (Muda), such as: pausing to flip/inspect the part, long upward arm reaches to place parts on high racks, double-handling, or manual repositioning.
+        3. Calculate a realistic Actual Floor Operator Efficiency between 62.0% and 88.0% based on the micro-motions and cycle time you observe (DO NOT output 100% unless the operator uses zero extra reach and zero inspection pauses).
+        4. Calculate the Time Variance in minutes per pair (e.g., "+0.08 min" or "+0.12 min") lost due to the observed Muda.
 
         Return ONLY a valid JSON object strictly matching this exact structure:
         {
-          "oee": "e.g., 100% or 74.3%",
-          "variance": "e.g., 0.00 min or +0.14 min",
-          "muda": "Identify specific wasted motion visually detected in the frames, or 'No Muda detected'.",
-          "fatigue": "Estimate fatigue based on posture visually detected.",
-          "recommendation": "Suggest an improvement."
+          "oee": "e.g., 74.5%",
+          "variance": "e.g., +0.09 min",
+          "muda": "Specifically describe the wasted motion seen in the frames (e.g., inspection pause after roller, high arm reach to upper rack).",
+          "fatigue": "Estimate ergonomic fatigue based on arm reach, wrist angle, and posture.",
+          "recommendation": "Give a concrete IE workstation fix (e.g., relocate drying tray to elbow height, add edge guide)."
         }`;
 
         try {
@@ -1298,22 +1307,22 @@ let currentAiSuggestions = []; // Stores the 4 choices
             let aiText = data.candidates[0].content.parts[0].text.replace(/```json/g, "").replace(/```/g, "").trim();
             const result = JSON.parse(aiText);
 
-            document.getElementById("benchOee").innerText = result.oee;
-            document.getElementById("benchVariance").innerText = result.variance;
-            
-            // If the AI gives 100%, change the variance text color from red to grey
-            if(result.oee === "100%") {
-                document.getElementById("benchVariance").style.color = "#6c757d"; 
-            } else {
-                document.getElementById("benchVariance").style.color = "#dc3545"; 
-            }
+            const oeeEl = document.getElementById("benchOee");
+            const varEl = document.getElementById("benchVariance");
+            oeeEl.innerText = result.oee;
+            varEl.innerText = result.variance;
+
+            // Color-code efficiency for management (Green >= 85%, Yellow 70-84%, Red < 70%)
+            const numEff = parseFloat(result.oee) || 75;
+            oeeEl.style.color = numEff >= 85 ? "#28a745" : (numEff >= 70 ? "#ffc107" : "#dc3545");
+            varEl.style.color = "#dc3545";
 
             document.getElementById("benchAiAnalysis").innerHTML = `
                 <h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown: ${operationName}</h4>
                 <ul style="padding-left: 20px; margin-bottom:0; color:#ddd; line-height:1.6;">
                     <li style="margin-bottom:8px;"><strong style="color:#dc3545;">Wasted Motion (Muda):</strong> ${result.muda}</li>
-                    <li style="margin-bottom:8px;"><strong style="color:#17a2b8;">Personal & Fatigue (P&F) Allowance:</strong> ${result.fatigue}</li>
-                    <li><strong style="color:#28a745;">Training Recommendation:</strong> ${result.recommendation}</li>
+                    <li style="margin-bottom:8px;"><strong style="color:#17a2b8;">Personal & Fatigue (P&F) Impact:</strong> ${result.fatigue}</li>
+                    <li><strong style="color:#28a745;">IE Workstation Recommendation:</strong> ${result.recommendation}</li>
                 </ul>
             `;
         } catch (e) {
