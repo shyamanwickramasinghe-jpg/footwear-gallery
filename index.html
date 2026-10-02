@@ -465,9 +465,22 @@ iframe { transform: translateZ(0); }
 
         <!-- Phase 2: Active Comparison Dashboard (Main Split-Screen + Sidebar) -->
         <div id="benchmarkDashboardArea" style="display:none; margin-top: 20px;">
-            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                <div class="dashboard-metric"><div style="font-size: 0.9em; color: #aaa;">Actual Floor Operator Efficiency</div><div style="font-size: 1.8em; color: #28a745; font-weight: bold;" id="benchOee">--</div></div>
-                <div class="dashboard-metric"><div style="font-size: 0.9em; color: #aaa;">Time Variance</div><div style="font-size: 1.8em; color: #dc3545; font-weight: bold;" id="benchVariance">--</div></div>
+<div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                <div class="dashboard-metric">
+                    <div style="font-size: 0.85em; color: #aaa; text-transform: uppercase;">Actual Floor Operator Efficiency</div>
+                    <div style="font-size: 1.8em; color: #ffc107; font-weight: bold; margin-top: 4px;" id="benchOee">--</div>
+                    <div style="font-size: 0.8em; color: #888; margin-top: 4px;" id="benchOeeSub">Based on AI micro-motion audit</div>
+                </div>
+                <div class="dashboard-metric">
+                    <div style="font-size: 0.85em; color: #aaa; text-transform: uppercase;">Wasted Time per Pair (SMV Gap)</div>
+                    <div style="font-size: 1.8em; color: #dc3545; font-weight: bold; margin-top: 4px;" id="benchVariance">--</div>
+                    <div style="font-size: 0.8em; color: #888; margin-top: 4px;" id="benchVarSub">Extra time lost vs. benchmark</div>
+                </div>
+                <div class="dashboard-metric">
+                    <div style="font-size: 0.85em; color: #aaa; text-transform: uppercase;">Hourly Production Impact</div>
+                    <div style="font-size: 1.8em; color: #17a2b8; font-weight: bold; margin-top: 4px;" id="benchHourlyImpact">--</div>
+                    <div style="font-size: 0.8em; color: #888; margin-top: 4px;" id="benchHourlySub">Actual vs. Benchmark Target (Pairs/Hr)</div>
+                </div>
             </div>
 
             <!-- Master Slo-Mo Controller -->
@@ -1262,45 +1275,31 @@ let currentAiSuggestions = []; // Stores the 4 choices
         }
     }
 
-// 5. AI Analyzes the 4 frames + real cycle duration against Benchmark SMV
+// 5. Pure AI Micro-Motion Analysis & Management KPI Calculator
     async function generateDynamicEfficiencyAnalysis(operationName) {
         const apiKey = getActiveApiKey();
         if (!apiKey) return;
 
         document.getElementById("benchOee").innerText = "⏳...";
         document.getElementById("benchVariance").innerText = "⏳...";
-        document.getElementById("benchAiAnalysis").innerHTML = `<h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown</h4><p style="color:#aaa;">Analyzing full operator cycle and micro-motions...</p>`;
+        if (document.getElementById("benchHourlyImpact")) document.getElementById("benchHourlyImpact").innerText = "⏳...";
+        document.getElementById("benchAiAnalysis").innerHTML = `<h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown</h4><p style="color:#aaa;">Auditing operator hand micro-motions across 4 video frames...</p>`;
 
-        // 1. Get the Benchmark SMV from your database
+        // Look up the matched operation's standard SMV from our database
         const matchedOp = operations.find(op => op.name === operationName);
-        const targetSmvMin = (matchedOp && matchedOp.smvPair > 0) ? matchedOp.smvPair : 0.2000;
-        const observedSec = window.uploadedFloorDurationSec || 5.9;
+        const targetSmvMin = (matchedOp && matchedOp.smvPair > 0) ? matchedOp.smvPair : 0.2200;
 
-        // Convert observed video seconds into SMV per pair (with 15% allowance)
-        // If clip is short (< 8 sec), it's 1 shoe (multiply by 2 for pair). Otherwise treat as pair cycle.
-        const pairSeconds = observedSec < 8 ? (observedSec * 2) : observedSec;
-        const observedSmvMin = (pairSeconds * 1.15) / 60;
+        const promptText = `You are a Senior Footwear Industrial Engineer conducting a strict MTM (Methods-Time Measurement) visual micro-motion audit for: "${operationName}".
+        Do NOT guess based on video length. Analyze ONLY the operator's physical hand movements, posture, material handling, and workstation layout across the 4 attached video frames:
+        - Deduct efficiency for any non-value-added micro-motions: pausing to flip/inspect the part, re-grasping or adjusting alignment, reaching high above elbow level to place finished parts, or one hand waiting while the other works.
+        - Grade the operator's real floor efficiency strictly between 64% and 94% based on the micro-motions visible in these frames.
 
-        // Check if this uploaded video is ALREADY at or beating the benchmark speed (within 0.035 min tolerance)
-        const rawDiff = observedSmvMin - targetSmvMin;
-        const isBenchmarkMatch = Math.abs(rawDiff) <= 0.035 || observedSmvMin <= targetSmvMin;
-
-        const promptText = `You are a Senior Footwear Industrial Engineer conducting a floor time-study for: "${operationName}".
-        - Uploaded Video Clip Duration: ${observedSec.toFixed(1)} seconds (Calculated SMV: ${observedSmvMin.toFixed(4)} min/pair).
-        - Factory Standard Benchmark SMV: ${targetSmvMin.toFixed(4)} min/pair.
-        - Is Video Already at Benchmark Speed?: ${isBenchmarkMatch ? "YES (100% Efficiency, 0.00 min variance)" : "NO (Slower than benchmark)"}
-
-        CRITICAL IE AUDIT RULES:
-        1. If "Is Video Already at Benchmark Speed?" is YES, or if the frames show smooth, standard execution without major delays, you MUST output exactly "100%" for oee, "0.00 min" for variance, and state "No Muda detected — operator matches standard benchmark speed."
-        2. ONLY if the video is slower than benchmark AND you visually see wasted motion (such as high overhead arm reaches, inspection pauses, or double-handling), output a realistic efficiency (e.g., "${Math.min(95, Math.max(62, Math.round((targetSmvMin / observedSmvMin) * 100)))}%") and the variance "+${Math.max(0.02, rawDiff).toFixed(2)} min".
-
-        Return ONLY a valid JSON object strictly matching this exact structure:
+        Return ONLY a valid JSON object strictly matching this exact structure (no markdown):
         {
-          "oee": "${isBenchmarkMatch ? "100%" : Math.min(95, Math.max(62, Math.round((targetSmvMin / observedSmvMin) * 100))) + "%"}",
-          "variance": "${isBenchmarkMatch ? "0.00 min" : "+" + Math.max(0.02, rawDiff).toFixed(2) + " min"}",
-          "muda": "Identify specific wasted motion visually detected in the frames, or 'No Muda detected — matches benchmark.'",
+          "efficiency_number": 76.5,
+          "muda": "Specifically describe the wasted hand/arm micro-motions seen in the frames.",
           "fatigue": "Estimate ergonomic fatigue based on arm reach, wrist angle, and posture.",
-          "recommendation": "Give a concrete IE workstation fix, or 'Maintain current standard workstation setup.'"
+          "recommendation": "Give a concrete IE workstation or method fix to eliminate the wasted motion."
         }`;
 
         try {
@@ -1314,14 +1313,42 @@ let currentAiSuggestions = []; // Stores the 4 choices
             let aiText = data.candidates[0].content.parts[0].text.replace(/```json/g, "").replace(/```/g, "").trim();
             const result = JSON.parse(aiText);
 
+            // 1. Get pure visual efficiency % from AI
+            const effNum = Math.min(98, Math.max(55, parseFloat(result.efficiency_number) || 76.0));
+            
+            // 2. Calculate Actual SMV, Wasted Time (min & sec), and Hourly Pairs from the AI's efficiency score
+            const actualSmvMin = targetSmvMin / (effNum / 100);
+            const wastedMin = Math.max(0, actualSmvMin - targetSmvMin);
+            const wastedSec = Math.round(wastedMin * 60);
+
+            const targetPairsHr = Math.floor(60 / targetSmvMin);
+            const actualPairsHr = Math.floor(60 / actualSmvMin);
+            const lostPairsHr = Math.max(0, targetPairsHr - actualPairsHr);
+
+            // 3. Update Dashboard Cards with clear explanations for Management
             const oeeEl = document.getElementById("benchOee");
             const varEl = document.getElementById("benchVariance");
-            oeeEl.innerText = result.oee;
-            varEl.innerText = result.variance;
+            const hrEl = document.getElementById("benchHourlyImpact");
 
-            const numEff = parseFloat(result.oee) || 100;
-            oeeEl.style.color = numEff >= 90 ? "#28a745" : (numEff >= 70 ? "#ffc107" : "#dc3545");
-            varEl.style.color = (result.variance === "0.00 min" || result.variance.startsWith("-")) ? "#28a745" : "#dc3545";
+            oeeEl.innerText = effNum.toFixed(1) + "%";
+            oeeEl.style.color = effNum >= 85 ? "#28a745" : (effNum >= 72 ? "#ffc107" : "#dc3545");
+            if (document.getElementById("benchOeeSub")) {
+                document.getElementById("benchOeeSub").innerText = effNum >= 85 ? "✅ High Floor Pace" : (effNum >= 72 ? "⚠️ Moderate Muda Detected" : "🚨 High Motion Loss");
+            }
+
+            varEl.innerText = "+" + wastedMin.toFixed(2) + " min";
+            varEl.style.color = wastedSec <= 1 ? "#28a745" : "#dc3545";
+            if (document.getElementById("benchVarSub")) {
+                document.getElementById("benchVarSub").innerText = `Losing ~${wastedSec} sec on every pair`;
+            }
+
+            if (hrEl) {
+                hrEl.innerText = `${actualPairsHr} / ${targetPairsHr} prs`;
+                hrEl.style.color = "#17a2b8";
+                if (document.getElementById("benchHourlySub")) {
+                    document.getElementById("benchHourlySub").innerText = `Losing ${lostPairsHr} pairs per hour`;
+                }
+            }
 
             document.getElementById("benchAiAnalysis").innerHTML = `
                 <h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown: ${operationName}</h4>
