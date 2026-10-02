@@ -1271,29 +1271,36 @@ let currentAiSuggestions = []; // Stores the 4 choices
         document.getElementById("benchVariance").innerText = "⏳...";
         document.getElementById("benchAiAnalysis").innerHTML = `<h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown</h4><p style="color:#aaa;">Analyzing full operator cycle and micro-motions...</p>`;
 
-        // Look up the matched operation's standard SMV from our database
+        // 1. Get the Benchmark SMV from your database
         const matchedOp = operations.find(op => op.name === operationName);
         const targetSmvMin = (matchedOp && matchedOp.smvPair > 0) ? matchedOp.smvPair : 0.2000;
         const observedSec = window.uploadedFloorDurationSec || 5.9;
 
-        const promptText = `You are a Senior Footwear Industrial Engineer conducting a real-time floor time-study.
-        Analyze these 4 sequential frames (15%, 40%, 65%, 85% of the clip) from an uploaded factory floor video for the operation: "${operationName}".
-        - Uploaded Video Clip Duration: ${observedSec.toFixed(1)} seconds.
+        // Convert observed video seconds into SMV per pair (with 15% allowance)
+        // If clip is short (< 8 sec), it's 1 shoe (multiply by 2 for pair). Otherwise treat as pair cycle.
+        const pairSeconds = observedSec < 8 ? (observedSec * 2) : observedSec;
+        const observedSmvMin = (pairSeconds * 1.15) / 60;
+
+        // Check if this uploaded video is ALREADY at or beating the benchmark speed (within 0.035 min tolerance)
+        const rawDiff = observedSmvMin - targetSmvMin;
+        const isBenchmarkMatch = Math.abs(rawDiff) <= 0.035 || observedSmvMin <= targetSmvMin;
+
+        const promptText = `You are a Senior Footwear Industrial Engineer conducting a floor time-study for: "${operationName}".
+        - Uploaded Video Clip Duration: ${observedSec.toFixed(1)} seconds (Calculated SMV: ${observedSmvMin.toFixed(4)} min/pair).
         - Factory Standard Benchmark SMV: ${targetSmvMin.toFixed(4)} min/pair.
+        - Is Video Already at Benchmark Speed?: ${isBenchmarkMatch ? "YES (100% Efficiency, 0.00 min variance)" : "NO (Slower than benchmark)"}
 
         CRITICAL IE AUDIT RULES:
-        1. This is real factory floor footage. Management needs the ACTUAL operator efficiency compared to the global benchmark.
-        2. Carefully inspect all 4 frames (especially frames 3 and 4) for wasted motion (Muda), such as: pausing to flip/inspect the part, long upward arm reaches to place parts on high racks, double-handling, or manual repositioning.
-        3. Calculate a realistic Actual Floor Operator Efficiency between 62.0% and 88.0% based on the micro-motions and cycle time you observe (DO NOT output 100% unless the operator uses zero extra reach and zero inspection pauses).
-        4. Calculate the Time Variance in minutes per pair (e.g., "+0.08 min" or "+0.12 min") lost due to the observed Muda.
+        1. If "Is Video Already at Benchmark Speed?" is YES, or if the frames show smooth, standard execution without major delays, you MUST output exactly "100%" for oee, "0.00 min" for variance, and state "No Muda detected — operator matches standard benchmark speed."
+        2. ONLY if the video is slower than benchmark AND you visually see wasted motion (such as high overhead arm reaches, inspection pauses, or double-handling), output a realistic efficiency (e.g., "${Math.min(95, Math.max(62, Math.round((targetSmvMin / observedSmvMin) * 100)))}%") and the variance "+${Math.max(0.02, rawDiff).toFixed(2)} min".
 
         Return ONLY a valid JSON object strictly matching this exact structure:
         {
-          "oee": "e.g., 74.5%",
-          "variance": "e.g., +0.09 min",
-          "muda": "Specifically describe the wasted motion seen in the frames (e.g., inspection pause after roller, high arm reach to upper rack).",
+          "oee": "${isBenchmarkMatch ? "100%" : Math.min(95, Math.max(62, Math.round((targetSmvMin / observedSmvMin) * 100))) + "%"}",
+          "variance": "${isBenchmarkMatch ? "0.00 min" : "+" + Math.max(0.02, rawDiff).toFixed(2) + " min"}",
+          "muda": "Identify specific wasted motion visually detected in the frames, or 'No Muda detected — matches benchmark.'",
           "fatigue": "Estimate ergonomic fatigue based on arm reach, wrist angle, and posture.",
-          "recommendation": "Give a concrete IE workstation fix (e.g., relocate drying tray to elbow height, add edge guide)."
+          "recommendation": "Give a concrete IE workstation fix, or 'Maintain current standard workstation setup.'"
         }`;
 
         try {
@@ -1312,10 +1319,9 @@ let currentAiSuggestions = []; // Stores the 4 choices
             oeeEl.innerText = result.oee;
             varEl.innerText = result.variance;
 
-            // Color-code efficiency for management (Green >= 85%, Yellow 70-84%, Red < 70%)
-            const numEff = parseFloat(result.oee) || 75;
-            oeeEl.style.color = numEff >= 85 ? "#28a745" : (numEff >= 70 ? "#ffc107" : "#dc3545");
-            varEl.style.color = "#dc3545";
+            const numEff = parseFloat(result.oee) || 100;
+            oeeEl.style.color = numEff >= 90 ? "#28a745" : (numEff >= 70 ? "#ffc107" : "#dc3545");
+            varEl.style.color = (result.variance === "0.00 min" || result.variance.startsWith("-")) ? "#28a745" : "#dc3545";
 
             document.getElementById("benchAiAnalysis").innerHTML = `
                 <h4 style="color:#ffc107; margin-top:0;">🤖 AI Motion & Ergonomic Breakdown: ${operationName}</h4>
