@@ -1205,26 +1205,37 @@ let currentAiSuggestions = []; // Stores the 4 choices
             alert("⚠️ Network Error or AI Timeout. Please try again.");
             document.getElementById("benchLoadingMsg").style.display = "none";
         }
-    }// 2. The Selection Router (Moves selected to center, others to sidebar)
+    }
+// 2. The Selection Router (Uses fast, zero-lag thumbnails for sidebar alternatives!)
     function selectPrimaryBenchmark(operationName, selectedVideoId) {
         document.getElementById("aiSelectionPhase").style.display = "none";
         document.getElementById("benchmarkDashboardArea").style.display = "block";
         
-        // Load the main selected video (Fixed format!)
         const fullUrl = "https://youtube.com/watch?v=" + selectedVideoId;
         document.getElementById("benchmarkUrlInput").value = fullUrl;
         loadManualBenchmark(fullUrl); 
         
-        // Build the Sidebar with the 3 remaining videos
         const sidebar = document.getElementById("sidebarAlternatives");
         sidebar.innerHTML = "";
         
         currentAiSuggestions.forEach((videoId) => {
             if (videoId !== selectedVideoId) {
+                const matchedAlt = operations.find(op => getYouTubeID(op.file) === videoId);
+                const altTitle = matchedAlt ? matchedAlt.name : "Alternative Benchmark";
+                const safeOpName = operationName.replace(/'/g, "\\'");
+
                 const altCard = document.createElement("div");
+                altCard.style.background = "#181818";
+                altCard.style.padding = "6px";
+                altCard.style.borderRadius = "6px";
+                altCard.style.border = "1px solid #333";
                 altCard.innerHTML = `
-                    <iframe width="100%" height="90" src="https://www.youtube.com/embed/${videoId}?mute=1" frameborder="0" style="border-radius: 4px;"></iframe>
-                    <button type="button" onclick="selectPrimaryBenchmark('${operationName}', '${videoId}')" style="background: #28a745; color: white; border: none; padding: 4px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 0.8em; margin-top: 2px;">Switch to this</button>
+                    <div onclick="selectPrimaryBenchmark('${safeOpName}', '${videoId}')" style="position:relative; cursor:pointer; border-radius:4px; overflow:hidden;">
+                        <img src="https://img.youtube.com/vi/${videoId}/mqdefault.jpg" style="width:100%; height:82px; object-fit:cover; display:block; filter:brightness(0.85);">
+                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(227,6,19,0.9); color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8em; font-weight:bold; box-shadow:0 2px 6px rgba(0,0,0,0.6);">▶</div>
+                    </div>
+                    <div style="font-size:0.75em; color:#ccc; margin:4px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${altTitle}">${altTitle}</div>
+                    <button type="button" onclick="selectPrimaryBenchmark('${safeOpName}', '${videoId}')" style="background: #28a745; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 0.8em; margin: 0;">Switch to this</button>
                 `;
                 sidebar.appendChild(altCard);
             }
@@ -1275,27 +1286,69 @@ let currentAiSuggestions = []; // Stores the 4 choices
         }
     }
 
-// 5. Pure AI Micro-Motion Analysis + Dual Side-by-Side Muda-Cut Video Comparison
+// 5. Lightweight 0.25x Auto-Slo-Mo Muda Spotlight & 95% Target KPI Simulator (Single Player - Zero Lag!)
     window.simState = null;
-    window.mudaLoopHandler = null;
+    window.mudaSpotlightHandler = null;
 
-    window.jumpToVideoPhase = function(pct) {
+    function ensureHudOverlayOnMainVideo() {
         const vid = document.getElementById("dsiBenchVideo");
-        if (vid && vid.duration) {
-            vid.currentTime = vid.duration * pct;
-            vid.pause();
-            vid.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (!vid) return null;
+        const parent = vid.parentElement;
+        parent.style.position = "relative";
+        let hud = document.getElementById("dsiLiveMudaHud");
+        if (!hud) {
+            hud = document.createElement("div");
+            hud.id = "dsiLiveMudaHud";
+            hud.style.cssText = "display:none; position:absolute; bottom:18px; left:18px; right:18px; padding:8px 12px; border-radius:6px; font-weight:bold; font-size:0.85em; text-align:center; pointer-events:none; z-index:20; transition:all 0.2s; box-shadow:0 4px 12px rgba(0,0,0,0.85);";
+            parent.appendChild(hud);
         }
+        return hud;
+    }
+
+    // Click any of the 4 frames to jump to that moment and loop it in 0.25x slow-motion
+    window.jumpToVideoPhase = function(pct, isMudaFrame, labelText) {
+        const vid = document.getElementById("dsiBenchVideo");
+        if (!vid || !vid.duration) return;
+        const hud = ensureHudOverlayOnMainVideo();
+
+        if (window.mudaSpotlightHandler) {
+            vid.removeEventListener("timeupdate", window.mudaSpotlightHandler);
+            window.mudaSpotlightHandler = null;
+        }
+
+        const startSec = Math.max(0, (vid.duration * pct) - 0.4);
+        const endSec = Math.min(vid.duration, startSec + 1.8);
+
+        vid.currentTime = startSec;
+        vid.playbackRate = isMudaFrame ? 0.25 : 0.75;
+        vid.style.border = isMudaFrame ? "3px solid #dc3545" : "3px solid #28a745";
+
+        if (hud) {
+            hud.style.display = "block";
+            hud.style.background = isMudaFrame ? "rgba(220,53,69,0.94)" : "rgba(25,135,84,0.92)";
+            hud.style.color = "#fff";
+            hud.innerHTML = isMudaFrame
+                ? `🔎 0.25x SLO-MO MUDA FOCUS: ${labelText}`
+                : `✅ 0.75x VALUE-ADDED CHECK: ${labelText}`;
+        }
+
+        window.mudaSpotlightHandler = function() {
+            if (vid.currentTime >= endSec) {
+                vid.currentTime = startSec;
+                vid.play();
+            }
+        };
+        vid.addEventListener("timeupdate", window.mudaSpotlightHandler);
+        vid.play();
+        vid.scrollIntoView({ behavior: "smooth", block: "center" });
     };
 
     window.toggleMudaSimulation = function() {
         const st = window.simState;
         if (!st) return;
 
-        const mainFloorVid = document.getElementById("dsiBenchVideo");
-        const compareBox = document.getElementById("sideBySideMudaBox");
-        const origSimVid = document.getElementById("simOrigVideo");
-        const cutSimVid = document.getElementById("simCutVideo");
+        const vid = document.getElementById("dsiBenchVideo");
+        const hud = ensureHudOverlayOnMainVideo();
         const btn = document.getElementById("simMudaBtn");
         const oeeEl = document.getElementById("benchOee");
         const varEl = document.getElementById("benchVariance");
@@ -1304,58 +1357,64 @@ let currentAiSuggestions = []; // Stores the 4 choices
 
         st.active = !st.active;
 
-        if (cutSimVid && window.mudaLoopHandler) {
-            cutSimVid.removeEventListener("timeupdate", window.mudaLoopHandler);
-            window.mudaLoopHandler = null;
+        if (vid && window.mudaSpotlightHandler) {
+            vid.removeEventListener("timeupdate", window.mudaSpotlightHandler);
+            window.mudaSpotlightHandler = null;
         }
 
         if (st.active) {
-            // Show the Side-by-Side Dual Video Comparison Box right in front of the user!
-            if (compareBox && mainFloorVid) {
-                compareBox.style.display = "block";
-                origSimVid.src = mainFloorVid.src;
-                cutSimVid.src = mainFloorVid.src;
-                origSimVid.muted = true;
-                cutSimVid.muted = true;
+            if (vid) {
+                vid.currentTime = 0;
+                vid.play();
 
-                // Sync both videos at 0.0s so audience sees the race side-by-side
-                origSimVid.currentTime = 0;
-                cutSimVid.currentTime = 0;
-                origSimVid.play();
-                cutSimVid.play();
+                window.mudaSpotlightHandler = function() {
+                    const dur = vid.duration || 5;
+                    const ratio = vid.currentTime / dur;
 
-                // Cut the Red Muda Zone ONLY on the Right (95% Target) Video!
-                window.mudaLoopHandler = function() {
-                    const dur = cutSimVid.duration || 5;
-                    const cutPoint = dur * (st.vaRatio / 100);
-                    const timerEl = document.getElementById("simCutTimer");
-                    if (timerEl) {
-                        timerEl.innerText = `⏱️ Cycle Cut at ${cutPoint.toFixed(1)}s (Skipped ${(dur - cutPoint).toFixed(1)}s Muda!)`;
-                    }
-                    if (cutSimVid.currentTime >= cutPoint) {
-                        cutSimVid.currentTime = 0; // Immediately start next piece!
-                        cutSimVid.play();
+                    // First 55% of cycle = Value-Added Work (1.0x Normal Speed, Green Banner)
+                    if (ratio < 0.55) {
+                        if (vid.playbackRate !== 1.0) vid.playbackRate = 1.0;
+                        vid.style.border = "3px solid #28a745";
+                        vid.style.boxShadow = "0 0 12px rgba(40,167,69,0.5)";
+                        if (hud) {
+                            hud.style.display = "block";
+                            hud.style.background = "rgba(25, 135, 84, 0.92)";
+                            hud.style.color = "#fff";
+                            hud.innerHTML = `✅ VALUE-ADDED WORK (1.0x Normal) — Keep This Motion`;
+                        }
+                    } else {
+                        // 55% to 100% of cycle = Wasted Motion / Muda (Auto-Slows to 0.25x, Red Alert Banner!)
+                        if (vid.playbackRate !== 0.25) vid.playbackRate = 0.25;
+                        vid.style.border = "3px solid #dc3545";
+                        vid.style.boxShadow = "0 0 18px rgba(220,53,69,0.85)";
+                        if (hud) {
+                            hud.style.display = "block";
+                            hud.style.background = "rgba(220, 53, 69, 0.95)";
+                            hud.style.color = "#fff";
+                            hud.innerHTML = `🚨 MUDA SPOTLIGHT (0.25x SLO-MO): Remove This Hesitation/Reach to Hit 95%! (-${st.savedSec}s)`;
+                        }
                     }
                 };
-                cutSimVid.addEventListener("timeupdate", window.mudaLoopHandler);
-                compareBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                vid.addEventListener("timeupdate", window.mudaSpotlightHandler);
+                vid.scrollIntoView({ behavior: "smooth", block: "center" });
             }
 
             if (barRed) {
-                barRed.style.opacity = "0.25";
-                barRed.innerHTML = `<s style="color:#fff;">✂️ MUDA CUT (-${st.savedSec}s)</s>`;
+                barRed.style.background = "#ffc107";
+                barRed.style.color = "#000";
+                barRed.innerHTML = `🔍 SPOTLIGHTING IN 0.25x SLO-MO (-${st.savedSec}s MUDA)`;
             }
 
-            oeeEl.innerText = "95.0% (Target Met)";
+            oeeEl.innerText = "95.0% (Target State)";
             oeeEl.style.color = "#28a745";
             if (document.getElementById("benchOeeSub")) {
-                document.getElementById("benchOeeSub").innerText = `✂️ Side-by-Side Muda-Cut Active Below!`;
+                document.getElementById("benchOeeSub").innerText = `🔍 Watching Muda in 0.25x Slo-Mo below!`;
             }
 
             varEl.innerText = "+" + st.target95WastedMin.toFixed(2) + " min";
             varEl.style.color = "#28a745";
             if (document.getElementById("benchVarSub")) {
-                document.getElementById("benchVarSub").innerText = `Saved ~${st.savedSec} sec per pair!`;
+                document.getElementById("benchVarSub").innerText = `Saves ~${st.savedSec} sec per pair when removed!`;
             }
 
             if (hrEl) {
@@ -1367,19 +1426,21 @@ let currentAiSuggestions = []; // Stores the 4 choices
             }
 
             if (btn) {
-                btn.innerHTML = "✖ Close Side-by-Side Simulation & Reset KPIs";
+                btn.innerHTML = "✖ Stop 0.25x Muda Spotlight & Reset to Actual Floor KPIs";
                 btn.style.background = "#dc3545";
             }
         } else {
-            // Hide the Side-by-Side Comparison Box and restore original KPIs
-            if (compareBox) {
-                compareBox.style.display = "none";
-                if (origSimVid) origSimVid.pause();
-                if (cutSimVid) cutSimVid.pause();
+            if (vid) {
+                vid.playbackRate = parseFloat(document.getElementById("masterSlomo").value) || 1.0;
+                vid.style.border = "none";
+                vid.style.boxShadow = "none";
+                vid.play();
             }
+            if (hud) hud.style.display = "none";
 
             if (barRed) {
-                barRed.style.opacity = "1";
+                barRed.style.background = "#dc3545";
+                barRed.style.color = "#fff";
                 barRed.innerHTML = `🚨 ${100 - st.vaRatio}% WASTED MOTION (MUDA)`;
             }
 
@@ -1404,13 +1465,13 @@ let currentAiSuggestions = []; // Stores the 4 choices
             }
 
             if (btn) {
-                btn.innerHTML = "⚡ Simulate 95% Target (Open Side-by-Side Muda-Cut Video)";
+                btn.innerHTML = "🔍 Spotlight Wasted Motion in 0.25x Slo-Mo & Simulate 95% Target";
                 btn.style.background = "#28a745";
             }
         }
     };
 
-async function generateDynamicEfficiencyAnalysis(operationName) {
+    async function generateDynamicEfficiencyAnalysis(operationName) {
         const apiKey = getActiveApiKey();
         if (!apiKey) return;
 
@@ -1436,8 +1497,8 @@ async function generateDynamicEfficiencyAnalysis(operationName) {
           "frame_notes": [
             "✅ KEEP: Pick & Feed",
             "✅ KEEP: Main Operation",
-            "⚠️ FIX: Hand Alignment",
-            "❌ CUT MUDA: High Reach"
+            "⚠️ MUDA: Hand Re-Grasp / Pause",
+            "❌ MUDA: Long Arm Reach"
           ],
           "muda": "Specifically describe WHERE in the cycle the wasted hand/arm motion happens.",
           "how_to_hit_95": "Exact 2-step physical change the operator & IE must make to reach 95% efficiency.",
@@ -1446,7 +1507,7 @@ async function generateDynamicEfficiencyAnalysis(operationName) {
 
         try {
             const requestBody = { contents: [{ parts: [ { text: promptText }, ...currentBenchmarkFrames ] }] };
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
                 body: JSON.stringify(requestBody)
@@ -1454,7 +1515,6 @@ async function generateDynamicEfficiencyAnalysis(operationName) {
             const data = await response.json();
             let rawText = data.candidates[0].content.parts[0].text;
             
-            // Crash-proof JSON extractor (extracts between first { and last })
             const firstBrace = rawText.indexOf("{");
             const lastBrace = rawText.lastIndexOf("}");
             if (firstBrace !== -1 && lastBrace !== -1) {
@@ -1462,12 +1522,10 @@ async function generateDynamicEfficiencyAnalysis(operationName) {
             }
             const result = JSON.parse(rawText);
 
-            // Calculate exact efficiency from the 3 MTM penalties so it never defaults to the same number
             const totalPenalty = (parseFloat(result.reach_penalty) || 7.5) + (parseFloat(result.align_penalty) || 6.2) + (parseFloat(result.idle_penalty) || 4.5);
             const effNum = Math.min(94.5, Math.max(62.0, 100 - totalPenalty));
             const vaRatio = Math.round(effNum);
 
-            // Actual Floor Math
             const actualSmvMin = targetSmvMin / (effNum / 100);
             const wastedMin = Math.max(0, actualSmvMin - targetSmvMin);
             const wastedSec = Math.max(1, Math.round(wastedMin * 60));
@@ -1475,7 +1533,6 @@ async function generateDynamicEfficiencyAnalysis(operationName) {
             const actualPairsHr = Math.floor(60 / actualSmvMin);
             const lostPairsHr = Math.max(0, benchPairsHr - actualPairsHr);
 
-            // 95% Target Simulation Math
             const target95SmvMin = targetSmvMin / 0.95;
             const target95WastedMin = Math.max(0, target95SmvMin - targetSmvMin);
             const target95PairsHr = Math.floor(60 / target95SmvMin);
@@ -1496,6 +1553,16 @@ async function generateDynamicEfficiencyAnalysis(operationName) {
                 savedSec: savedSec,
                 gainedPairsHr: gainedPairsHr
             };
+
+            const vid = document.getElementById("dsiBenchVideo");
+            if (vid) {
+                if (window.mudaSpotlightHandler) vid.removeEventListener("timeupdate", window.mudaSpotlightHandler);
+                vid.playbackRate = parseFloat(document.getElementById("masterSlomo").value) || 1.0;
+                vid.style.border = "none";
+                vid.style.boxShadow = "none";
+            }
+            const hud = document.getElementById("dsiLiveMudaHud");
+            if (hud) hud.style.display = "none";
 
             const oeeEl = document.getElementById("benchOee");
             const varEl = document.getElementById("benchVariance");
@@ -1522,52 +1589,37 @@ async function generateDynamicEfficiencyAnalysis(operationName) {
             }
 
             const pcts = [0.15, 0.40, 0.65, 0.85];
-            const defaultNotes = ["✅ KEEP: Pick & Feed", "✅ KEEP: Main Operation", "⚠️ FIX: Alignment / Check", "❌ CUT MUDA: High Reach"];
+            const defaultNotes = ["✅ KEEP: Pick & Feed", "✅ KEEP: Main Operation", "⚠️ MUDA: Alignment / Check", "❌ MUDA: High Reach"];
             const notesArr = Array.isArray(result.frame_notes) && result.frame_notes.length === 4 ? result.frame_notes : defaultNotes;
 
-            const frameStripHtml = currentBenchmarkFrames.map((f, idx) => `
-                <div onclick="jumpToVideoPhase(${pcts[idx]})" title="Click to jump video to this exact moment" style="flex:1; min-width:130px; background:#151515; padding:8px; border-radius:6px; border:2px solid ${idx >= 2 ? '#dc3545' : '#28a745'}; text-align:center; cursor:pointer;">
-                    <div style="font-size:0.72em; color:#aaa; margin-bottom:4px;">📍 Click to View (${Math.round(pcts[idx]*100)}% of cycle)</div>
+            const frameStripHtml = currentBenchmarkFrames.map((f, idx) => {
+                const isMuda = idx >= 2 || notesArr[idx].includes("❌") || notesArr[idx].includes("⚠️");
+                const cleanNote = notesArr[idx].replace(/'/g, "\\'");
+                return `
+                <div onclick="jumpToVideoPhase(${pcts[idx]}, ${isMuda}, '${cleanNote}')" title="Click to loop this exact moment in slow-motion on the main player" style="flex:1; min-width:130px; background:#151515; padding:8px; border-radius:6px; border:2px solid ${isMuda ? '#dc3545' : '#28a745'}; text-align:center; cursor:pointer; transition:transform 0.15s;">
+                    <div style="font-size:0.72em; color:${isMuda ? '#ff9999' : '#80ffaa'}; margin-bottom:4px; font-weight:bold;">
+                        ${isMuda ? '🔎 Click for 0.25x Slo-Mo Loop' : '📍 Click to View (' + Math.round(pcts[idx]*100) + '%)'}
+                    </div>
                     <img src="data:image/jpeg;base64,${f.inline_data.data}" style="width:100%; height:80px; object-fit:cover; border-radius:4px;">
-                    <div style="font-size:0.78em; color:${idx >= 2 ? '#ff8080' : '#80ffaa'}; margin-top:6px; font-weight:bold; line-height:1.3;">${notesArr[idx]}</div>
+                    <div style="font-size:0.78em; color:${isMuda ? '#ff8080' : '#80ffaa'}; margin-top:6px; font-weight:bold; line-height:1.3;">${notesArr[idx]}</div>
                 </div>
-            `).join("");
+            `}).join("");
 
             document.getElementById("benchAiAnalysis").innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px; border-bottom:1px solid #444; padding-bottom:10px;">
                     <h4 style="color:#ffc107; margin:0;">🤖 Visual Micro-Motion Audit: ${operationName}</h4>
-                    <button type="button" id="simMudaBtn" onclick="toggleMudaSimulation()" style="background:#28a745; color:#fff; border:none; padding:9px 16px; border-radius:6px; font-weight:bold; cursor:pointer; margin:0; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">⚡ Simulate 95% Target (Open Side-by-Side Muda-Cut Video)</button>
-                </div>
-
-                <!-- SIDE-BY-SIDE ORIGINAL VS MUDA-CUT VIDEO COMPARISON BOX -->
-                <div id="sideBySideMudaBox" style="display:none; background:#111; border:2px solid #28a745; border-radius:8px; padding:15px; margin-bottom:18px; box-shadow: 0 6px 24px rgba(0,0,0,0.8);">
-                    <div style="text-align:center; margin-bottom:10px;">
-                        <strong style="color:#00ffff; font-size:1.05em;">🎬 Live Side-by-Side Visual Proof: Original Floor Cycle vs. 95% Target (Muda Removed)</strong>
-                        <p style="margin:4px 0 0 0; font-size:0.82em; color:#aaa;">Watch both videos below: The right player automatically cuts out the final ${100 - vaRatio}% wasted motion (Muda) and starts the next piece immediately!</p>
-                    </div>
-                    <div style="display:flex; gap:15px; flex-wrap:wrap;">
-                        <div style="flex:1; min-width:260px; background:#1a1a1a; padding:10px; border-radius:6px; border:2px solid #dc3545; text-align:center;">
-                            <div style="color:#ff6b6b; font-weight:bold; font-size:0.9em; margin-bottom:6px;">❌ BEFORE: Original Floor Video (${effNum.toFixed(1)}% Eff | ${actualPairsHr} prs/hr)</div>
-                            <video id="simOrigVideo" controls loop muted playsinline style="width:100%; height:220px; object-fit:cover; background:#000; border-radius:4px;"></video>
-                            <div style="font-size:0.78em; color:#ff9999; margin-top:5px;">Plays full unedited clip including wasted reach & inspection pauses</div>
-                        </div>
-                        <div style="flex:1; min-width:260px; background:#1a1a1a; padding:10px; border-radius:6px; border:2px solid #28a745; text-align:center;">
-                            <div style="color:#51cf66; font-weight:bold; font-size:0.9em; margin-bottom:6px;">✅ AFTER: 95% Target Simulation (Muda Cut | ${target95PairsHr} prs/hr)</div>
-                            <video id="simCutVideo" controls muted playsinline style="width:100%; height:220px; object-fit:cover; background:#000; border-radius:4px;"></video>
-                            <div id="simCutTimer" style="font-size:0.78em; color:#80ffaa; margin-top:5px; font-weight:bold;">✂️ Auto-skipping final ${100 - vaRatio}% wasted motion tail!</div>
-                        </div>
-                    </div>
+                    <button type="button" id="simMudaBtn" onclick="toggleMudaSimulation()" style="background:#28a745; color:#fff; border:none; padding:9px 16px; border-radius:6px; font-weight:bold; cursor:pointer; margin:0; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">🔍 Spotlight Wasted Motion in 0.25x Slo-Mo & Simulate 95% Target</button>
                 </div>
 
                 <!-- VISUAL CYCLE TIMELINE BAR (GREEN VA VS RED MUDA) -->
                 <div style="margin-bottom:15px;">
                     <div style="font-size:0.8em; color:#ccc; margin-bottom:4px; display:flex; justify-content:space-between;">
-                        <span><strong>Cycle Time Breakdown:</strong> Where time is spent in your video</span>
-                        <span>Target: Cut the Red Zone to hit 95%</span>
+                        <span><strong>Cycle Time Breakdown:</strong> Click any photo below to loop that exact phase in 0.25x Slow-Motion</span>
+                        <span>Target: Eliminate Red Muda Zone to hit 95%</span>
                     </div>
                     <div style="display:flex; width:100%; height:26px; border-radius:6px; overflow:hidden; font-size:0.78em; font-weight:bold; line-height:26px; text-align:center;">
-                        <div style="width:${vaRatio}%; background:#198754; color:#fff;">✅ ${vaRatio}% VALUE-ADDED WORK (KEEP)</div>
-                        <div id="mudaRedZoneBar" style="width:${100 - vaRatio}%; background:#dc3545; color:#fff; transition:opacity 0.3s;">🚨 ${100 - vaRatio}% WASTED MOTION (MUDA)</div>
+                        <div style="width:${vaRatio}%; background:#198754; color:#fff;">✅ ${vaRatio}% VALUE-ADDED WORK (1.0x)</div>
+                        <div id="mudaRedZoneBar" style="width:${100 - vaRatio}%; background:#dc3545; color:#fff; transition:all 0.3s;">🚨 ${100 - vaRatio}% WASTED MOTION (MUDA)</div>
                     </div>
                 </div>
 
@@ -1577,7 +1629,7 @@ async function generateDynamicEfficiencyAnalysis(operationName) {
                 <!-- BEFORE vs AFTER TABLE FOR MANAGEMENT -->
                 <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
                     <div style="flex:1; min-width:250px; background:rgba(220,53,69,0.12); border-left:4px solid #dc3545; padding:12px; border-radius:4px;">
-                        <strong style="color:#ff6b6b; display:block; margin-bottom:4px;">❌ WHERE WASTED MOTION HAPPENS (Frames 3 & 4):</strong>
+                        <strong style="color:#ff6b6b; display:block; margin-bottom:4px;">❌ WHERE WASTED MOTION HAPPENS (Spotlit in 0.25x Slo-Mo):</strong>
                         <span style="color:#ddd; font-size:0.92em; line-height:1.5;">${result.muda}</span>
                     </div>
                     <div style="flex:1; min-width:250px; background:rgba(40,167,69,0.12); border-left:4px solid #28a745; padding:12px; border-radius:4px;">
@@ -1593,8 +1645,7 @@ async function generateDynamicEfficiencyAnalysis(operationName) {
             console.error(e);
             document.getElementById("benchAiAnalysis").innerHTML = `<p style="color:red;">⚠️ AI Failed to analyze the video. Please check your API key.</p>`;
         }
-   }
-
+    }
 
 // --- Category Filtering & Smart Search (Amendment 4) ---
     let currentCategoryFilter = 'All';
