@@ -959,10 +959,11 @@ function toggleFields() {
     }
     let globalBenchYtAPI = null;
 
-    // 1. Upload Video & Extract Frames for AI Vision
+// 1. Upload Video & Extract Frames for AI Vision
     async function handleBenchmarkUpload(event) {
         const file = event.target.files[0];
         if(!file) return;
+        window.uploadedBenchFileName = file.name || "";
         const url = URL.createObjectURL(file);
         const dsiVid = document.getElementById("dsiBenchVideo");
         dsiVid.src = url;
@@ -1124,9 +1125,9 @@ const promptText = `You are a Global Footwear Sourcing Expert and Value Engineer
     }
 }
 
-let currentAiSuggestions = []; // Stores the 4 choices
+let currentAiSuggestions = []; // Stores the 4 choices (supports both YouTube & ImageKit MP4)
 
-    // 1. TRUE AI MATCHING: Sends frames to Gemini to find real database matches
+    // 1. HYBRID AI VISION (70%) + SMART FILENAME HINT (30%) MATCHING
     async function generateBenchmarkSuggestions() {
         const apiKey = getActiveApiKey();
         if (!apiKey) {
@@ -1135,20 +1136,25 @@ let currentAiSuggestions = []; // Stores the 4 choices
             return;
         }
 
-        // Show uploaded video in the preview pane
         const uploadedUrl = document.getElementById("dsiBenchVideo").src;
         if (uploadedUrl) document.getElementById("dsiBenchPreview").src = uploadedUrl;
 
-        // Build the list of your actual operations for the AI to read
+        // Clean filename and ignore generic phone names (VID_..., WhatsApp..., IMG_...)
+        const rawFileName = (window.uploadedBenchFileName || "").replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
+        const isGenericFileName = /^(vid|img|mov|whatsapp|video|clip|pxl|dsc|test|\d+)[\s\d_-]*$/i.test(rawFileName);
+        const usableFileHint = isGenericFileName ? "" : rawFileName;
+
         const listText = operations.map((op, i) => `${i}: ${op.name}`).join("\n");
         
-        // The Prompt: Tells the AI to act as a DSI IE and pick the best 4 matches
         const promptText = `You are a Senior Footwear Industrial Engineer. Analyze the attached video frames of a factory operator.
-        Compare the movement, machine, and shoe parts against our local database of operations:
+        ${usableFileHint ? `UPLOADED FILENAME HINT: "${usableFileHint}" (Use this hint alongside your visual frame analysis to identify the exact shoe component being worked on, such as Toe Piece vs Quarter vs Eyelet, while using the video frames to match the machine type like SNPB/DNPB/Skiving and material).` : `Identify the shoe component, machine type (e.g., SNPB, DNPB, Skiving, Folding), and material from the visual frames.`}
+        
+        Compare against our local database of operations:
         ${listText}
+        
         CRITICAL: Reply ONLY with a valid JSON object using this exact structure. Do not use markdown code blocks.
         {
-          "matching_ids": [List exactly the top 4 index numbers from the list above that best match the video action]
+          "matching_ids": [List the top 4 index numbers from the list above. If the filename hint clearly matches an operation in the list, put that best match first, followed by the 3 closest visual/machine matches]
         }`;
 
         try {
@@ -1162,14 +1168,37 @@ let currentAiSuggestions = []; // Stores the 4 choices
             const data = await response.json();
             if (!response.ok) throw new Error(data.error?.message || "API Error");
 
-            // Clean and parse the AI's response
-            let aiText = data.candidates[0].content.parts[0].text.replace(/```json/g, "").replace(/```/g, "").trim();
-            const result = JSON.parse(aiText);
+            let rawText = data.candidates[0].content.parts[0].text;
+            const firstB = rawText.indexOf("{");
+            const lastB = rawText.lastIndexOf("}");
+            if (firstB !== -1 && lastB !== -1) rawText = rawText.substring(firstB, lastB + 1);
+            const result = JSON.parse(rawText);
             
-            // Extract the IDs chosen by the AI (fallback to first 4 if the AI fails)
-            let bestMatches = (result.matching_ids && result.matching_ids.length > 0) ? result.matching_ids : [0, 1, 2, 3];
+            let aiMatches = (result.matching_ids && Array.isArray(result.matching_ids)) ? result.matching_ids : [0, 1, 2, 3];
+
+            // Smart Hybrid Safeguard: Guarantee top filename match is included at #1 if the file has a descriptive operation name
+            if (usableFileHint.length >= 3) {
+                const hintWords = usableFileHint.toLowerCase().split(/\s+/).filter(w => w.length >= 3);
+                if (hintWords.length > 0) {
+                    let bestKeywordIdx = -1;
+                    let bestKeywordScore = 0;
+                    operations.forEach((op, idx) => {
+                        const opLower = op.name.toLowerCase();
+                        let score = 0;
+                        hintWords.forEach(w => { if (opLower.includes(w)) score++; });
+                        if (score > bestKeywordScore) {
+                            bestKeywordScore = score;
+                            bestKeywordIdx = idx;
+                        }
+                    });
+                    if (bestKeywordIdx !== -1 && bestKeywordScore >= Math.min(2, hintWords.length) && !aiMatches.includes(bestKeywordIdx)) {
+                        aiMatches = [bestKeywordIdx, ...aiMatches];
+                    }
+                }
+            }
+
+            const bestMatches = [...new Set(aiMatches)].filter(idx => operations[idx] !== undefined).slice(0, 4);
             
-            // Populate the grid with the AI's choices
             document.getElementById("benchLoadingMsg").style.display = "none";
             document.getElementById("aiSelectionPhase").style.display = "block";
             
@@ -1177,27 +1206,31 @@ let currentAiSuggestions = []; // Stores the 4 choices
             grid.innerHTML = ""; 
             currentAiSuggestions = [];
 
-            // Create the cards safely without triggering YouTube's autoplay block
-            bestMatches.slice(0, 4).forEach((idx, i) => {
-                if (operations[idx]) {
-                    let op = operations[idx];
-                    let videoId = getYouTubeID(op.file);
-                    currentAiSuggestions.push(videoId);
+            bestMatches.forEach((idx, i) => {
+                let op = operations[idx];
+                currentAiSuggestions.push({ name: op.name, file: op.file });
 
-                    const card = document.createElement("div");
-                    card.style.background = "#222";
-                    card.style.padding = "10px";
-                    card.style.borderRadius = "6px";
-                    card.style.textAlign = "center";
-                    
-                    // Notice autoplay=0 here. This stops YouTube from blocking the iframes.
-                    card.innerHTML = `
-                        <iframe width="100%" height="120" src="https://www.youtube.com/embed/${videoId}?rel=0&autoplay=0" frameborder="0" allowfullscreen style="border-radius: 4px; margin-bottom: 5px; background: #000;"></iframe>
-                        <div style="color: #ddd; font-size: 0.85em; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${op.name}">Match ${i + 1}: ${op.name}</div>
-                        <button type="button" onclick="selectPrimaryBenchmark('${op.name.replace(/'/g, "\\'")}', '${videoId}')" style="background: #007bff; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 0.9em; font-weight: bold;">📊 Compare Target</button>
-                    `;
-                    grid.appendChild(card);
-                }
+                const isYt = op.file.includes("youtube.com") || op.file.includes("youtu.be");
+                const videoId = isYt ? getYouTubeID(op.file) : "";
+                const safeName = op.name.replace(/'/g, "\\'");
+                const safeFile = op.file.replace(/'/g, "\\'");
+
+                const mediaHtml = isYt
+                    ? `<iframe width="100%" height="120" src="https://www.youtube.com/embed/${videoId}?rel=0&autoplay=0" frameborder="0" allowfullscreen style="border-radius: 4px; margin-bottom: 5px; background: #000;"></iframe>`
+                    : `<video src="${op.file}#t=1.5" preload="metadata" controls muted playsinline style="width:100%; height:120px; object-fit:cover; border-radius:4px; margin-bottom:5px; background:#000;"></video>`;
+
+                const card = document.createElement("div");
+                card.style.background = "#222";
+                card.style.padding = "10px";
+                card.style.borderRadius = "6px";
+                card.style.textAlign = "center";
+                
+                card.innerHTML = `
+                    ${mediaHtml}
+                    <div style="color: #ddd; font-size: 0.85em; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${op.name}">Match ${i + 1}: ${op.name}</div>
+                    <button type="button" onclick="selectPrimaryBenchmark('${safeName}', '${safeFile}')" style="background: #007bff; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 0.9em; font-weight: bold;">📊 Compare Target</button>
+                `;
+                grid.appendChild(card);
             });
             
         } catch (error) {
@@ -1206,23 +1239,33 @@ let currentAiSuggestions = []; // Stores the 4 choices
             document.getElementById("benchLoadingMsg").style.display = "none";
         }
     }
-// 2. The Selection Router (Uses fast, zero-lag thumbnails for sidebar alternatives!)
-    function selectPrimaryBenchmark(operationName, selectedVideoId) {
+
+    // 2. The Selection Router (Supports both YouTube & ImageKit MP4 without lag!)
+    function selectPrimaryBenchmark(operationName, selectedFileOrId) {
         document.getElementById("aiSelectionPhase").style.display = "none";
         document.getElementById("benchmarkDashboardArea").style.display = "block";
         
-        const fullUrl = "https://youtube.com/watch?v=" + selectedVideoId;
+        let fullUrl = selectedFileOrId;
+        if (!selectedFileOrId.startsWith("http")) {
+            fullUrl = "https://youtube.com/watch?v=" + selectedFileOrId;
+        }
+
         document.getElementById("benchmarkUrlInput").value = fullUrl;
         loadManualBenchmark(fullUrl); 
         
         const sidebar = document.getElementById("sidebarAlternatives");
         sidebar.innerHTML = "";
         
-        currentAiSuggestions.forEach((videoId) => {
-            if (videoId !== selectedVideoId) {
-                const matchedAlt = operations.find(op => getYouTubeID(op.file) === videoId);
-                const altTitle = matchedAlt ? matchedAlt.name : "Alternative Benchmark";
-                const safeOpName = operationName.replace(/'/g, "\\'");
+        currentAiSuggestions.forEach((item) => {
+            if (item.file !== selectedFileOrId && getYouTubeID(item.file) !== selectedFileOrId) {
+                const isYt = item.file.includes("youtube.com") || item.file.includes("youtu.be");
+                const ytId = isYt ? getYouTubeID(item.file) : "";
+                const safeOpName = item.name.replace(/'/g, "\\'");
+                const safeFile = item.file.replace(/'/g, "\\'");
+
+                const thumbHtml = isYt
+                    ? `<img src="https://img.youtube.com/vi/${ytId}/mqdefault.jpg" style="width:100%; height:82px; object-fit:cover; display:block; filter:brightness(0.85);">`
+                    : `<video src="${item.file}#t=1.5" preload="metadata" muted playsinline style="width:100%; height:82px; object-fit:cover; display:block; background:#000; pointer-events:none;"></video>`;
 
                 const altCard = document.createElement("div");
                 altCard.style.background = "#181818";
@@ -1230,12 +1273,12 @@ let currentAiSuggestions = []; // Stores the 4 choices
                 altCard.style.borderRadius = "6px";
                 altCard.style.border = "1px solid #333";
                 altCard.innerHTML = `
-                    <div onclick="selectPrimaryBenchmark('${safeOpName}', '${videoId}')" style="position:relative; cursor:pointer; border-radius:4px; overflow:hidden;">
-                        <img src="https://img.youtube.com/vi/${videoId}/mqdefault.jpg" style="width:100%; height:82px; object-fit:cover; display:block; filter:brightness(0.85);">
-                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(227,6,19,0.9); color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8em; font-weight:bold; box-shadow:0 2px 6px rgba(0,0,0,0.6);">▶</div>
+                    <div onclick="selectPrimaryBenchmark('${safeOpName}', '${safeFile}')" style="position:relative; cursor:pointer; border-radius:4px; overflow:hidden;">
+                        ${thumbHtml}
+                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(40,167,69,0.9); color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8em; font-weight:bold; box-shadow:0 2px 6px rgba(0,0,0,0.6);">▶</div>
                     </div>
-                    <div style="font-size:0.75em; color:#ccc; margin:4px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${altTitle}">${altTitle}</div>
-                    <button type="button" onclick="selectPrimaryBenchmark('${safeOpName}', '${videoId}')" style="background: #28a745; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 0.8em; margin: 0;">Switch to this</button>
+                    <div style="font-size:0.75em; color:#ccc; margin:4px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${item.name}">${item.name}</div>
+                    <button type="button" onclick="selectPrimaryBenchmark('${safeOpName}', '${safeFile}')" style="background: #28a745; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 0.8em; margin: 0;">Switch to this</button>
                 `;
                 sidebar.appendChild(altCard);
             }
