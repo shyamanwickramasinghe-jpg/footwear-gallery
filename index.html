@@ -216,6 +216,7 @@ iframe { transform: translateZ(0); }
     <button type="button" class="tab-btn" onclick="openTab('searchHub', event)">🔎 Global & Local Search</button>
     <button type="button" class="tab-btn" onclick="openTab('viewer', event)">🎬 Operation Viewer</button>
     <button type="button" class="tab-btn" onclick="openTab('benchmarkTab', event)">📊 Benchmark Dashboard</button>
+    <button type="button" class="tab-btn" onclick="window.location.href='timestudy.html'" style="background: #004085; border: 1px solid #00ffff; color: #00ffff;">⏱️ Live Time Study ↗</button>
     <button type="button" class="tab-btn" onclick="openTab('bulletin', event)">📋 IE Bulletin</button>
     <button type="button" class="tab-btn" onclick="openTab('sourcing', event)">🏷️ Material Sourcing</button>
     <button type="button" class="tab-btn" onclick="openTab('manage', event)" style="background: #8b0000; border: 1px solid #ff4d4d; flex-grow: 0; margin-left: auto;">⚙️ Admin</button>
@@ -552,7 +553,8 @@ iframe { transform: translateZ(0); }
                         <strong style="color: #ffc107; font-size: 1.05em;">✏️ Live Pattern Shape Matcher</strong>
                         <span id="shapeMatchStatus" style="margin-left: 12px; font-size: 0.9em; color: #00ffff;">Click grid dots below — matching operations filter & rank automatically as you draw!</span>
                     </div>
-                    <div style="display: flex; gap: 8px;">
+<div style="display: flex; gap: 8px;">
+                        <button type="button" onclick="startNewShapeSearchCutout()" style="margin: 0; padding: 5px 12px; font-size: 0.85em; background: #17a2b8; color: #fff;" title="Click (or Right-Click on canvas) to draw inner holes/cutouts">✂️ New Cutout / Hole</button>
                         <button type="button" class="btn-warning" onclick="undoShapeSearch()" style="margin: 0; padding: 5px 12px; font-size: 0.85em; color: #000;">🔙 Undo</button>
                         <button type="button" onclick="clearShapeSearch()" style="margin: 0; padding: 5px 12px; font-size: 0.85em; background: #dc3545; color: #fff;">🗑️ Clear & Show All</button>
                         <button type="button" onclick="toggleShapeSearchBox()" style="margin: 0; padding: 5px 12px; font-size: 0.85em; background: #444; color: #fff;">✖ Hide Box</button>
@@ -694,7 +696,8 @@ iframe { transform: translateZ(0); }
             <div class="canvas-container">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <label style="color: #ffc107; font-weight:bold; margin: 0;">Sketch Vector Template Shape:</label>
-                    <div>
+		    <div>
+                        <button type="button" onclick="startNewCanvasCutout()" style="background: #17a2b8; color: #fff; padding: 4px 10px; font-size: 0.85em; margin-right: 5px;" title="Click (or Right-Click on canvas) to draw inner holes/cutouts">✂️ New Cutout / Hole</button>
                         <button type="button" class="btn-warning" onclick="undoCanvas()" style="padding: 4px 10px; font-size: 0.85em; margin-right: 5px; color: #000;">🔙 Undo</button>
                         <button type="button" onclick="clearCanvas()" style="background: #555; padding: 4px 10px; font-size: 0.85em;">🗑️ Clear Sketch</button>
                     </div>
@@ -1966,6 +1969,14 @@ defaultOperations.sort((a, b) => {
         }
     });
 
+let nextPointStartsNewPath = false;
+
+    function startNewCanvasCutout() {
+        if (anchors.length > 0) {
+            nextPointStartsNewPath = true;
+        }
+    }
+
     function initCanvas() {
         canvas = document.getElementById('drawingCanvas');
         if (!canvas) return;
@@ -1975,6 +1986,7 @@ defaultOperations.sort((a, b) => {
         canvas.addEventListener('mousemove', handleGridMove);
         canvas.addEventListener('mouseup', handleGridUp);
         canvas.addEventListener('mouseout', handleGridUp);
+        canvas.addEventListener('contextmenu', (e) => { e.preventDefault(); startNewCanvasCutout(); });
         
         canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleGridDown(e); }, {passive: false});
         canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleGridMove(e); }, {passive: false});
@@ -2002,7 +2014,11 @@ defaultOperations.sort((a, b) => {
             
             ctx.moveTo(anchors[0].x, anchors[0].y);
             for(let i=1; i<anchors.length; i++) {
-                ctx.quadraticCurveTo(controls[i-1].x, controls[i-1].y, anchors[i].x, anchors[i].y);
+                if (anchors[i].newPath || !controls[i-1]) {
+                    ctx.moveTo(anchors[i].x, anchors[i].y);
+                } else {
+                    ctx.quadraticCurveTo(controls[i-1].x, controls[i-1].y, anchors[i].x, anchors[i].y);
+                }
             }
             ctx.stroke();
             
@@ -2015,6 +2031,7 @@ defaultOperations.sort((a, b) => {
 
             ctx.fillStyle = '#007bff';
             for(let i=0; i<controls.length; i++) {
+                if (!controls[i]) continue;
                 ctx.beginPath();
                 ctx.arc(controls[i].x, controls[i].y, 6, 0, Math.PI*2);
                 ctx.fill();
@@ -2032,7 +2049,11 @@ defaultOperations.sort((a, b) => {
         ctx.lineJoin = 'round';
         ctx.moveTo(anchors[0].x, anchors[0].y);
         for(let i=1; i<anchors.length; i++) {
-            ctx.quadraticCurveTo(controls[i-1].x, controls[i-1].y, anchors[i].x, anchors[i].y);
+            if (anchors[i].newPath || !controls[i-1]) {
+                ctx.moveTo(anchors[i].x, anchors[i].y);
+            } else {
+                ctx.quadraticCurveTo(controls[i-1].x, controls[i-1].y, anchors[i].x, anchors[i].y);
+            }
         }
         ctx.stroke();
         const dataUrl = canvas.toDataURL('image/png');
@@ -2057,8 +2078,10 @@ defaultOperations.sort((a, b) => {
     }
 
     function handleGridDown(e) {
+        if (e.button === 2) return;
         const pos = getPointerPos(e);
         for(let i=0; i<controls.length; i++) {
+            if (!controls[i]) continue;
             let dx = pos.x - controls[i].x;
             let dy = pos.y - controls[i].y;
             if(Math.sqrt(dx*dx + dy*dy) < 15) { 
@@ -2082,13 +2105,21 @@ defaultOperations.sort((a, b) => {
         let snappedY = Math.round(pos.y / gridSize) * gridSize;
         snappedX = Math.max(0, Math.min(canvas.width, snappedX));
         snappedY = Math.max(0, Math.min(canvas.height, snappedY));
-        anchors.push({x: snappedX, y: snappedY});
+
+        const isNewSubPath = nextPointStartsNewPath || anchors.length === 0;
+        anchors.push({ x: snappedX, y: snappedY, newPath: isNewSubPath });
+        nextPointStartsNewPath = false;
+
         if(anchors.length > 1) {
-            let prev = anchors[anchors.length - 2];
-            controls.push({
-                x: (prev.x + snappedX) / 2,
-                y: (prev.y + snappedY) / 2
-            });
+            if (isNewSubPath) {
+                controls.push(null);
+            } else {
+                let prev = anchors[anchors.length - 2];
+                controls.push({
+                    x: (prev.x + snappedX) / 2,
+                    y: (prev.y + snappedY) / 2
+                });
+            }
         }
         drawGrid();
     }
@@ -2101,10 +2132,11 @@ defaultOperations.sort((a, b) => {
             let finalX = Math.max(0, Math.min(canvas.width, snappedX));
             let finalY = Math.max(0, Math.min(canvas.height, snappedY));
 
-            if (draggingType === 'control') {
+            if (draggingType === 'control' && controls[draggingControlIndex]) {
                 controls[draggingControlIndex] = { x: finalX, y: finalY };
             } else if (draggingType === 'anchor') {
-                anchors[draggingControlIndex] = { x: finalX, y: finalY };
+                anchors[draggingControlIndex].x = finalX;
+                anchors[draggingControlIndex].y = finalY;
             }
             drawGrid();
         }
@@ -2122,6 +2154,7 @@ defaultOperations.sort((a, b) => {
             if (controls.length > 0 && controls.length >= anchors.length) {
                 controls.pop();
             }
+            nextPointStartsNewPath = false;
             drawGrid();
         }
     }
@@ -2129,6 +2162,7 @@ defaultOperations.sort((a, b) => {
     function clearCanvas() {
         anchors = [];
         controls = [];
+        nextPointStartsNewPath = false;
         drawGrid();
     }
 
@@ -3412,6 +3446,16 @@ function closeHelpModal() {
         }
     }
 
+let sNextPointNewPath = false;
+
+    function startNewShapeSearchCutout() {
+        if (sAnchors.length > 0) {
+            sNextPointNewPath = true;
+            const statusEl = document.getElementById("shapeMatchStatus");
+            if (statusEl) statusEl.innerText = "✂️ Pen lifted! Click inside the shape to draw an inner cutout/hole.";
+        }
+    }
+
     function initShapeSearchCanvas() {
         sCanvas = document.getElementById("shapeSearchCanvas");
         if (!sCanvas) return;
@@ -3421,6 +3465,7 @@ function closeHelpModal() {
             sCanvas.addEventListener("mousemove", sHandleMove);
             sCanvas.addEventListener("mouseup", sHandleUp);
             sCanvas.addEventListener("mouseout", sHandleUp);
+            sCanvas.addEventListener("contextmenu", (e) => { e.preventDefault(); startNewShapeSearchCutout(); });
             sCanvas.addEventListener("touchstart", (e) => { e.preventDefault(); sHandleDown(e); }, { passive: false });
             sCanvas.addEventListener("touchmove", (e) => { e.preventDefault(); sHandleMove(e); }, { passive: false });
             sCanvas.addEventListener("touchend", sHandleUp);
@@ -3448,7 +3493,11 @@ function closeHelpModal() {
             sCtx.lineJoin = "round";
             sCtx.moveTo(sAnchors[0].x, sAnchors[0].y);
             for (let i = 1; i < sAnchors.length; i++) {
-                sCtx.quadraticCurveTo(sControls[i - 1].x, sControls[i - 1].y, sAnchors[i].x, sAnchors[i].y);
+                if (sAnchors[i].newPath || !sControls[i - 1]) {
+                    sCtx.moveTo(sAnchors[i].x, sAnchors[i].y);
+                } else {
+                    sCtx.quadraticCurveTo(sControls[i - 1].x, sControls[i - 1].y, sAnchors[i].x, sAnchors[i].y);
+                }
             }
             sCtx.stroke();
 
@@ -3460,6 +3509,7 @@ function closeHelpModal() {
             }
             sCtx.fillStyle = "#007bff";
             for (let i = 0; i < sControls.length; i++) {
+                if (!sControls[i]) continue;
                 sCtx.beginPath();
                 sCtx.arc(sControls[i].x, sControls[i].y, 6, 0, Math.PI * 2);
                 sCtx.fill();
@@ -3481,8 +3531,10 @@ function closeHelpModal() {
     }
 
     function sHandleDown(e) {
+        if (e.button === 2) return;
         const pos = sGetPos(e);
         for (let i = 0; i < sControls.length; i++) {
+            if (!sControls[i]) continue;
             if (Math.hypot(pos.x - sControls[i].x, pos.y - sControls[i].y) < 15) {
                 sDragIdx = i; sDragType = "control"; sIsDragging = true; return;
             }
@@ -3494,10 +3546,17 @@ function closeHelpModal() {
         }
         let sx = Math.max(0, Math.min(sCanvas.width, Math.round(pos.x / sGridSize) * sGridSize));
         let sy = Math.max(0, Math.min(sCanvas.height, Math.round(pos.y / sGridSize) * sGridSize));
-        sAnchors.push({ x: sx, y: sy });
+        const isNewSubPath = sNextPointNewPath || sAnchors.length === 0;
+        sAnchors.push({ x: sx, y: sy, newPath: isNewSubPath });
+        sNextPointNewPath = false;
+
         if (sAnchors.length > 1) {
-            let prev = sAnchors[sAnchors.length - 2];
-            sControls.push({ x: (prev.x + sx) / 2, y: (prev.y + sy) / 2 });
+            if (isNewSubPath) {
+                sControls.push(null);
+            } else {
+                let prev = sAnchors[sAnchors.length - 2];
+                sControls.push({ x: (prev.x + sx) / 2, y: (prev.y + sy) / 2 });
+            }
         }
         drawShapeSearchGrid();
         runLiveShapeMatch();
@@ -3508,8 +3567,8 @@ function closeHelpModal() {
             const pos = sGetPos(e);
             let fx = Math.max(0, Math.min(sCanvas.width, Math.round(pos.x / sGridSize) * sGridSize));
             let fy = Math.max(0, Math.min(sCanvas.height, Math.round(pos.y / sGridSize) * sGridSize));
-            if (sDragType === "control") sControls[sDragIdx] = { x: fx, y: fy };
-            else if (sDragType === "anchor") sAnchors[sDragIdx] = { x: fx, y: fy };
+            if (sDragType === "control" && sControls[sDragIdx]) sControls[sDragIdx] = { x: fx, y: fy };
+            else if (sDragType === "anchor") { sAnchors[sDragIdx].x = fx; sAnchors[sDragIdx].y = fy; }
             drawShapeSearchGrid();
             runLiveShapeMatch();
         }
@@ -3523,6 +3582,7 @@ function closeHelpModal() {
         if (sAnchors.length > 0) {
             sAnchors.pop();
             if (sControls.length > 0 && sControls.length >= sAnchors.length) sControls.pop();
+            sNextPointNewPath = false;
             drawShapeSearchGrid();
             runLiveShapeMatch();
         }
@@ -3531,6 +3591,7 @@ function closeHelpModal() {
     function clearShapeSearch() {
         sAnchors = [];
         sControls = [];
+        sNextPointNewPath = false;
         drawShapeSearchGrid();
         currentAiFilter = null;
         document.getElementById("aiResultContainer").style.display = "none";
@@ -3634,7 +3695,8 @@ function closeHelpModal() {
         oCtx.lineJoin = "round";
         oCtx.moveTo(sAnchors[0].x, sAnchors[0].y);
         for (let i = 1; i < sAnchors.length; i++) {
-            oCtx.quadraticCurveTo(sControls[i - 1].x, sControls[i - 1].y, sAnchors[i].x, sAnchors[i].y);
+            if (sAnchors[i].newPath || !sControls[i - 1]) oCtx.moveTo(sAnchors[i].x, sAnchors[i].y);
+            else oCtx.quadraticCurveTo(sControls[i - 1].x, sControls[i - 1].y, sAnchors[i].x, sAnchors[i].y);
         }
         oCtx.stroke();
 
