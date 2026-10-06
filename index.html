@@ -183,6 +183,81 @@ iframe { transform: translateZ(0); }
     object-fit: cover !important;
     background: transparent !important;
 }
+/* --- MOBILE PHONE RESPONSIVE FIX FOR HOME PAGE --- */
+div, input, select, button, textarea, table, video, canvas {
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 6px !important;
+    }
+    .container {
+        padding: 12px 10px 40px !important;
+        border-radius: 8px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+    .dsi-header {
+        gap: 10px !important;
+        margin-bottom: 12px !important;
+        padding-bottom: 10px !important;
+    }
+    .dsi-image-logo { height: 28px !important; }
+    .dsi-header h3 { font-size: 0.9em !important; }
+    .header-flex {
+        margin-bottom: 15px !important;
+        padding-bottom: 10px !important;
+        gap: 10px !important;
+    }
+    .header-left h2 { font-size: 1.02em !important; line-height: 1.3 !important; }
+    .header-logo { width: 36px !important; height: 36px !important; }
+
+    /* Make tabs wrap cleanly into a 2-column grid on mobile phones */
+    .tabs {
+        gap: 6px !important;
+    }
+    .tab-btn {
+        flex: 1 1 46% !important;
+        padding: 9px 6px !important;
+        font-size: 0.78em !important;
+        margin-left: 0 !important;
+    }
+
+    /* Prevent inner boxes and grids from overflowing phone width */
+    .input-group, .split-view, .video-layout, #localVideoContainer {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    .split-pane, .dashboard-metric, .main-video-container, .slomo-video-container,
+    #aiSelectionPhase div, #benchmarkDashboardArea div {
+        min-width: 100% !important;
+    }
+    #dynamicVideoGrid {
+        grid-template-columns: 1fr !important;
+    }
+    video, .player-frame {
+        height: 220px !important;
+    }
+    #drawingCanvas, #shapeSearchCanvas {
+        height: 200px !important;
+    }
+
+    /* Allow wide tables to scroll smoothly inside their box without zooming out the whole page */
+    .bulletin-list, #estPrintableContent, #bulletinResultArea, #sourceResultArea {
+        overflow-x: auto !important;
+        max-width: 100% !important;
+    }
+    .bulletin-table th, .bulletin-table td {
+        padding: 8px 6px !important;
+        font-size: 0.82em !important;
+    }
+    .bulletin-thumb {
+        width: 80px !important;
+        height: 48px !important;
+    }
+}
 	</style>
 </head>
 <body>
