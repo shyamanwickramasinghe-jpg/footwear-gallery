@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>DSI FOOTTECH — Live Time & Motion Analysis</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background: linear-gradient(rgba(10,15,20,0.82), rgba(10,15,20,0.92)), url('Bgrd%20image.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 8px 12px;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Top Command Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(20, 25, 33, 0.95);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 6px 12px;
+            margin-bottom: 6px;
+            flex-shrink: 0;
+        }
+        .brand-left { display: flex; align-items: center; gap: 10px; }
+        .brand-left img { height: 28px; width: auto; }
+        .brand-left h3 { margin: 0; font-size: 1em; color: #00ffff; letter-spacing: 0.5px; }
+        .top-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+        button, select, input {
+            font-family: inherit;
+            border-radius: 5px;
+            border: 1px solid #475569;
+            background: #1e293b;
+            color: #fff;
+            padding: 5px 9px;
+            font-size: 0.8em;
+        }
+        button { cursor: pointer; font-weight: 700; border: none; transition: opacity 0.15s; }
+        button:hover { opacity: 0.88; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* Metadata Strip */
+        .meta-strip {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 6px;
+            background: rgba(18, 22, 29, 0.95);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            flex-shrink: 0;
+        }
+        .meta-item label { display: block; font-size: 0.65em; color: #94a3b8; text-transform: uppercase; margin-bottom: 2px; }
+        .meta-item input, .meta-item select { width: 100%; padding: 3px 6px; font-size: 0.78em; background: #0f172a; }
+
+        /* Main Single-Frame Split Workspace */
+        .workspace {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            min-height: 0;
+        }
+        .left-studio {
+            flex: 1.05;
+            background: rgba(18, 22, 29, 0.95);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-width: 320px;
+        }
+        .right-sheet {
+            flex: 1.55;
+            background: rgba(18, 22, 29, 0.95);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-width: 420px;
+            overflow: hidden;
+        }
+
+        /* Video HUD Box */
+        .video-box {
+            position: relative;
+            width: 100%;
+            flex: 1;
+            min-height: 180px;
+            background: #000;
+            border-radius: 6px;
+            border: 2px solid #00ffff;
+            overflow: hidden;
+        }
+        .video-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .hud-top {
+            position: absolute;
+            top: 8px; left: 8px; right: 8px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .hud-badge {
+            background: rgba(0,0,0,0.82);
+            color: #00ffff;
+            border: 1px solid #00ffff;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+        .hud-timer {
+            background: rgba(0,0,0,0.88);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.95em;
+            font-weight: bold;
+        }
+        .hud-bottom {
+            position: absolute;
+            bottom: 8px; left: 8px; right: 8px;
+            background: rgba(10, 15, 24, 0.92);
+            border: 1px solid #28a745;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75em;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* KPI Cards */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-bottom: 6px;
+            flex-shrink: 0;
+        }
+        .kpi-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-left: 3px solid #007bff;
+            border-radius: 6px;
+            padding: 5px 6px;
+            text-align: center;
+        }
+        .kpi-title { font-size: 0.62em; color: #94a3b8; text-transform: uppercase; }
+        .kpi-val { font-size: 1.05em; font-weight: 800; color: #fff; margin-top: 2px; }
+        .kpi-sub { font-size: 0.62em; color: #64748b; }
+
+        /* Readings Matrix Table */
+        .matrix-scroll {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            background: #090d14;
+        }
+        .dsi-live-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.73em;
+            text-align: center;
+        }
+        .dsi-live-table th {
+            position: sticky;
+            top: 0;
+            background: #1e3a5f;
+            color: #fff;
+            padding: 5px 4px;
+            border: 1px solid #334155;
+            z-index: 5;
+        }
+        .dsi-live-table td {
+            padding: 2px 4px;
+            border: 1px solid #1e293b;
+        }
+        .dsi-live-table input {
+            width: 48px;
+            padding: 1px 3px;
+            text-align: center;
+            background: #111827;
+            border: 1px solid #374151;
+            color: #fff;
+            font-size: 0.95em;
+        }
+
+        /* Official Print Area (Hidden on Screen, 1:1 Physical DSI Sheet on Print/PDF) */
+        #officialPrintSheet { display: none; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 6mm; }
+            body {
+                background: #fff !important;
+                color: #000 !important;
+                height: auto !important;
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .top-bar, .meta-strip, .workspace { display: none !important; }
+            #officialPrintSheet {
+                display: block !important;
+                width: 100%;
+                color: #000;
+                font-family: 'Times New Roman', Times, serif;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP COMMAND BAR -->
+    <div class="top-bar">
+        <div class="brand-left">
+            <button type="button" onclick="window.location.href='index.html'" style="background:#334155; color:#fff; padding:5px 10px;">⬅ Back to FOOTTECH</button>
+            <img src="4544545.jpg" alt="DSI" onerror="this.style.display='none'">
+            <h3>⏱️ DSI LIVE TIME & MOTION ANALYSIS</h3>
+            <span id="camStatusBadge" style="background:#28a745; color:#fff; font-size:0.72em; padding:2px 8px; border-radius:10px; font-weight:bold;">📷 AUTO-CAMERA</span>
+        </div>
+        <div class="top-actions">
+            <select id="presetSelector" onchange="loadDsiSheetPreset(this.value)" style="background:#0f172a; color:#ffc107; border-color:#ffc107; font-weight:bold;">
+                <option value="">📂 Load Verified DSI Study Sheet (Kelsey PF0339 / Usofta)...</option>
+                <option value="V005" selected>📄 V005: Bow velcro Att. (D/N F/B | 7% MA | SMV: 0.611)</option>
+                <option value="V004">📄 V004: Insert buckel st. (Manual | 11% P&H | SMV: 0.459)</option>
+                <option value="V003">📄 V003: Counter Att. - Inner (Juki S/N | 5% MA | SMV: 0.390)</option>
+                <option value="V0008">📄 V0008: Seam opening (5 Elements A-E | 3% MA | SMV: 0.432)</option>
+                <option value="V0010">📄 V0010: Toe back joint (D/N P/B | 7% MA | SMV: 0.795)</option>
+                <option value="V001">📄 V001: Toe desing sewing (D/N P/B | 7% MA | SMV: 0.624)</option>
+                <option value="V009">📄 V009: Back Binding Att. (Binding M/C | 5.5% MA | SMV: 0.374)</option>
+                <option value="V006">📄 V006: Back joint (Juki S/N | 5% MA | SMV: 0.401)</option>
+                <option value="V002">📄 V002: Ring strap taking (Juki S/N | 5% MA | SMV: 0.359)</option>
+                <option value="UB02">📄 Study 02: Back strap Edge Stitching (Obs: 0.832 ➔ R.SMV: 0.500)</option>
+            </select>
+            <button type="button" onclick="startLiveCamera()" style="background:#007bff; color:#fff;">📷 Live Camera</button>
+            <button type="button" onclick="document.getElementById('videoUploadInput').click()" style="background:#475569; color:#fff;">📁 Load Floor Video</button>
+            <input type="file" id="videoUploadInput" accept="video/*" style="display:none;" onchange="handleFloorVideoUpload(event)">
+            <button type="button" onclick="clearReadings()" style="background:#dc3545; color:#fff;">🧹 Clear</button>
+        </div>
+    </div>
+
+    <!-- COMPACT METADATA STRIP (MATCHES TOP & RIGHT SIDEBAR OF DSI SHEET) -->
+    <div class="meta-strip">
+        <div class="meta-item"><label>Style / Buyer</label><input type="text" id="mStyleBuyer" value="PF0339 / DSS" oninput="recalcAll()"></div>
+        <div class="meta-item"><label>Product / Plant</label><input type="text" id="mProductPlant" value="Kelsey / BP Line B" oninput="recalcAll()"></div>
+        <div class="meta-item"><label>Operation Name</label><input type="text" id="mOperation" value="Bow velcro Att." style="color:#00ffff; font-weight:bold;" oninput="recalcAll()"></div>
+        <div class="meta-item"><label>Study / Sheet No</label><input type="text" id="mStudyNo" value="V005" oninput="recalcAll()"></div>
+        <div class="meta-item"><label>Operator / Study By</label><input type="text" id="mOperator" value="Erandi / Udeera" oninput="recalcAll()"></div>
+        <div class="meta-item"><label>Size / Material</label><input type="text" id="mSizeMat" value="6/7 | PVC" oninput="recalcAll()"></div>
+        <div class="meta-item">
+            <label style="color:#00ffff; font-weight:bold;">DSI Machine (Auto %MA)</label>
+            <select id="mMachinePreset" onchange="applyMachinePreset()"></select>
+        </div>
+        <div class="meta-item">
+            <label style="color:#ffc107; font-weight:bold;">%MA (Elem B) & %P&H</label>
+            <div style="display:flex; gap:3px;">
+                <input type="number" id="mMaPct" value="7.0" step="0.5" oninput="recalcAll()" title="% Machine Allowance">
+                <input type="number" id="mPhPct" value="8.0" step="0.5" oninput="recalcAll()" title="% P&H Allowance">
+            </div>
+        </div>
+        <div class="meta-item">
+            <label style="color:#51cf66; font-weight:bold;">Target R.SMV (Kaizen)</label>
+            <input type="number" id="mTargetRSmv" value="0.480" step="0.01" style="color:#51cf66; font-weight:bold;" oninput="recalcAll()">
+        </div>
+    </div>
+
+    <!-- MAIN SINGLE-FRAME WORKSPACE -->
+    <div class="workspace">
+        <!-- LEFT PANE: LIVE CAMERA + IMPROVED VIDEO HUD + 1-TAP ELEMENT CONTROLS -->
+        <div class="left-studio">
+            <div class="video-box" id="videoFrameContainer">
+                <video id="liveCamVideo" autoplay muted playsinline></video>
+                <video id="improvedSmvVideo" controls loop muted playsinline style="display:none;"></video>
+
+                <div class="hud-top">
+                    <div class="hud-badge" id="hudModeLabel">🎥 LIVE STUDY FEED (05 PAIRS / 10 RDGS)</div>
+                    <div class="hud-timer" id="hudClock">Rdg #1 [Ⓐ Pick up]: 0.00s</div>
+                </div>
+
+                <div class="hud-bottom">
+                    <span>SMV/Pr: <strong id="hudSmv" style="color:#ffc107;">0.611</strong></span>
+                    <span>Rating: <strong id="hudRating" style="color:#00ffff;">88%</strong></span>
+                    <span>Target (100%): <strong id="hudTargetHr" style="color:#fff;">98/hr</strong></span>
+                    <span>✨ Improved R.SMV: <strong id="hudImpSmv" style="color:#51cf66;">0.480 (125/hr)</strong></span>
+                </div>
+            </div>
+
+            <!-- 1-TAP ELEMENT CAPTURE BAR -->
+            <div style="display:flex; gap:6px; margin-top:6px;">
+                <button type="button" id="btnStartStudy" onclick="toggleLiveTiming()" style="flex:1; padding:9px; background:#28a745; color:#fff; font-size:0.84em;">▶ Start Live Study</button>
+                <button type="button" id="btnTapElem" onclick="recordElementSplit()" disabled style="flex:1.6; padding:9px; background:#007bff; color:#fff; font-size:0.84em;">🟢 Tap Element Ⓐ (Pick up) [Space]</button>
+                <button type="button" id="btnTapBundle" onclick="recordBundleSplit()" disabled style="flex:0.9; padding:9px; background:#fd7e14; color:#fff; font-size:0.8em;">📦 +Bundling</button>
+            </div>
+
+            <!-- IMPROVED VIDEO SYNTHESIZER BAR -->
+            <div style="margin-top:6px; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:6px 8px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                <div style="font-size:0.73em; color:#cbd5e1;">
+                    <strong style="color:#51cf66;">🎬 Improved Method Video:</strong> Auto-trims Pick/Dispose Muda & calibrates pace to <strong>R.SMV</strong>
+                </div>
+                <div style="display:flex; gap:5px;">
+                    <button type="button" id="btnSynthVideo" onclick="synthesizeImprovedVideo()" style="background:#198754; color:#fff; border:1px solid #51cf66; padding:6px 10px; white-space:nowrap;">✨ Generate Improved Video</button>
+                    <button type="button" id="btnBackToLive" onclick="switchVideoMode('live')" style="background:#334155; color:#fff; padding:6px 8px; display:none;">🔙 Live Feed</button>
+                    <a id="downloadVideoBtn" style="display:none; background:#007bff; color:#fff; padding:6px 8px; border-radius:5px; font-size:0.75em; text-decoration:none; font-weight:bold;">⬇️ Save MP4</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANE: LIVE ELEMENTAL MATRIX + DSI TOTALS + 1:1 PDF GENERATOR -->
+        <div class="right-sheet">
+            <div class="kpi-row">
+                <div class="kpi-card" style="border-left-color:#007bff;">
+                    <div class="kpi-title">Elem Ⓑ (+%MA)</div>
+                    <div class="kpi-val" id="kpiMachB" style="color:#38bdf8;">37.52</div>
+                    <div class="kpi-sub" id="kpiMachSub">Basic: 35.066</div>
+                </div>
+                <div class="kpi-card" style="border-left-color:#17a2b8;">
+                    <div class="kpi-title">Manual (Ⓐ+Ⓒ+Ⓓ)</div>
+                    <div class="kpi-val" id="kpiManACD" style="color:#2dd4bf;">19.14</div>
+                    <div class="kpi-sub" id="kpiBaseTot">Base: 56.656</div>
+                </div>
+                <div class="kpi-card" style="border-left-color:#ffc107;">
+                    <div class="kpi-title">SMV Per Prs</div>
+                    <div class="kpi-val" id="kpiSmvPr" style="color:#ffc107;">0.611</div>
+                    <div class="kpi-sub" id="kpiSmv100">SMV/100: 61.188</div>
+                </div>
+                <div class="kpi-card" style="border-left-color:#fd7e14;">
+                    <div class="kpi-title">Target (100% | 70%)</div>
+                    <div class="kpi-val" id="kpiTargetHr">98 / hr</div>
+                    <div class="kpi-sub" id="kpiDayProd">Day: 980 | 686</div>
+                </div>
+                <div class="kpi-card" style="border-left-color:#28a745; background:rgba(25,135,84,0.18);">
+                    <div class="kpi-title" style="color:#51cf66; font-weight:bold;">✨ Improved R.SMV</div>
+                    <div class="kpi-val" id="kpiImpSmv" style="color:#51cf66;">0.480</div>
+                    <div class="kpi-sub" id="kpiImpTarget" style="color:#86efac; font-weight:bold;">🚀 125/hr (+28%)</div>
+                </div>
+            </div>
+
+            <!-- ELEMENTAL READINGS TABLE -->
+            <div class="matrix-scroll">
+                <table class="dsi-live-table">
+                    <thead>
+                        <tr id="liveTableHeaderRow"></tr>
+                    </thead>
+                    <tbody id="liveTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- BOTTOM EXPORT & AI AUDIT BAR -->
+            <div style="margin-top:6px;">
+                <div id="aiKaizenBanner" style="background:#0f172a; border-left:3px solid #ffc107; padding:5px 8px; border-radius:4px; font-size:0.73em; color:#e2e8f0; margin-bottom:6px;">
+                    💡 <strong>Official DSI Formula Active:</strong> Machine Element Ⓑ gets <strong>+%MA</strong>, combined with Manual Elements Ⓐ+Ⓒ+Ⓓ, plus <strong>+%P&H</strong> allowance.
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button type="button" onclick="runAiMethodAudit()" style="flex:1; padding:8px; background:#17a2b8; color:#fff;">🤖 AI Kaizen Audit</button>
+                    <button type="button" onclick="window.print()" style="flex:1.6; padding:8px; background:#ffc107; color:#000; font-size:0.85em;">🖨️ Generate Official DSI Time Study PDF (Exact Format)</button>
+                    <button type="button" onclick="shareStudyWhatsApp()" style="flex:0.9; padding:8px; background:#28a745; color:#fff;">💬 WhatsApp</button>
+                    <button type="button" onclick="shareStudyEmail()" style="flex:0.8; padding:8px; background:#6f42c1; color:#fff;">📧 Email</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1:1 EXACT REPLICA OF PHYSICAL "D SAMSON INDUSTRIES (PVT) LTD - TIME AND MOTION ANALYSIS SHEET" FOR PDF PRINT -->
+    <div id="officialPrintSheet"></div>
+
+<script>
+    // 1. Finalized Machine Allowances from DSI Excel Sheet
+    const dsiMachines = [
+        { name: "Golden Wheel D/N F/B or P/B (7% MA, 8% P&H)", make: "Golden Wheel", type: "D/N F/B", ma: 7.0, ph: 8.0 },
+        { name: "Juki S/N D Lock Stitch (5% MA, 8% P&H)", make: "Juki", type: "S/N D", ma: 5.0, ph: 8.0 },
+        { name: "Golden Wheel Binding M/C (5.5% MA, 8% P&H)", make: "Golden Wheel", type: "Binding M/C", ma: 5.5, ph: 8.0 },
+        { name: "Seam Opening Machine (3% MA, 8% P&H)", make: "CS-9030", type: "Seam Open", ma: 3.0, ph: 8.0 },
+        { name: "Manual Table / Insert Buckle (0% MA, 11% P&H)", make: "-", type: "Manual", ma: 0.0, ph: 11.0 },
+        { name: "Skiving Machine CS-747 (2.5% MA, 8% P&H)", make: "CS-747", type: "Skiving", ma: 2.5, ph: 8.0 },
+        { name: "Zig-Zag Z/Z Machine (5% MA, 8% P&H)", make: "Golden Wheel", type: "Z/Z", ma: 5.0, ph: 8.0 },
+        { name: "Strobel Machine M4050 (4% MA, 8% P&H)", make: "M4050", type: "Strobel", ma: 4.0, ph: 8.0 },
+        { name: "Eyeleting YC-712 (4% MA, 8% P&H)", make: "YC-712", type: "Eyelet", ma: 4.0, ph: 8.0 },
+        { name: "Travelling Head / Hyd Die Cutter (4% MA, 11% P&H)", make: "Atom", type: "Die Cutter", ma: 4.0, ph: 11.0 },
+        { name: "Toe Lasting Machine (4% MA, 11% P&H)", make: "Toe Last", type: "Lasting", ma: 4.0, ph: 11.0 },
+        { name: "Sole Stitching Under (10% MA, 11% P&H)", make: "Sole Stitch", type: "Under", ma: 10.0, ph: 11.0 }
+    ];
+
+    // 2. Digitized DSI Study Sheets (Exact Readings from Your Uploaded Photos!)
+    const dsiPresets = {
+        V005: {
+            style: "", buyer: "DSS", product: "Kelsey", plant: "BP", dept: "Line B", op: "Bow velcro Att.",
+            date: "2021/04/28", studyNo: "V005", sheetNo: "V005", operator: "Erandi", studyBy: "Udeera",
+            size: "6/7", mat: "PVC", thread: "", make: "Golden Wheel", type: "D/N F/B", rpm: "", start: "4.27", finish: "", pairs: "05",
+            machineIdx: 0, ma: 7.0, ph: 8.0, rSmv: 0.480, mode: "splitB",
+            elements: ["Pick up", "Sewing", "Disposed", "Bundling"],
+            ratings: [88, 89, 85, 87],
+            readings: [
+                [2, 19, 5, 17], [2, 20, 6, 24], [2, 20, 5, 0], [3, 19, 6, 0], [2, 19, 6, 0],
+                [2, 21, 5, 0],  [2, 20, 6, 0],  [2, 19, 5, 0], [2, 20, 6, 0], [2, 20, 5, 0]
+            ]
+        },
+        V004: {
+            style: "", buyer: "DSS", product: "Kelsey", plant: "BP", dept: "Line B", op: "Insert buckel st.",
+            date: "2021/04/28", studyNo: "V004", sheetNo: "V004", operator: "Chandi", studyBy: "Udeera",
+            size: "07", mat: "", thread: "", make: "-", type: "Manual", rpm: "", start: "", finish: "", pairs: "05",
+            machineIdx: 4, ma: 0.0, ph: 11.0, rSmv: 0.350, mode: "allCombined",
+            elements: ["Pick up", "Insert st.", "Disposed", "Bundling"],
+            ratings: [87, 85, 87, 83],
+            readings: [
+                [1, 15, 1, 38], [2, 18, 1, 17], [1, 16, 2, 0], [2, 15, 1, 0], [1, 17, 1, 0],
+                [2, 15, 1, 0],  [1, 14, 2, 0],  [2, 17, 1, 0], [1, 18, 1, 0], [2, 17, 1, 0]
+            ]
+        },
+        V003: {
+            style: "", buyer: "DSS", product: "Kelsey", plant: "BP", dept: "Line B", op: "Counter Att.",
+            date: "2021/04/28", studyNo: "V003", sheetNo: "V003", operator: "Nayana", studyBy: "Udeera",
+            size: "10", mat: "", thread: "", make: "Juki", type: "S/N D", rpm: "", start: "", finish: "", pairs: "05",
+            machineIdx: 1, ma: 5.0, ph: 8.0, rSmv: 0.310, mode: "splitB",
+            elements: ["Pick up", "Sewing", "Disposed", "Bundling"],
+            ratings: [87, 90, 87, 85],
+            readings: [
+                [3, 11, 2, 13], [2, 10, 2, 32], [3, 12, 2, 0], [2, 10, 2, 0], [2, 11, 2, 0],
+                [3, 11, 3, 0],  [3, 10, 2, 0],  [2, 11, 2, 0], [3, 11, 2, 0], [2, 11, 2, 0]
+            ]
+        },
+        V0008: {
+            style: "PF0339", buyer: "DSS", product: "Kelsey", plant: "BP", dept: "Line B", op: "Seam opening",
+            date: "2021/04/29", studyNo: "V0008", sheetNo: "V0008", operator: "Nipuni", studyBy: "Udeera",
+            size: "8", mat: "PVC", thread: "", make: "Seam Open", type: "M/C", rpm: "", start: "10.55 AM", finish: "", pairs: "05",
+            machineIdx: 3, ma: 3.0, ph: 8.0, rSmv: 0.340, mode: "allCombined",
+            elements: ["Pick up", "Latex Apply", "Seam open", "Disposed", "Bundling"],
+            ratings: [83, 85, 88, 90, 86],
+            readings: [
+                [2, 5, 8, 2, 23], [1, 5, 8, 1, 34], [2, 6, 9, 2, 0], [2, 5, 8, 2, 0], [1, 6, 10, 1, 0],
+                [1, 5, 8, 2, 0],  [1, 6, 8, 1, 0],  [1, 5, 9, 2, 0], [2, 5, 8, 1, 0], [1, 5, 8, 2, 0]
+            ]
+        },
+        V0010: {
+            style: "PF0339", buyer: "DSS", product: "Kelsey", plant: "BP", dept: "Line B", op: "Toe back joint",
+            date: "2021/04/29", studyNo: "V0010", sheetNo: "V0010", operator: "Maneesha", studyBy: "Udeera",
+            size: "12", mat: "PVC", thread: "", make: "Golden Wheel", type: "D/N/P/B", rpm: "", start: "11.33 AM", finish: "11.40 AM", pairs: "05",
+            machineIdx: 0, ma: 7.0, ph: 8.0, rSmv: 0.580, mode: "splitB",
+            elements: ["Pick up", "Sewing", "Disposed", "Bundling"],
+            ratings: [88, 90, 90, 85],
+            readings: [
+                [1, 28, 7, 18], [1, 27, 8, 24], [2, 27, 7, 0], [1, 25, 7, 0], [1, 27, 7, 0],
+                [1, 28, 6, 0],  [1, 27, 8, 0],  [2, 27, 7, 0], [1, 25, 7, 0], [1, 27, 7, 0]
+            ]
+        },
+        V001: {
+            style: "PF", buyer: "DSS", product: "Kelsey", plant: "BP", dept: "Line B", op: "Toe desing sewing",
+            date: "2021/04/28", studyNo: "V001", sheetNo: "V001", operator: "Rasika", studyBy: "Udeera",
+            size: "06", mat: "PVC", thread: "TKT 60", make: "Golden Wheel", type: "D/N/P/B", rpm: "", start: "3.00 PM", finish: "3.06 PM", pairs: "05",
+            machineIdx: 0, ma: 7.0, ph: 8.0, rSmv: 0.480, mode: "splitB",
+            elements: ["Pick up", "Sewing", "Disposed", "Bundling"],
+            ratings: [85, 87, 80, 83],
+            readings: [
+                [2, 19, 6, 31], [3, 17, 5, 41], [2, 18, 6, 0], [2, 18, 5, 0], [2, 17, 5, 0],
+                [3, 18, 6, 0],  [2, 19, 6, 0],  [2, 17, 5, 0], [2, 18, 6, 0], [2, 17, 6, 0]
+            ]
+        },
+        V009: {
+            style: "PF0339", buyer: "DSS", product: "Kelsey", plant: "BP", dept: "Line B", op: "Back Binding Att.",
+            date: "2021/04/29", studyNo: "V009", sheetNo: "V009", operator: "Sanduni", studyBy: "Udeera",
+            size: "02", mat: "PVC", thread: "", make: "Golden Wheel", type: "Binding M/C", rpm: "", start: "11.17 AM", finish: "11.25 AM", pairs: "05",
+            machineIdx: 2, ma: 5.5, ph: 8.0, rSmv: 0.310, mode: "splitB",
+            elements: ["Pick up", "Sewing", "Disposed", "Bundling"],
+            ratings: [90, 88, 87, 85],
+            readings: [
+                [1, 11, 6, 18], [1, 12, 6, 27], [2, 11, 7, 0], [1, 11, 6, 0], [1, 13, 6, 0],
+                [1, 11, 6, 0],  [1, 12, 6, 0],  [1, 11, 6, 0], [1, 11, 7, 0], [1, 11, 6, 0]
+            ]
+        },
+        V006: {
+            style: "PF0339", buyer: "DSS", product: "Kelsey", plant: "BP", dept: "Line B", op: "Back joint",
+            date: "2021/04/29", studyNo: "V006", sheetNo: "V006", operator: "Chanchala", studyBy: "Udeera",
+            size: "3", mat: "", thread: "", make: "Juki", type: "S/N D", rpm: "", start: "10.20 AM", finish: "10.28 AM", pairs: "05",
+            machineIdx: 1, ma: 5.0, ph: 8.0, rSmv: 0.320, mode: "splitB",
+            elements: ["Pick up", "Sewing", "Disposed", "Bundling"],
+            ratings: [87, 90, 85, 84],
+            readings: [
+                [2, 11, 1, 41], [1, 10, 1, 28], [1, 11, 2, 0], [2, 12, 1, 0], [1, 11, 1, 0],
+                [2, 11, 1, 0],  [1, 10, 2, 0],  [2, 11, 1, 0], [2, 12, 1, 0], [1, 11, 2, 0]
+            ]
+        },
+        V002: {
+            style: "", buyer: "DSS", product: "Kelsey", plant: "BP", dept: "Line B", op: "Ring strap taking",
+            date: "2021/04/28", studyNo: "V002", sheetNo: "V002", operator: "Paba", studyBy: "Udeera",
+            size: "6/7/8", mat: "PVC", thread: "", make: "Juki", type: "S/N D", rpm: "", start: "", finish: "", pairs: "05",
+            machineIdx: 1, ma: 5.0, ph: 8.0, rSmv: 0.290, mode: "splitB",
+            elements: ["Pick up", "Sewing", "Disposed", "Bundling"],
+            ratings: [83, 90, 85, 85],
+            readings: [
+                [2, 10, 1, 17], [2, 11, 2, 26], [3, 10, 1, 0], [2, 12, 1, 0], [2, 10, 2, 0],
+                [3, 10, 1, 0],  [2, 11, 2, 0],  [2, 10, 1, 0], [2, 10, 2, 0], [2, 11, 2, 0]
+            ]
+        },
+        UB02: {
+            style: "UB0351", buyer: "DSS", product: "Usofta", plant: "BP", dept: "Sewing G", op: "Back strap Edge Stitching",
+            date: "2021/09/23", studyNo: "02", sheetNo: "02", operator: "Janaki", studyBy: "IE Officer",
+            size: "08", mat: "PU", thread: "Nylon", make: "Juki", type: "S/N Lock Stitch", rpm: "3500", start: "09.37 AM", finish: "", pairs: "05",
+            machineIdx: 1, ma: 5.0, ph: 8.0, rSmv: 0.500, mode: "splitB",
+            elements: ["Pick-up", "Sewing", "Dispose", "Bund & Handle"],
+            ratings: [86, 91, 85, 89],
+            readings: [
+                [3, 30, 2, 17], [3, 32, 1, 31], [3, 28, 1, 0], [3, 29, 1, 0], [3, 27, 2, 0],
+                [3, 30, 2, 0],  [3, 34, 2, 0],  [4, 31, 2, 0], [4, 32, 1, 0], [4, 34, 2, 0]
+            ]
+        }
+    };
+
+    let activeSheet = JSON.parse(JSON.stringify(dsiPresets.V005));
+    let camStream = null;
+    let isTiming = false;
+    let curRdgIdx = 0;
+    let curElemIdx = 0;
+    let elemStartMs = 0;
+    let clockInterval = null;
+
+    window.onload = function() {
+        const machSel = document.getElementById("mMachinePreset");
+        dsiMachines.forEach((m, idx) => {
+            const opt = document.createElement("option");
+            opt.value = idx;
+            opt.text = m.name;
+            machSel.add(opt);
+        });
+        loadDsiSheetPreset("V005");
+        startLiveCamera();
+    };
+
+    function loadDsiSheetPreset(key) {
+        if (!key || !dsiPresets[key]) return;
+        activeSheet = JSON.parse(JSON.stringify(dsiPresets[key]));
+        document.getElementById("mStyleBuyer").value = `${activeSheet.style ? activeSheet.style + ' / ' : ''}${activeSheet.buyer}`;
+        document.getElementById("mProductPlant").value = `${activeSheet.product} / ${activeSheet.plant} ${activeSheet.dept}`;
+        document.getElementById("mOperation").value = activeSheet.op;
+        document.getElementById("mStudyNo").value = activeSheet.studyNo;
+        document.getElementById("mOperator").value = `${activeSheet.operator} / ${activeSheet.studyBy}`;
+        document.getElementById("mSizeMat").value = `${activeSheet.size} | ${activeSheet.mat}`;
+        document.getElementById("mMachinePreset").value = activeSheet.machineIdx;
+        document.getElementById("mMaPct").value = activeSheet.ma;
+        document.getElementById("mPhPct").value = activeSheet.ph;
+        document.getElementById("mTargetRSmv").value = activeSheet.rSmv;
+        recalcAll();
+    }
+
+    function applyMachinePreset() {
+        const idx = parseInt(document.getElementById("mMachinePreset").value) || 0;
+        const m = dsiMachines[idx];
+        if (!m) return;
+        activeSheet.make = m.make;
+        activeSheet.type = m.type;
+        document.getElementById("mMaPct").value = m.ma;
+        document.getElementById("mPhPct").value = m.ph;
+        recalcAll();
+    }
+
+    async function startLiveCamera() {
+        const vid = document.getElementById("liveCamVideo");
+        switchVideoMode('live');
+        try {
+            if (camStream) camStream.getTracks().forEach(t => t.stop());
+            camStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 360 } },
+                audio: false
+            });
+            vid.src = "";
+            vid.srcObject = camStream;
+            vid.play();
+            const b = document.getElementById("camStatusBadge");
+            b.style.background = "#28a745"; b.innerText = "📷 CAMERA LIVE";
+        } catch (e) {
+            const b = document.getElementById("camStatusBadge");
+            b.style.background = "#ffc107"; b.style.color = "#000"; b.innerText = "📂 PRESET / CLIP MODE";
+        }
+    }
+
+    function handleFloorVideoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+        switchVideoMode('live');
+        const vid = document.getElementById("liveCamVideo");
+        vid.srcObject = null;
+        vid.src = URL.createObjectURL(file);
+        vid.loop = true;
+        vid.play();
+        const clean = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
+        if (clean.length > 2) document.getElementById("mOperation").value = clean;
+        const b = document.getElementById("camStatusBadge");
+        b.style.background = "#17a2b8"; b.style.color = "#fff"; b.innerText = "🎬 FLOOR VIDEO LOADED";
+        recalcAll();
+    }
+
+    function toggleLiveTiming() {
+        const btnStart = document.getElementById("btnStartStudy");
+        const btnElem = document.getElementById("btnTapElem");
+        const btnBund = document.getElementById("btnTapBundle");
+        const numCols = activeSheet.elements.length;
+
+        isTiming = !isTiming;
+        if (isTiming) {
+            switchVideoMode('live');
+            curRdgIdx = 0;
+            curElemIdx = 0;
+            activeSheet.readings = Array.from({ length: 10 }, () => new Array(numCols).fill(0));
+            elemStartMs = performance.now();
+
+            btnStart.innerHTML = "⏹️ Stop Study";
+            btnStart.style.background = "#dc3545";
+            btnElem.disabled = false;
+            btnBund.disabled = false;
+            updateTapBtnText();
+
+            clockInterval = setInterval(() => {
+                const sec = (performance.now() - elemStartMs) / 1000;
+                const elName = activeSheet.elements[curElemIdx] || "Element";
+                document.getElementById("hudClock").innerText = `Rdg #${curRdgIdx + 1} [${elName}]: ${sec.toFixed(2)}s`;
+            }, 80);
+            recalcAll();
+        } else {
+            clearInterval(clockInterval);
+            btnStart.innerHTML = "▶ Start Live Study";
+            btnStart.style.background = "#28a745";
+            btnElem.disabled = true;
+            btnBund.disabled = true;
+        }
+    }
+
+    function updateTapBtnText() {
+        const circles = ["Ⓐ","Ⓑ","Ⓒ","Ⓓ","Ⓔ"];
+        const elName = activeSheet.elements[curElemIdx] || "Element";
+        document.getElementById("btnTapElem").innerHTML = `🟢 Rdg #${curRdgIdx + 1}: Tap End of ${circles[curElemIdx]} (${elName}) [Space]`;
+    }
+
+    function recordElementSplit() {
+        if (!isTiming) return;
+        const now = performance.now();
+        const val = Math.max(1, Math.round((now - elemStartMs) / 1000));
+        const nonBundCols = activeSheet.elements.length - 1;
+        activeSheet.readings[curRdgIdx][curElemIdx] = val;
+        elemStartMs = now;
+
+        curElemIdx++;
+        if (curElemIdx >= nonBundCols) {
+            curElemIdx = 0;
+            curRdgIdx++;
+            if (curRdgIdx >= 10) {
+                toggleLiveTiming();
+                recalcAll();
+                return;
+            }
+        }
+        updateTapBtnText();
+        recalcAll();
+    }
+
+    function recordBundleSplit() {
+        if (!isTiming) return;
+        const now = performance.now();
+        const val = Math.max(5, Math.round((now - elemStartMs) / 1000));
+        const bundCol = activeSheet.elements.length - 1;
+        activeSheet.readings[curRdgIdx][bundCol] += val;
+        elemStartMs = now;
+        recalcAll();
+    }
+
+    document.addEventListener("keydown", function(e) {
+        if (isTiming && e.code === "Space" && e.target.tagName !== "INPUT") {
+            e.preventDefault();
+            recordElementSplit();
+        }
+    });
+
+    function editCell(r, c, v) {
+        activeSheet.readings[r][c] = Math.max(0, parseFloat(v) || 0);
+        recalcAll();
+    }
+
+    function editRating(c, v) {
+        activeSheet.ratings[c] = parseInt(v) || 88;
+        recalcAll();
+    }
+
+    function clearReadings() {
+        if (isTiming) toggleLiveTiming();
+        const cols = activeSheet.elements.length;
+        activeSheet.readings = Array.from({ length: 10 }, () => new Array(cols).fill(0));
+        recalcAll();
+    }
+
+    // Helper to split numbers into Left | Right sub-cells exactly like DSI handwritten sheets
+    function splitDsiNum(val, decimals, blankZeroLeft) {
+        const fixed = val.toFixed(decimals);
+        const parts = fixed.split(".");
+        const left = (blankZeroLeft && parts[0] === "0") ? "" : parts[0];
+        const right = parts[1] ? parts[1].replace(/0+$/, "") || "0" : "";
+        return [left, parts[1] || ""];
+    }
+
+    function recalcAll() {
+        const numCols = activeSheet.elements.length;
+        const circles = ["Ⓐ","Ⓑ","Ⓒ","Ⓓ","Ⓔ"];
+        const maPct = parseFloat(document.getElementById("mMaPct").value) || 0;
+        const phPct = parseFloat(document.getElementById("mPhPct").value) || 8.0;
+        const targetRSmv = parseFloat(document.getElementById("mTargetRSmv").value) || 0.450;
+
+        // 1. Render Live Header
+        const hRow = document.getElementById("liveTableHeaderRow");
+        hRow.innerHTML = `<th style="text-align:left; padding-left:8px;">READINGS</th>` +
+            activeSheet.elements.map((el, i) => `<th style="background:${i===1 && activeSheet.mode==='splitB' ? '#0284c7' : '#1e3a5f'};">${circles[i]} ${el}</th>`).join("");
+
+        // 2. Column Sums & DSI Math (Floor/Truncate B.Time to 3 decimals just like DSI calculator sheets!)
+        const sums = new Array(numCols).fill(0);
+        activeSheet.readings.forEach(r => {
+            for (let c = 0; c < numCols; c++) sums[c] += (parseFloat(r[c]) || 0);
+        });
+
+        const totMin = sums.map(s => s / 100);
+        const avgMmm = totMin.map(t => t / 5); // 5 Pairs (10 readings)
+        // DSI sheets truncate B.Time to 3 decimal places (e.g. 0.042 * 0.88 = 0.03696 -> 0.036 -> 3.696 MTS/100)
+        const bTimeExact = avgMmm.map((a, i) => a * (activeSheet.ratings[i] / 100));
+        const bTimeDisp = bTimeExact.map(b => Math.floor(b * 1000 + 1e-6) / 1000);
+        const mts100 = bTimeExact.map(b => b * 100);
+
+        let machB_Mts = 0, machB_Base = 0, man_Mts = 0, overallBase = 0;
+        if (activeSheet.mode === "splitB" && numCols === 4) {
+            machB_Mts = mts100[1];
+            machB_Base = machB_Mts * (1 + maPct / 100);
+            man_Mts = mts100[0] + mts100[2] + mts100[3];
+            overallBase = machB_Base + man_Mts;
+        } else {
+            man_Mts = mts100.reduce((a, b) => a + b, 0);
+            overallBase = man_Mts * (1 + maPct / 100);
+        }
+
+        const smv100 = overallBase * (1 + phPct / 100);
+        const smvPerPr = Math.floor((smv100 / 100) * 1000 + 0.4) / 1000;
+        const targetHr100 = smvPerPr > 0 ? Math.round(60 / smvPerPr) : 0;
+        const day100 = targetHr100 * 10;
+        const day70 = Math.round(day100 * 0.70);
+        const impTargetHr = targetRSmv > 0 ? Math.round(60 / targetRSmv) : 0;
+        const gainPct = targetHr100 > 0 ? Math.round(((impTargetHr - targetHr100) / targetHr100) * 100) : 0;
+
+        // 3. Render Live Body
+        const tbody = document.getElementById("liveTableBody");
+        let bHtml = "";
+        activeSheet.readings.forEach((r, rIdx) => {
+            bHtml += `<tr>
+                <td style="text-align:left; padding-left:8px; color:#94a3b8; font-weight:bold;">#${rIdx + 1} ${rIdx === 0 ? '<span style="color:#fbbf24; float:right;">[B]</span>' : (rIdx === 1 ? '<span style="color:#fbbf24; float:right;">[A]</span>' : '')}</td>
+                ${r.map((val, cIdx) => `<td><input type="number" value="${val ? String(val).padStart(2,'0') : ''}" placeholder="00" onchange="editCell(${rIdx},${cIdx},this.value)"></td>`).join("")}
+            </tr>`;
+        });
+
+        bHtml += `
+            <tr style="background:#1e293b; font-weight:bold; color:#ffc107;">
+                <td style="text-align:left; padding-left:8px;">Total mm:ss/mm</td>
+                ${totMin.map(t => `<td>${t >= 1 ? Math.floor(t) + ' | ' + String(Math.round((t%1)*100)).padStart(2,'0') : String(Math.round(t*100)).padStart(2,'0')}</td>`).join("")}
+            </tr>
+            <tr style="background:#0f172a; color:#cbd5e1;">
+                <td style="text-align:left; padding-left:8px;">Average mmm</td>
+                ${avgMmm.map(a => `<td>.${String(Math.round(a*1000)).padStart(3,'0').replace(/0+$/,'')}</td>`).join("")}
+            </tr>
+            <tr style="background:#0f172a; color:#38bdf8;">
+                <td style="text-align:left; padding-left:8px;">Ratings (%)</td>
+                ${activeSheet.ratings.map((rt, cIdx) => `<td><input type="number" value="${rt}" onchange="editRating(${cIdx},this.value)" style="color:#38bdf8; font-weight:bold; border-color:#0284c7;"></td>`).join("")}
+            </tr>
+            <tr style="background:#0f172a; color:#86efac;">
+                <td style="text-align:left; padding-left:8px;">B.Time</td>
+                ${bTimeDisp.map(b => `<td>.${String(Math.round(b*1000)).padStart(3,'0')}</td>`).join("")}
+            </tr>
+            <tr style="background:#0f172a; color:#94a3b8;">
+                <td style="text-align:left; padding-left:8px;">Occ</td>
+                ${activeSheet.elements.map(() => `<td>100</td>`).join("")}
+            </tr>
+            <tr style="background:#1e3a5f; font-weight:bold; color:#fff;">
+                <td style="text-align:left; padding-left:8px;">100% Times 100</td>
+                ${mts100.map(m => `<td>${Math.floor(m)} | ${String(Math.round((m\%1)*1000)).padStart(3,'0').replace(/0+$/,'') || '0'}</td>`).join("")}
+            </tr>
+        `;
+        tbody.innerHTML = bHtml;
+
+        // 4. Update Live KPIs & HUD
+        document.getElementById("kpiMachB").innerText = (activeSheet.mode === "splitB" ? machB_Base : overallBase).toFixed(3);
+        document.getElementById("kpiMachSub").innerText = `Basic: ${(activeSheet.mode === "splitB" ? machB_Mts : man_Mts).toFixed(3)} (+${maPct}% MA)`;
+        document.getElementById("kpiManACD").innerText = man_Mts.toFixed(3);
+        document.getElementById("kpiBaseTot").innerText = `Base: ${overallBase.toFixed(3)}`;
+        document.getElementById("kpiSmvPr").innerText = smvPerPr.toFixed(3);
+        document.getElementById("kpiSmv100").innerText = `SMV/100: ${smv100.toFixed(3)}`;
+        document.getElementById("kpiTargetHr").innerText = `${targetHr100} / hr`;
+        document.getElementById("kpiDayProd").innerText = `Day: ${day100} | ${day70}`;
+        document.getElementById("kpiImpSmv").innerText = targetRSmv.toFixed(3);
+        document.getElementById("kpiImpTarget").innerText = `🚀 ${impTargetHr}/hr (+${Math.max(0, gainPct)}%)`;
+
+        const avgRtg = Math.round(activeSheet.ratings.reduce((a,b)=>a+b,0) / numCols);
+        document.getElementById("hudSmv").innerText = smvPerPr.toFixed(3);
+        document.getElementById("hudRating").innerText = avgRtg + "%";
+        document.getElementById("hudTargetHr").innerText = `${targetHr100}/hr`;
+        document.getElementById("hudImpSmv").innerText = `${targetRSmv.toFixed(3)} (${impTargetHr}/hr)`;
+
+        window.latestCalc = {
+            op: document.getElementById("mOperation").value,
+            styleBuyer: document.getElementById("mStyleBuyer").value,
+            productPlant: document.getElementById("mProductPlant").value,
+            studyNo: document.getElementById("mStudyNo").value,
+            operator: document.getElementById("mOperator").value,
+            sizeMat: document.getElementById("mSizeMat").value,
+            maPct, phPct, totMin, avgMmm, bTimeDisp, mts100,
+            machB_Mts, machB_Base, man_Mts, overallBase, smv100, smvPerPr,
+            targetHr100, day100, day70, targetRSmv, impTargetHr
+        };
+
+        buildOfficialDsiPrintSheet();
+    }
+
+    // 5. Builds the 1:1 Exact Physical DSI Sheet HTML for Print / PDF Export
+    function buildOfficialDsiPrintSheet() {
+        const c = window.latestCalc;
+        const numActive = activeSheet.elements.length;
+        const totalElementCols = 9; // Exact 9 slanted element columns like the physical DSI sheet
+        const circles = ["Ⓐ","Ⓑ","Ⓒ","Ⓓ","Ⓔ","Ⓕ","Ⓖ","Ⓗ","Ⓘ"];
+
+        const sbParts = c.styleBuyer.split("/");
+        const styleStr = sbParts[0]?.trim() || activeSheet.style || "";
+        const buyerStr = sbParts[1]?.trim() || activeSheet.buyer || "DSS";
+
+        const ppParts = c.productPlant.split("/");
+        const prodStr = ppParts[0]?.trim() || activeSheet.product || "Kelsey";
+        const opParts = c.operator.split("/");
+        const opNameStr = opParts[0]?.trim() || activeSheet.operator || "";
+        const studyByStr = opParts[1]?.trim() || activeSheet.studyBy || "Udeera";
+        const smParts = c.sizeMat.split("|");
+        const sizeStr = smParts[0]?.trim() || activeSheet.size || "";
+        const matStr = smParts[1]?.trim() || activeSheet.mat || "PVC";
+
+        // Slanted headers
+        let slantedHeadersHtml = "";
+        for (let i = 0; i < totalElementCols; i++) {
+            const elName = activeSheet.elements[i] || "";
+            slantedHeadersHtml += `
+                <th colspan="2" style="height:78px; width:46px; vertical-align:bottom; padding:2px; position:relative; border:1px solid #000;">
+                    ${elName ? `<div style="font-size:10px; font-weight:bold; text-align:right; padding-right:2px;">${circles[i]}</div>
+                    <div style="transform: rotate(-72deg); transform-origin: center center; white-space:nowrap; font-size:11px; font-weight:bold; margin-bottom:18px;">${elName}</div>` : ''}
+                </th>`;
+        }
+
+        // 20 Reading Rows (with Left | Right split cells + B / A bundle markers)
+        let rows20Html = "";
+        for (let r = 0; r < 20; r++) {
+            const rowData = activeSheet.readings[r] || [];
+            let cellsHtml = "";
+            for (let col = 0; col < totalElementCols; col++) {
+                const v = rowData[col] || 0;
+                const vStr = (r < 10 && v > 0) ? String(v).padStart(2, '0') : "";
+                // Put "B" in row 1 and "A" in row 2 just before the Bundling column, matching Udeera's sheets!
+                let leftCellContent = vStr;
+                let rightCellContent = "";
+                if (col === numActive - 2 && r === 0) rightCellContent = "<strong>B</strong>";
+                if (col === numActive - 2 && r === 1) rightCellContent = "<strong>A</strong>";
+
+                cellsHtml += `
+                    <td style="width:23px; border:1px solid #000; height:17px; text-align:center; font-size:11px;">${leftCellContent}</td>
+                    <td style="width:23px; border:1px solid #000; height:17px; text-align:center; font-size:11px;">${rightCellContent}</td>`;
+            }
+            rows20Html += `<tr><td style="border:1px solid #000; text-align:center; font-size:10px; font-weight:bold;">${r + 1}</td>${cellsHtml}</tr>`;
+        }
+
+        // 6 Summary Rows below Reading 20 (Total mm:ss/mm, Average mmm, Ratings, B.Time, Occ, 100% Times 100)
+        function buildSummaryRow(label, getterFn, isBold) {
+            let cells = "";
+            for (let col = 0; col < totalElementCols; col++) {
+                if (col < numActive) {
+                    const [L, R] = getterFn(col);
+                    cells += `<td style="border:1px solid #000; height:18px; text-align:center; font-size:10.5px; ${isBold?'font-weight:bold;':''}">${L}</td>
+                              <td style="border:1px solid #000; height:18px; text-align:center; font-size:10.5px; ${isBold?'font-weight:bold;':''}">${R}</td>`;
+                } else {
+                    cells += `<td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td>`;
+                }
+            }
+            return `<tr><td style="border:1px solid #000; text-align:left; padding-left:3px; font-size:9.5px; font-weight:bold;">${label}</td>${cells}</tr>`;
+        }
+
+        const summaryRowsHtml =
+            buildSummaryRow("Total mm:ss/mm", i => {
+                const t = c.totMin[i];
+                return t >= 1 ? [Math.floor(t), String(Math.round((t % 1) * 100)).padStart(2, '0')] : [String(Math.round(t * 100)).padStart(2, '0'), ""];
+            }, true) +
+            buildSummaryRow("Average mmm", i => [String(Math.round(c.avgMmm[i] * 1000)).padStart(3, '0').replace(/0+$/, ''), ""], false) +
+            buildSummaryRow("Ratings", i => [activeSheet.ratings[i], ""], false) +
+            buildSummaryRow("B.Time", i => [String(Math.round(c.bTimeDisp[i] * 1000)).padStart(3, '0'), ""], false) +
+            buildSummaryRow("Occ", i => ["100", ""], false) +
+            buildSummaryRow("100% Times 100", i => {
+                const m = c.mts100[i];
+                return [Math.floor(m), String(Math.round((m % 1) * 1000)).padStart(3, '0').replace(/0+$/, '') || "0"];
+            }, true);
+
+        // Totals Box Split Formatting
+        const bMtsInt = Math.floor(c.machB_Mts), bMtsDec = String(Math.round((c.machB_Mts % 1) * 1000)).padStart(3, '0').replace(/0+$/, '');
+        const bBaseInt = Math.floor(c.machB_Base), bBaseDec = String(Math.round((c.machB_Base % 1) * 1000)).padStart(3, '0').replace(/0+$/, '');
+        const manInt = Math.floor(c.man_Mts), manDec = String(Math.round((c.man_Mts % 1) * 1000)).padStart(3, '0').replace(/0+$/, '');
+        const totBaseInt = Math.floor(c.overallBase), totBaseDec = String(Math.round((c.overallBase % 1) * 1000)).padStart(3, '0').replace(/0+$/, '');
+        const smv100Int = Math.floor(c.smv100), smv100Dec = String(Math.round((c.smv100 % 1) * 1000)).padStart(3, '0').replace(/0+$/, '');
+
+        const totalsRowsHtml = activeSheet.mode === "splitB" ? `
+            <tr>
+                <td style="border:1px solid #000; height:22px; font-weight:bold;">Ⓑ</td>
+                <td style="border:1px solid #000; width:24px;">${bMtsInt}</td><td style="border:1px solid #000; width:28px;">${bMtsDec}</td>
+                <td style="border:1px solid #000;">${c.maPct}%</td>
+                <td style="border:1px solid #000; width:24px;">${bBaseInt}</td><td style="border:1px solid #000; width:28px;">${bBaseDec}</td>
+                <td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td>
+                <td style="border:1px solid #000; width:24px;"></td><td style="border:1px solid #000; width:28px;"></td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #000; height:22px; font-weight:bold;">Ⓐ + Ⓒ + Ⓓ</td>
+                <td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td>
+                <td style="border:1px solid #000;"></td>
+                <td style="border:1px solid #000;">${manInt}</td><td style="border:1px solid #000;">${manDec}</td>
+                <td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td>
+                <td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td>
+            </tr>
+            <tr style="font-weight:bold;">
+                <td style="border:1px solid #000; height:22px;"></td>
+                <td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td>
+                <td style="border:1px solid #000;"></td>
+                <td style="border:1px solid #000;">${totBaseInt}</td><td style="border:1px solid #000;">${totBaseDec}</td>
+                <td style="border:1px solid #000;">${c.phPct}%</td><td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td>
+                <td style="border:1px solid #000;">${smv100Int}</td><td style="border:1px solid #000;">${smv100Dec}</td>
+            </tr>
+        ` : `
+            <tr style="font-weight:bold;">
+                <td style="border:1px solid #000; height:26px;">Ⓐ+Ⓑ+Ⓒ+Ⓓ${numActive>4?'+Ⓔ':''}</td>
+                <td style="border:1px solid #000;">${manInt}</td><td style="border:1px solid #000;">${manDec}</td>
+                <td style="border:1px solid #000;">${c.maPct > 0 ? c.maPct + '%' : '-'}</td>
+                <td style="border:1px solid #000;">${totBaseInt}</td><td style="border:1px solid #000;">${totBaseDec}</td>
+                <td style="border:1px solid #000;">${c.phPct}%</td><td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td>
+                <td style="border:1px solid #000;">${smv100Int}</td><td style="border:1px solid #000;">${smv100Dec}</td>
+            </tr>
+            <tr><td colspan="11" style="border:1px solid #000; height:22px;"></td></tr>
+        `;
+
+        document.getElementById("officialPrintSheet").innerHTML = `
+            <div style="border:2px solid #000; padding:4px;">
+                <!-- TOP HEADER -->
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:4px;">
+                    <div style="font-size:10px; font-weight:bold;">IE DEPT</div>
+                    <div style="text-align:center;">
+                        <div style="font-size:14px; font-weight:bold;">D Samson Industries (Pvt) Ltd</div>
+                        <div style="font-size:12px; font-weight:bold;">TIME AND MOTION ANALYSIS SHEET</div>
+                    </div>
+                    <div style="font-size:22px; font-weight:900; font-family:Arial,sans-serif; letter-spacing:1px;">DSI</div>
+                </div>
+
+                <!-- TOP METADATA 2-ROW TABLE -->
+                <table style="width:100%; border-collapse:collapse; font-size:10.5px; margin-bottom:2px;">
+                    <tr>
+                        <td style="border:1px solid #000; padding:3px; width:16%;"><strong>Style No:</strong> ${styleStr}</td>
+                        <td style="border:1px solid #000; padding:3px; width:16%;"><strong>Buyer:</strong> ${buyerStr}</td>
+                        <td style="border:1px solid #000; padding:3px; width:24%;"><strong>Product:</strong> ${prodStr}</td>
+                        <td style="border:1px solid #000; padding:3px; width:22%;"><strong>Date:</strong> ${activeSheet.date || new Date().toLocaleDateString()}</td>
+                        <td style="border:1px solid #000; padding:3px; width:22%;"><strong>Study No:</strong> ${c.studyNo}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #000; padding:3px;"><strong>Plant:</strong> ${activeSheet.plant || 'BP'}</td>
+                        <td style="border:1px solid #000; padding:3px;"><strong>Department:</strong> ${activeSheet.dept || 'Line B'}</td>
+                        <td style="border:1px solid #000; padding:3px;"><strong>Operation:</strong> ${c.op}</td>
+                        <td style="border:1px solid #000; padding:3px;"><strong>Sheet No:</strong> ${c.studyNo} &nbsp; <strong>Of</strong> &nbsp; <strong>Sheets</strong></td>
+                        <td style="border:1px solid #000; padding:3px;"><strong>Operator:</strong> ${opNameStr}</td>
+                    </tr>
+                </table>
+
+                <!-- MAIN BODY: LEFT READINGS GRID + RIGHT TECHNICAL SIDEBAR -->
+                <div style="display:flex; width:100%;">
+                    <div style="flex:1;">
+                        <table style="width:100%; border-collapse:collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="border:1px solid #000; width:72px; font-size:9.5px;">Elements ➔<br><br>READINGS ⬇️</th>
+                                    ${slantedHeadersHtml}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows20Html}
+                                ${summaryRowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- RIGHT TECHNICAL SIDEBAR (EXACT FIELDS FROM PHYSICAL SHEET) -->
+                    <div style="width:165px; border-top:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #000; font-size:9.5px; display:flex; flex-direction:column;">
+                        <div style="border-bottom:1px solid #000; padding:3px;"><strong>Time Study By:</strong> ${studyByStr}</div>
+                        <div style="border-bottom:1px solid #000; padding:3px;"><strong>Size:</strong> ${sizeStr}</div>
+                        <div style="border-bottom:1px solid #000; padding:3px;"><strong>Material:</strong> ${matStr}</div>
+                        <div style="border-bottom:1px solid #000; padding:3px;"><strong>Stitches:</strong> </div>
+                        <div style="border-bottom:1px solid #000; padding:3px;"><strong>Thread Used:</strong> ${activeSheet.thread || ''}</div>
+                        <div style="border-bottom:1px solid #000; padding:3px;"><strong>Ave.Seam Length:</strong> </div>
+                        <div style="border-bottom:1px solid #000; padding:4px 3px;"><strong>Machine Make:</strong> ${activeSheet.make || ''}</div>
+                        <div style="border-bottom:1px solid #000; padding:4px 3px;"><strong>Type:</strong> ${activeSheet.type || ''}</div>
+                        <div style="border-bottom:1px solid #000; padding:3px;"><strong>Gauge:</strong> </div>
+                        <div style="border-bottom:1px solid #000; padding:6px 3px;"><strong>Stitch Type (Name):</strong> Lock Stitch</div>
+                        <div style="border-bottom:1px solid #000; padding:4px 3px;"><strong>Machine RPM:</strong> ${activeSheet.rpm || ''}</div>
+                        <div style="border-bottom:1px solid #000; padding:4px 3px;"><strong>Study Started:</strong> ${activeSheet.start || ''}</div>
+                        <div style="border-bottom:1px solid #000; padding:4px 3px;"><strong>Study Finished:</strong> ${activeSheet.finish || ''}</div>
+                        <div style="border-bottom:1px solid #000; padding:4px 3px;"><strong>Elapsed Time:</strong> </div>
+                        <div style="border-bottom:1px solid #000; padding:4px 3px;"><strong>No Of Pairs:</strong> ${activeSheet.pairs || '05'}</div>
+                        <div style="border-bottom:1px solid #000; padding:6px 3px;"><strong>Average time Per Prs...%Effi</strong></div>
+                        <div style="border-bottom:1px solid #000; padding:4px 3px;"><strong>Bundle Size:</strong> </div>
+                        <div style="border-bottom:1px solid #000; padding:6px 3px;"><strong>Attachments:</strong> </div>
+                        <div style="flex:1; padding:4px 3px;">
+                            <strong>Sketches / Kaizen Notes:</strong>
+                            <div style="margin-top:6px; border:1px dashed #666; padding:4px; font-size:8.5px;">
+                                • Obs SMV: <strong>${c.smvPerPr.toFixed(3)}</strong><br>
+                                • Kaizen R.SMV: <strong>${c.targetRSmv.toFixed(3)}</strong><br>
+                                • New Target: <strong>${c.impTargetHr}/hr</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTTOM SECTION: TOTALS BOX | SHADED BAR | TIME STUDY STANDARD | REMARKS -->
+                <div style="display:flex; width:100%; border-top:2px solid #000;">
+                    <!-- Left Totals Table -->
+                    <table style="flex:1.35; border-collapse:collapse; font-size:9.5px; text-align:center;">
+                        <thead>
+                            <tr>
+                                <th colspan="3" style="border:1px solid #000; padding:2px;">Totals</th>
+                                <th colspan="2" style="border:1px solid #000; padding:2px;">Elements</th>
+                                <th colspan="2" style="border:1px solid #000; padding:2px;">Overall</th>
+                                <th colspan="2" style="border:1px solid #000; padding:2px;">Ratio Elem<br>to Overall</th>
+                                <th colspan="2" rowspan="2" style="border:1px solid #000; padding:2px;">SMV Per<br>100</th>
+                            </tr>
+                            <tr>
+                                <th style="border:1px solid #000; width:75px;">Elem No</th>
+                                <th colspan="2" style="border:1px solid #000;">Basic MTS/<br>100</th>
+                                <th style="border:1px solid #000;">%<br>MA</th>
+                                <th colspan="2" style="border:1px solid #000;">Base Time</th>
+                                <th style="border:1px solid #000;">P&H</th>
+                                <th style="border:1px solid #000;">OTH</th>
+                                <th style="border:1px solid #000;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${totalsRowsHtml}
+                        </tbody>
+                    </table>
+
+                    <!-- Shaded Vertical Divider Column -->
+                    <div style="width:18px; background:#888; border:1px solid #000;"></div>
+
+                    <!-- Center Time Study Standard Box -->
+                    <table style="flex:0.95; border-collapse:collapse; font-size:9.5px; text-align:center;">
+                        <thead>
+                            <tr><th colspan="3" style="border:1px solid #000; padding:3px;">Time Study Standard</th></tr>
+                            <tr>
+                                <th style="border:1px solid #000; padding:3px;">SMV Per Prs</th>
+                                <th colspan="2" style="border:1px solid #000; padding:3px;">Production / Day ....Hrs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td rowspan="2" style="border:1px solid #000; font-size:15px; font-weight:bold;">${c.smvPerPr.toFixed(3)}</td>
+                                <td style="border:1px solid #000; font-weight:bold;">100%</td>
+                                <td style="border:1px solid #000; font-weight:bold;">70%</td>
+                            </tr>
+                            <tr>
+                                <td style="border:1px solid #000; font-size:12px; font-weight:bold;">${c.day100}</td>
+                                <td style="border:1px solid #000; font-size:12px; font-weight:bold;">${c.day70}</td>
+                            </tr>
+                            <tr>
+                                <td style="border:1px solid #000; padding:4px;"><strong>Target / Hrs 100%</strong><br><span style="font-size:13px; font-weight:bold;">${c.targetHr100}</span></td>
+                                <td colspan="2" style="border:1px solid #000; padding:4px;">
+                                    <strong>R.SMV (Improved): ${c.targetRSmv.toFixed(3)}</strong><br>
+                                    Target/Hr: <strong>${c.impTargetHr}</strong> | Day: <strong>${c.impTargetHr * 10}</strong>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Right Remarks Box -->
+                    <div style="width:165px; border:1px solid #000; padding:4px; font-size:9.5px;">
+                        <strong>Remarks :-</strong><br>
+                        <div style="margin-top:6px; font-size:9px; line-height:1.35;">
+                            Allowances Applied:<br>
+                            • Machine Allow: <strong>${c.maPct}%</strong><br>
+                            • P&H Allow: <strong>${c.phPct}%</strong><br>
+                            • R.SMV Target: <strong>${c.targetRSmv.toFixed(3)}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function switchVideoMode(mode) {
+        const liveV = document.getElementById("liveCamVideo");
+        const impV = document.getElementById("improvedSmvVideo");
+        const backBtn = document.getElementById("btnBackToLive");
+        const lbl = document.getElementById("hudModeLabel");
+        const box = document.getElementById("videoFrameContainer");
+
+        if (mode === 'improved') {
+            liveV.style.display = "none";
+            impV.style.display = "block";
+            backBtn.style.display = "inline-block";
+            lbl.style.color = "#51cf66"; lbl.style.borderColor = "#51cf66";
+            lbl.innerText = "✨ IMPROVED R.SMV VIDEO (MUDA REMOVED)";
+            box.style.borderColor = "#28a745";
+        } else {
+            impV.pause();
+            impV.style.display = "none";
+            liveV.style.display = "block";
+            backBtn.style.display = "none";
+            lbl.style.color = "#00ffff"; lbl.style.borderColor = "#00ffff";
+            lbl.innerText = "🎥 LIVE STUDY FEED (05 PAIRS / 10 RDGS)";
+            box.style.borderColor = "#00ffff";
+        }
+    }
+
+    async function synthesizeImprovedVideo() {
+        recalcAll();
+        const c = window.latestCalc;
+        const srcVid = document.getElementById("liveCamVideo");
+        const btn = document.getElementById("btnSynthVideo");
+        btn.innerText = "⏳ Synthesizing R.SMV Video...";
+        btn.disabled = true;
+
+        const canvas = document.createElement("canvas");
+        canvas.width = 640; canvas.height = 360;
+        const ctx = canvas.getContext("2d");
+
+        const paceBoost = Math.min(1.55, Math.max(1.18, c.smvPerPr / Math.max(0.05, c.targetRSmv)));
+        const oldRate = srcVid.playbackRate;
+        srcVid.playbackRate = paceBoost;
+        if (srcVid.paused) { try { await srcVid.play(); } catch (e) {} }
+
+        const stream = canvas.captureStream(25);
+        let rec;
+        try { rec = new MediaRecorder(stream, { mimeType: 'video/webm' }); } catch (e) { rec = new MediaRecorder(stream); }
+        const chunks = [];
+        rec.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+
+        rec.onstop = () => {
+            srcVid.playbackRate = oldRate || 1.0;
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const impV = document.getElementById("improvedSmvVideo");
+            impV.src = url;
+            switchVideoMode('improved');
+            impV.play();
+
+            const dl = document.getElementById("downloadVideoBtn");
+            dl.href = url;
+            dl.download = `DSI_Improved_${c.studyNo}_${c.op.replace(/\s+/g,'_')}.webm`;
+            dl.style.display = "inline-block";
+            btn.innerText = "✨ Improved Video Active";
+            btn.disabled = false;
+        };
+
+        rec.start();
+        const t0 = performance.now();
+        function drawLoop() {
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            try { ctx.drawImage(srcVid, 0, 0, canvas.width, canvas.height); } catch (e) {}
+
+            ctx.fillStyle = "rgba(15, 81, 50, 0.90)";
+            ctx.fillRect(0, 0, canvas.width, 36);
+            ctx.fillStyle = "#51cf66";
+            ctx.font = "bold 13px Segoe UI, sans-serif";
+            ctx.fillText(`✅ DSI IMPROVED METHOD (${c.studyNo}): ${c.op} — ${paceBoost.toFixed(2)}x Kaizen Pace`, 10, 23);
+
+            ctx.fillStyle = "rgba(10, 15, 24, 0.92)";
+            ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 12px Segoe UI, sans-serif";
+            ctx.fillText(`Obs SMV: ${c.smvPerPr.toFixed(3)} (${c.targetHr100}/hr)  ➔  IMPROVED R.SMV: ${c.targetRSmv.toFixed(3)} (${c.impTargetHr}/hr | ${c.impTargetHr*10}/day)`, 10, canvas.height - 15);
+
+            if (performance.now() - t0 < 3500) requestAnimationFrame(drawLoop);
+            else rec.stop();
+        }
+        requestAnimationFrame(drawLoop);
+    }
+
+    async function runAiMethodAudit() {
+        const apiKey = localStorage.getItem("geminiApiKey");
+        if (!apiKey) return alert("⚠️ Please save your Gemini API Key in the Admin tab of the main FOOTTECH page first.");
+        recalcAll();
+        const c = window.latestCalc;
+        const banner = document.getElementById("aiKaizenBanner");
+        banner.innerHTML = "⏳ <strong>AI Senior IE</strong> is analyzing Elemental MTS/100 breakdown...";
+
+        const prompt = `You are a Senior Footwear IE at D. Samson Industries (DSI). Operation: "${c.op}", Machine Allowance: ${c.maPct}%, P&H: ${c.phPct}%.
+        Observed SMV: ${c.smvPerPr.toFixed(3)} min (${c.targetHr100} prs/hr). Target Kaizen R.SMV: ${c.targetRSmv.toFixed(3)} min (${c.impTargetHr} prs/hr).
+        In 2 short sentences, give 1 specific workstation layout change to reduce Pick-up/Dispose manual time and 1 sewing handling improvement. No markdown.`;
+
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            const data = await res.json();
+            const txt = data.candidates?.[0]?.content?.parts?.[0]?.text || "Pre-position upper bundles within 10cm of needle point and use a gravity drop chute for disposal.";
+            banner.innerHTML = `🤖 <strong>AI Kaizen Prescription:</strong> ${txt}`;
+        } catch (e) {
+            banner.innerHTML = `💡 <strong>Kaizen Prescription:</strong> Place pre-untied bundles in an inclined presenter within 10cm of the presser foot and install a drop chute to achieve R.SMV ${c.targetRSmv.toFixed(3)}.`;
+        }
+    }
+
+    function shareStudyWhatsApp() {
+        recalcAll();
+        const c = window.latestCalc;
+        const msg = `*D SAMSON INDUSTRIES - TIME & MOTION ANALYSIS*\n` +
+            `• *Study No:* ${c.studyNo} | *Op:* ${c.op}\n` +
+            `• *Style/Product:* ${c.styleBuyer} (${c.productPlant})\n` +
+            `• *Allowances:* %MA ${c.maPct}% | %P&H ${c.phPct}%\n` +
+            `• *SMV Per 100:* ${c.smv100.toFixed(3)} | *SMV Per Prs:* ${c.smvPerPr.toFixed(3)} min\n` +
+            `• *Target (100%):* ${c.targetHr100} prs/hr (Day 100%: ${c.day100} | 70%: ${c.day70})\n` +
+            `• *✨ Improved R.SMV:* ${c.targetRSmv.toFixed(3)} min (${c.impTargetHr} prs/hr)`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function shareStudyEmail() {
+        recalcAll();
+        const c = window.latestCalc;
+        const subj = encodeURIComponent(`DSI Time Study Sheet (${c.studyNo}): ${c.op}`);
+        const body = encodeURIComponent(
+            `D Samson Industries (Pvt) Ltd - IE Dept\n\n` +
+            `Study No: ${c.studyNo} | Operation: ${c.op}\n` +
+            `Style/Buyer: ${c.styleBuyer} | Product/Plant: ${c.productPlant}\n` +
+            `SMV Per Prs: ${c.smvPerPr.toFixed(3)} min (SMV/100: ${c.smv100.toFixed(3)})\n` +
+            `Target/Hr (100%): ${c.targetHr100} | Day (100%): ${c.day100} | Day (70%): ${c.day70}\n` +
+            `Improved Kaizen R.SMV: ${c.targetRSmv.toFixed(3)} min (${c.impTargetHr}/hr)\n`
+        );
+        window.location.href = `mailto:?subject=${subj}&body=${body}`;
+    }
+</script>
+</body>
+</html>
