@@ -8,18 +8,21 @@
     <style>
         * { box-sizing: border-box; }
         body {
-            background: linear-gradient(rgba(10,15,20,0.82), rgba(10,15,20,0.92)), url('Bgrd%20image.jpg') no-repeat center center fixed;
+            background: linear-gradient(rgba(10,15,20,0.85), rgba(10,15,20,0.94)), url('Bgrd%20image.jpg') no-repeat center center fixed;
             background-size: cover;
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 8px 12px;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
-        /* Top Command Bar */
+        /* Desktop: lock to 1 single frame; Mobile/Tablet: allow smooth vertical scroll */
+        @media (min-width: 980px) {
+            body { height: 100vh; overflow: hidden; }
+        }
+
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -30,8 +33,10 @@
             padding: 6px 12px;
             margin-bottom: 6px;
             flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 8px;
         }
-        .brand-left { display: flex; align-items: center; gap: 10px; }
+        .brand-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .brand-left img { height: 28px; width: auto; }
         .brand-left h3 { margin: 0; font-size: 1em; color: #00ffff; letter-spacing: 0.5px; }
         .top-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -42,17 +47,16 @@
             border: 1px solid #475569;
             background: #1e293b;
             color: #fff;
-            padding: 5px 9px;
-            font-size: 0.8em;
+            padding: 6px 10px;
+            font-size: 0.82em;
         }
-        button { cursor: pointer; font-weight: 700; border: none; transition: opacity 0.15s; }
+        button { cursor: pointer; font-weight: 700; border: none; transition: opacity 0.15s; touch-action: manipulation; }
         button:hover { opacity: 0.88; }
         button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* Metadata Strip */
         .meta-strip {
             display: grid;
-            grid-template-columns: repeat(9, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
             gap: 6px;
             background: rgba(18, 22, 29, 0.95);
             border: 1px solid #334155;
@@ -62,14 +66,14 @@
             flex-shrink: 0;
         }
         .meta-item label { display: block; font-size: 0.65em; color: #94a3b8; text-transform: uppercase; margin-bottom: 2px; }
-        .meta-item input, .meta-item select { width: 100%; padding: 3px 6px; font-size: 0.78em; background: #0f172a; }
+        .meta-item input, .meta-item select { width: 100%; padding: 4px 6px; font-size: 0.8em; background: #0f172a; }
 
-        /* Main Single-Frame Split Workspace */
         .workspace {
             display: flex;
             gap: 10px;
             flex: 1;
             min-height: 0;
+            flex-wrap: wrap;
         }
         .left-studio {
             flex: 1.05;
@@ -80,7 +84,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-width: 320px;
+            min-width: 300px;
         }
         .right-sheet {
             flex: 1.55;
@@ -91,16 +95,15 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-width: 420px;
+            min-width: 320px;
             overflow: hidden;
         }
 
-        /* Video HUD Box */
         .video-box {
             position: relative;
             width: 100%;
             flex: 1;
-            min-height: 180px;
+            min-height: 220px;
             background: #000;
             border-radius: 6px;
             border: 2px solid #00ffff;
@@ -119,6 +122,8 @@
             justify-content: space-between;
             pointer-events: none;
             z-index: 10;
+            flex-wrap: wrap;
+            gap: 4px;
         }
         .hud-badge {
             background: rgba(0,0,0,0.82);
@@ -148,15 +153,16 @@
             border-radius: 6px;
             display: flex;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
             font-size: 0.75em;
             pointer-events: none;
             z-index: 10;
         }
 
-        /* KPI Cards */
         .kpi-row {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(95px, 1fr));
             gap: 6px;
             margin-bottom: 6px;
             flex-shrink: 0;
@@ -170,13 +176,14 @@
             text-align: center;
         }
         .kpi-title { font-size: 0.62em; color: #94a3b8; text-transform: uppercase; }
-        .kpi-val { font-size: 1.05em; font-weight: 800; color: #fff; margin-top: 2px; }
+        .kpi-val { font-size: 1.02em; font-weight: 800; color: #fff; margin-top: 2px; }
         .kpi-sub { font-size: 0.62em; color: #64748b; }
 
-        /* Readings Matrix Table */
         .matrix-scroll {
             flex: 1;
+            max-height: 250px;
             overflow-y: auto;
+            overflow-x: auto;
             border: 1px solid #334155;
             border-radius: 6px;
             background: #090d14;
@@ -184,7 +191,7 @@
         .dsi-live-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.73em;
+            font-size: 0.75em;
             text-align: center;
         }
         .dsi-live-table th {
@@ -197,12 +204,12 @@
             z-index: 5;
         }
         .dsi-live-table td {
-            padding: 2px 4px;
+            padding: 3px 4px;
             border: 1px solid #1e293b;
         }
         .dsi-live-table input {
             width: 48px;
-            padding: 1px 3px;
+            padding: 2px 3px;
             text-align: center;
             background: #111827;
             border: 1px solid #374151;
@@ -210,7 +217,6 @@
             font-size: 0.95em;
         }
 
-        /* Official Print Area (Hidden on Screen, 1:1 Physical DSI Sheet on Print/PDF) */
         #officialPrintSheet { display: none; }
 
         @media print {
@@ -237,14 +243,13 @@
     <!-- TOP COMMAND BAR -->
     <div class="top-bar">
         <div class="brand-left">
-            <button type="button" onclick="window.location.href='index.html'" style="background:#334155; color:#fff; padding:5px 10px;">⬅ Back to FOOTTECH</button>
+            <button type="button" onclick="window.location.href='index.html'" style="background:#334155; color:#fff; padding:6px 10px;">⬅ Back to FOOTTECH</button>
             <img src="4544545.jpg" alt="DSI" onerror="this.style.display='none'">
             <h3>⏱️ DSI LIVE TIME & MOTION ANALYSIS</h3>
-            <span id="camStatusBadge" style="background:#28a745; color:#fff; font-size:0.72em; padding:2px 8px; border-radius:10px; font-weight:bold;">📷 AUTO-CAMERA</span>
+            <span id="camStatusBadge" style="background:#28a745; color:#fff; font-size:0.72em; padding:3px 9px; border-radius:10px; font-weight:bold;">✅ READY</span>
         </div>
         <div class="top-actions">
-            <select id="presetSelector" onchange="loadDsiSheetPreset(this.value)" style="background:#0f172a; color:#ffc107; border-color:#ffc107; font-weight:bold;">
-                <option value="">📂 Load Verified DSI Study Sheet (Kelsey PF0339 / Usofta)...</option>
+            <select id="presetSelector" onchange="loadDsiSheetPreset(this.value)" style="background:#0f172a; color:#ffc107; border-color:#ffc107; font-weight:bold; max-width:260px;">
                 <option value="V005" selected>📄 V005: Bow velcro Att. (D/N F/B | 7% MA | SMV: 0.611)</option>
                 <option value="V004">📄 V004: Insert buckel st. (Manual | 11% P&H | SMV: 0.459)</option>
                 <option value="V003">📄 V003: Counter Att. - Inner (Juki S/N | 5% MA | SMV: 0.390)</option>
@@ -256,14 +261,16 @@
                 <option value="V002">📄 V002: Ring strap taking (Juki S/N | 5% MA | SMV: 0.359)</option>
                 <option value="UB02">📄 Study 02: Back strap Edge Stitching (Obs: 0.832 ➔ R.SMV: 0.500)</option>
             </select>
-            <button type="button" onclick="startLiveCamera()" style="background:#007bff; color:#fff;">📷 Live Camera</button>
-            <button type="button" onclick="document.getElementById('videoUploadInput').click()" style="background:#475569; color:#fff;">📁 Load Floor Video</button>
+            <button type="button" onclick="startLiveCamera(true)" style="background:#007bff; color:#fff;">📷 Live Camera</button>
+            <button type="button" onclick="document.getElementById('phoneCamCaptureInput').click()" style="background:#17a2b8; color:#fff;" title="Opens your phone's native camera app directly">📱 Phone Camera</button>
+            <input type="file" id="phoneCamCaptureInput" accept="video/*" capture="environment" style="display:none;" onchange="handleFloorVideoUpload(event)">
+            <button type="button" onclick="document.getElementById('videoUploadInput').click()" style="background:#475569; color:#fff;">📁 Load Video</button>
             <input type="file" id="videoUploadInput" accept="video/*" style="display:none;" onchange="handleFloorVideoUpload(event)">
             <button type="button" onclick="clearReadings()" style="background:#dc3545; color:#fff;">🧹 Clear</button>
         </div>
     </div>
 
-    <!-- COMPACT METADATA STRIP (MATCHES TOP & RIGHT SIDEBAR OF DSI SHEET) -->
+    <!-- METADATA STRIP -->
     <div class="meta-strip">
         <div class="meta-item"><label>Style / Buyer</label><input type="text" id="mStyleBuyer" value="PF0339 / DSS" oninput="recalcAll()"></div>
         <div class="meta-item"><label>Product / Plant</label><input type="text" id="mProductPlant" value="Kelsey / BP Line B" oninput="recalcAll()"></div>
@@ -288,13 +295,19 @@
         </div>
     </div>
 
-    <!-- MAIN SINGLE-FRAME WORKSPACE -->
+    <!-- MAIN WORKSPACE -->
     <div class="workspace">
         <!-- LEFT PANE: LIVE CAMERA + IMPROVED VIDEO HUD + 1-TAP ELEMENT CONTROLS -->
         <div class="left-studio">
             <div class="video-box" id="videoFrameContainer">
                 <video id="liveCamVideo" autoplay muted playsinline></video>
                 <video id="improvedSmvVideo" controls loop muted playsinline style="display:none;"></video>
+
+                <!-- Center Tap-to-Enable Camera Prompt for Mobile -->
+                <div id="mobileCamOverlay" onclick="startLiveCamera(true)" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,123,255,0.9); color:#fff; padding:12px 18px; border-radius:8px; font-weight:bold; font-size:0.85em; text-align:center; cursor:pointer; z-index:15; box-shadow:0 4px 15px rgba(0,0,0,0.8);">
+                    📷 Tap Here to Start Live Camera<br>
+                    <span style="font-size:0.78em; font-weight:normal; color:#e2e8f0;">(Or tap ▶ Start Live Study below to time directly!)</span>
+                </div>
 
                 <div class="hud-top">
                     <div class="hud-badge" id="hudModeLabel">🎥 LIVE STUDY FEED (05 PAIRS / 10 RDGS)</div>
@@ -310,21 +323,21 @@
             </div>
 
             <!-- 1-TAP ELEMENT CAPTURE BAR -->
-            <div style="display:flex; gap:6px; margin-top:6px;">
-                <button type="button" id="btnStartStudy" onclick="toggleLiveTiming()" style="flex:1; padding:9px; background:#28a745; color:#fff; font-size:0.84em;">▶ Start Live Study</button>
-                <button type="button" id="btnTapElem" onclick="recordElementSplit()" disabled style="flex:1.6; padding:9px; background:#007bff; color:#fff; font-size:0.84em;">🟢 Tap Element Ⓐ (Pick up) [Space]</button>
-                <button type="button" id="btnTapBundle" onclick="recordBundleSplit()" disabled style="flex:0.9; padding:9px; background:#fd7e14; color:#fff; font-size:0.8em;">📦 +Bundling</button>
+            <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
+                <button type="button" id="btnStartStudy" onclick="toggleLiveTiming()" style="flex:1; min-width:120px; padding:11px 8px; background:#28a745; color:#fff; font-size:0.88em;">▶ Start Live Study</button>
+                <button type="button" id="btnTapElem" onclick="recordElementSplit()" disabled style="flex:1.6; min-width:160px; padding:11px 8px; background:#007bff; color:#fff; font-size:0.88em;">🟢 Tap Element Ⓐ (Pick up)</button>
+                <button type="button" id="btnTapBundle" onclick="recordBundleSplit()" disabled style="flex:0.9; min-width:95px; padding:11px 8px; background:#fd7e14; color:#fff; font-size:0.82em;">📦 +Bundling</button>
             </div>
 
             <!-- IMPROVED VIDEO SYNTHESIZER BAR -->
-            <div style="margin-top:6px; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:6px 8px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
+            <div style="margin-top:6px; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:6px 8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
                 <div style="font-size:0.73em; color:#cbd5e1;">
                     <strong style="color:#51cf66;">🎬 Improved Method Video:</strong> Auto-trims Pick/Dispose Muda & calibrates pace to <strong>R.SMV</strong>
                 </div>
-                <div style="display:flex; gap:5px;">
+                <div style="display:flex; gap:5px; flex-wrap:wrap;">
                     <button type="button" id="btnSynthVideo" onclick="synthesizeImprovedVideo()" style="background:#198754; color:#fff; border:1px solid #51cf66; padding:6px 10px; white-space:nowrap;">✨ Generate Improved Video</button>
                     <button type="button" id="btnBackToLive" onclick="switchVideoMode('live')" style="background:#334155; color:#fff; padding:6px 8px; display:none;">🔙 Live Feed</button>
-                    <a id="downloadVideoBtn" style="display:none; background:#007bff; color:#fff; padding:6px 8px; border-radius:5px; font-size:0.75em; text-decoration:none; font-weight:bold;">⬇️ Save MP4</a>
+                    <a id="downloadVideoBtn" style="display:none; background:#007bff; color:#fff; padding:6px 8px; border-radius:5px; font-size:0.75em; text-decoration:none; font-weight:bold;">⬇️ Save Video</a>
                 </div>
             </div>
         </div>
@@ -374,11 +387,11 @@
                 <div id="aiKaizenBanner" style="background:#0f172a; border-left:3px solid #ffc107; padding:5px 8px; border-radius:4px; font-size:0.73em; color:#e2e8f0; margin-bottom:6px;">
                     💡 <strong>Official DSI Formula Active:</strong> Machine Element Ⓑ gets <strong>+%MA</strong>, combined with Manual Elements Ⓐ+Ⓒ+Ⓓ, plus <strong>+%P&H</strong> allowance.
                 </div>
-                <div style="display:flex; gap:6px;">
-                    <button type="button" onclick="runAiMethodAudit()" style="flex:1; padding:8px; background:#17a2b8; color:#fff;">🤖 AI Kaizen Audit</button>
-                    <button type="button" onclick="window.print()" style="flex:1.6; padding:8px; background:#ffc107; color:#000; font-size:0.85em;">🖨️ Generate Official DSI Time Study PDF (Exact Format)</button>
-                    <button type="button" onclick="shareStudyWhatsApp()" style="flex:0.9; padding:8px; background:#28a745; color:#fff;">💬 WhatsApp</button>
-                    <button type="button" onclick="shareStudyEmail()" style="flex:0.8; padding:8px; background:#6f42c1; color:#fff;">📧 Email</button>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <button type="button" onclick="runAiMethodAudit()" style="flex:1; min-width:110px; padding:8px; background:#17a2b8; color:#fff;">🤖 AI Kaizen Audit</button>
+                    <button type="button" onclick="window.print()" style="flex:1.6; min-width:180px; padding:8px; background:#ffc107; color:#000; font-size:0.85em;">🖨️ Generate Official DSI Time Study PDF</button>
+                    <button type="button" onclick="shareStudyWhatsApp()" style="flex:0.9; min-width:95px; padding:8px; background:#28a745; color:#fff;">💬 WhatsApp</button>
+                    <button type="button" onclick="shareStudyEmail()" style="flex:0.8; min-width:80px; padding:8px; background:#6f42c1; color:#fff;">📧 Email</button>
                 </div>
             </div>
         </div>
@@ -388,7 +401,6 @@
     <div id="officialPrintSheet"></div>
 
 <script>
-    // 1. Finalized Machine Allowances from DSI Excel Sheet
     const dsiMachines = [
         { name: "Golden Wheel D/N F/B or P/B (7% MA, 8% P&H)", make: "Golden Wheel", type: "D/N F/B", ma: 7.0, ph: 8.0 },
         { name: "Juki S/N D Lock Stitch (5% MA, 8% P&H)", make: "Juki", type: "S/N D", ma: 5.0, ph: 8.0 },
@@ -404,7 +416,6 @@
         { name: "Sole Stitching Under (10% MA, 11% P&H)", make: "Sole Stitch", type: "Under", ma: 10.0, ph: 11.0 }
     ];
 
-    // 2. Digitized DSI Study Sheets (Exact Readings from Your Uploaded Photos!)
     const dsiPresets = {
         V005: {
             style: "", buyer: "DSS", product: "Kelsey", plant: "BP", dept: "Line B", op: "Bow velcro Att.",
@@ -536,17 +547,25 @@
     let elemStartMs = 0;
     let clockInterval = null;
 
-    window.onload = function() {
+    function initStudioPage() {
         const machSel = document.getElementById("mMachinePreset");
-        dsiMachines.forEach((m, idx) => {
-            const opt = document.createElement("option");
-            opt.value = idx;
-            opt.text = m.name;
-            machSel.add(opt);
-        });
+        if (machSel && machSel.options.length === 0) {
+            dsiMachines.forEach((m, idx) => {
+                const opt = document.createElement("option");
+                opt.value = idx;
+                opt.text = m.name;
+                machSel.add(opt);
+            });
+        }
         loadDsiSheetPreset("V005");
-        startLiveCamera();
-    };
+        startLiveCamera(false);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initStudioPage);
+    } else {
+        initStudioPage();
+    }
 
     function loadDsiSheetPreset(key) {
         if (!key || !dsiPresets[key]) return;
@@ -575,23 +594,43 @@
         recalcAll();
     }
 
-    async function startLiveCamera() {
+    async function startLiveCamera(userClicked) {
         const vid = document.getElementById("liveCamVideo");
+        const overlay = document.getElementById("mobileCamOverlay");
+        const b = document.getElementById("camStatusBadge");
         switchVideoMode('live');
+
+        // Fallback if browser blocks getUserMedia (e.g. opened via local file:// on phone instead of https://)
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            if (userClicked) {
+                document.getElementById("phoneCamCaptureInput").click();
+            }
+            if (b) { b.style.background = "#ffc107"; b.style.color = "#000"; b.innerText = "📱 TAP PHONE CAMERA"; }
+            return;
+        }
+
         try {
             if (camStream) camStream.getTracks().forEach(t => t.stop());
-            camStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 360 } },
-                audio: false
-            });
+            try {
+                camStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: "environment" } },
+                    audio: false
+                });
+            } catch (err1) {
+                camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            }
             vid.src = "";
             vid.srcObject = camStream;
-            vid.play();
-            const b = document.getElementById("camStatusBadge");
-            b.style.background = "#28a745"; b.innerText = "📷 CAMERA LIVE";
+            await vid.play();
+            if (overlay) overlay.style.display = "none";
+            if (b) { b.style.background = "#28a745"; b.style.color = "#fff"; b.innerText = "📷 CAMERA LIVE"; }
         } catch (e) {
-            const b = document.getElementById("camStatusBadge");
-            b.style.background = "#ffc107"; b.style.color = "#000"; b.innerText = "📂 PRESET / CLIP MODE";
+            if (overlay) overlay.style.display = "block";
+            if (b) { b.style.background = "#ffc107"; b.style.color = "#000"; b.innerText = "📱 TAP TO START CAM"; }
+            if (userClicked) {
+                // Open native phone camera app if browser permission was denied
+                document.getElementById("phoneCamCaptureInput").click();
+            }
         }
     }
 
@@ -601,14 +640,18 @@
         if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
         switchVideoMode('live');
         const vid = document.getElementById("liveCamVideo");
+        const overlay = document.getElementById("mobileCamOverlay");
+        if (overlay) overlay.style.display = "none";
         vid.srcObject = null;
         vid.src = URL.createObjectURL(file);
         vid.loop = true;
         vid.play();
         const clean = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
-        if (clean.length > 2) document.getElementById("mOperation").value = clean;
+        if (clean.length > 2 && !/^(vid|img|mov|whatsapp|video|\d+)/i.test(clean)) {
+            document.getElementById("mOperation").value = clean;
+        }
         const b = document.getElementById("camStatusBadge");
-        b.style.background = "#17a2b8"; b.style.color = "#fff"; b.innerText = "🎬 FLOOR VIDEO LOADED";
+        b.style.background = "#17a2b8"; b.style.color = "#fff"; b.innerText = "🎬 VIDEO ACTIVE";
         recalcAll();
     }
 
@@ -616,11 +659,21 @@
         const btnStart = document.getElementById("btnStartStudy");
         const btnElem = document.getElementById("btnTapElem");
         const btnBund = document.getElementById("btnTapBundle");
+        const overlay = document.getElementById("mobileCamOverlay");
         const numCols = activeSheet.elements.length;
 
         isTiming = !isTiming;
         if (isTiming) {
+            if (overlay) overlay.style.display = "none";
             switchVideoMode('live');
+            // Try starting live camera silently when user taps Start Study
+            const vid = document.getElementById("liveCamVideo");
+            if (!camStream && (!vid.src || vid.src === window.location.href)) {
+                startLiveCamera(false);
+            } else if (vid.paused) {
+                vid.play().catch(()=>{});
+            }
+
             curRdgIdx = 0;
             curElemIdx = 0;
             activeSheet.readings = Array.from({ length: 10 }, () => new Array(numCols).fill(0));
@@ -650,7 +703,7 @@
     function updateTapBtnText() {
         const circles = ["Ⓐ","Ⓑ","Ⓒ","Ⓓ","Ⓔ"];
         const elName = activeSheet.elements[curElemIdx] || "Element";
-        document.getElementById("btnTapElem").innerHTML = `🟢 Rdg #${curRdgIdx + 1}: Tap End of ${circles[curElemIdx]} (${elName}) [Space]`;
+        document.getElementById("btnTapElem").innerHTML = `🟢 Rdg #${curRdgIdx + 1}: Tap End of ${circles[curElemIdx]} (${elName})`;
     }
 
     function recordElementSplit() {
@@ -709,15 +762,6 @@
         recalcAll();
     }
 
-    // Helper to split numbers into Left | Right sub-cells exactly like DSI handwritten sheets
-    function splitDsiNum(val, decimals, blankZeroLeft) {
-        const fixed = val.toFixed(decimals);
-        const parts = fixed.split(".");
-        const left = (blankZeroLeft && parts[0] === "0") ? "" : parts[0];
-        const right = parts[1] ? parts[1].replace(/0+$/, "") || "0" : "";
-        return [left, parts[1] || ""];
-    }
-
     function recalcAll() {
         const numCols = activeSheet.elements.length;
         const circles = ["Ⓐ","Ⓑ","Ⓒ","Ⓓ","Ⓔ"];
@@ -725,20 +769,17 @@
         const phPct = parseFloat(document.getElementById("mPhPct").value) || 8.0;
         const targetRSmv = parseFloat(document.getElementById("mTargetRSmv").value) || 0.450;
 
-        // 1. Render Live Header
         const hRow = document.getElementById("liveTableHeaderRow");
         hRow.innerHTML = `<th style="text-align:left; padding-left:8px;">READINGS</th>` +
             activeSheet.elements.map((el, i) => `<th style="background:${i===1 && activeSheet.mode==='splitB' ? '#0284c7' : '#1e3a5f'};">${circles[i]} ${el}</th>`).join("");
 
-        // 2. Column Sums & DSI Math (Floor/Truncate B.Time to 3 decimals just like DSI calculator sheets!)
         const sums = new Array(numCols).fill(0);
         activeSheet.readings.forEach(r => {
             for (let c = 0; c < numCols; c++) sums[c] += (parseFloat(r[c]) || 0);
         });
 
         const totMin = sums.map(s => s / 100);
-        const avgMmm = totMin.map(t => t / 5); // 5 Pairs (10 readings)
-        // DSI sheets truncate B.Time to 3 decimal places (e.g. 0.042 * 0.88 = 0.03696 -> 0.036 -> 3.696 MTS/100)
+        const avgMmm = totMin.map(t => t / 5);
         const bTimeExact = avgMmm.map((a, i) => a * (activeSheet.ratings[i] / 100));
         const bTimeDisp = bTimeExact.map(b => Math.floor(b * 1000 + 1e-6) / 1000);
         const mts100 = bTimeExact.map(b => b * 100);
@@ -762,7 +803,6 @@
         const impTargetHr = targetRSmv > 0 ? Math.round(60 / targetRSmv) : 0;
         const gainPct = targetHr100 > 0 ? Math.round(((impTargetHr - targetHr100) / targetHr100) * 100) : 0;
 
-        // 3. Render Live Body
         const tbody = document.getElementById("liveTableBody");
         let bHtml = "";
         activeSheet.readings.forEach((r, rIdx) => {
@@ -800,7 +840,6 @@
         `;
         tbody.innerHTML = bHtml;
 
-        // 4. Update Live KPIs & HUD
         document.getElementById("kpiMachB").innerText = (activeSheet.mode === "splitB" ? machB_Base : overallBase).toFixed(3);
         document.getElementById("kpiMachSub").innerText = `Basic: ${(activeSheet.mode === "splitB" ? machB_Mts : man_Mts).toFixed(3)} (+${maPct}% MA)`;
         document.getElementById("kpiManACD").innerText = man_Mts.toFixed(3);
@@ -833,11 +872,10 @@
         buildOfficialDsiPrintSheet();
     }
 
-    // 5. Builds the 1:1 Exact Physical DSI Sheet HTML for Print / PDF Export
     function buildOfficialDsiPrintSheet() {
         const c = window.latestCalc;
         const numActive = activeSheet.elements.length;
-        const totalElementCols = 9; // Exact 9 slanted element columns like the physical DSI sheet
+        const totalElementCols = 9;
         const circles = ["Ⓐ","Ⓑ","Ⓒ","Ⓓ","Ⓔ","Ⓕ","Ⓖ","Ⓗ","Ⓘ"];
 
         const sbParts = c.styleBuyer.split("/");
@@ -853,7 +891,6 @@
         const sizeStr = smParts[0]?.trim() || activeSheet.size || "";
         const matStr = smParts[1]?.trim() || activeSheet.mat || "PVC";
 
-        // Slanted headers
         let slantedHeadersHtml = "";
         for (let i = 0; i < totalElementCols; i++) {
             const elName = activeSheet.elements[i] || "";
@@ -864,7 +901,6 @@
                 </th>`;
         }
 
-        // 20 Reading Rows (with Left | Right split cells + B / A bundle markers)
         let rows20Html = "";
         for (let r = 0; r < 20; r++) {
             const rowData = activeSheet.readings[r] || [];
@@ -872,7 +908,6 @@
             for (let col = 0; col < totalElementCols; col++) {
                 const v = rowData[col] || 0;
                 const vStr = (r < 10 && v > 0) ? String(v).padStart(2, '0') : "";
-                // Put "B" in row 1 and "A" in row 2 just before the Bundling column, matching Udeera's sheets!
                 let leftCellContent = vStr;
                 let rightCellContent = "";
                 if (col === numActive - 2 && r === 0) rightCellContent = "<strong>B</strong>";
@@ -885,7 +920,6 @@
             rows20Html += `<tr><td style="border:1px solid #000; text-align:center; font-size:10px; font-weight:bold;">${r + 1}</td>${cellsHtml}</tr>`;
         }
 
-        // 6 Summary Rows below Reading 20 (Total mm:ss/mm, Average mmm, Ratings, B.Time, Occ, 100% Times 100)
         function buildSummaryRow(label, getterFn, isBold) {
             let cells = "";
             for (let col = 0; col < totalElementCols; col++) {
@@ -914,7 +948,6 @@
                 return [Math.floor(m), String(Math.round((m % 1) * 1000)).padStart(3, '0').replace(/0+$/, '') || "0"];
             }, true);
 
-        // Totals Box Split Formatting
         const bMtsInt = Math.floor(c.machB_Mts), bMtsDec = String(Math.round((c.machB_Mts % 1) * 1000)).padStart(3, '0').replace(/0+$/, '');
         const bBaseInt = Math.floor(c.machB_Base), bBaseDec = String(Math.round((c.machB_Base % 1) * 1000)).padStart(3, '0').replace(/0+$/, '');
         const manInt = Math.floor(c.man_Mts), manDec = String(Math.round((c.man_Mts % 1) * 1000)).padStart(3, '0').replace(/0+$/, '');
@@ -960,7 +993,6 @@
 
         document.getElementById("officialPrintSheet").innerHTML = `
             <div style="border:2px solid #000; padding:4px;">
-                <!-- TOP HEADER -->
                 <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:4px;">
                     <div style="font-size:10px; font-weight:bold;">IE DEPT</div>
                     <div style="text-align:center;">
@@ -970,7 +1002,6 @@
                     <div style="font-size:22px; font-weight:900; font-family:Arial,sans-serif; letter-spacing:1px;">DSI</div>
                 </div>
 
-                <!-- TOP METADATA 2-ROW TABLE -->
                 <table style="width:100%; border-collapse:collapse; font-size:10.5px; margin-bottom:2px;">
                     <tr>
                         <td style="border:1px solid #000; padding:3px; width:16%;"><strong>Style No:</strong> ${styleStr}</td>
@@ -988,7 +1019,6 @@
                     </tr>
                 </table>
 
-                <!-- MAIN BODY: LEFT READINGS GRID + RIGHT TECHNICAL SIDEBAR -->
                 <div style="display:flex; width:100%;">
                     <div style="flex:1;">
                         <table style="width:100%; border-collapse:collapse;">
@@ -1005,7 +1035,6 @@
                         </table>
                     </div>
 
-                    <!-- RIGHT TECHNICAL SIDEBAR (EXACT FIELDS FROM PHYSICAL SHEET) -->
                     <div style="width:165px; border-top:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #000; font-size:9.5px; display:flex; flex-direction:column;">
                         <div style="border-bottom:1px solid #000; padding:3px;"><strong>Time Study By:</strong> ${studyByStr}</div>
                         <div style="border-bottom:1px solid #000; padding:3px;"><strong>Size:</strong> ${sizeStr}</div>
@@ -1036,9 +1065,7 @@
                     </div>
                 </div>
 
-                <!-- BOTTOM SECTION: TOTALS BOX | SHADED BAR | TIME STUDY STANDARD | REMARKS -->
                 <div style="display:flex; width:100%; border-top:2px solid #000;">
-                    <!-- Left Totals Table -->
                     <table style="flex:1.35; border-collapse:collapse; font-size:9.5px; text-align:center;">
                         <thead>
                             <tr>
@@ -1063,10 +1090,8 @@
                         </tbody>
                     </table>
 
-                    <!-- Shaded Vertical Divider Column -->
                     <div style="width:18px; background:#888; border:1px solid #000;"></div>
 
-                    <!-- Center Time Study Standard Box -->
                     <table style="flex:0.95; border-collapse:collapse; font-size:9.5px; text-align:center;">
                         <thead>
                             <tr><th colspan="3" style="border:1px solid #000; padding:3px;">Time Study Standard</th></tr>
@@ -1095,7 +1120,6 @@
                         </tbody>
                     </table>
 
-                    <!-- Right Remarks Box -->
                     <div style="width:165px; border:1px solid #000; padding:4px; font-size:9.5px;">
                         <strong>Remarks :-</strong><br>
                         <div style="margin-top:6px; font-size:9px; line-height:1.35;">
@@ -1202,7 +1226,7 @@
 
     async function runAiMethodAudit() {
         const apiKey = localStorage.getItem("geminiApiKey");
-        if (!apiKey) return alert("⚠️ Please save your Gemini API Key in the Admin tab of the main FOOTTECH page first.");
+        if (!apiKey) return alert("⚠️️ Please save your Gemini API Key in the Admin tab of the main FOOTTECH page first.");
         recalcAll();
         const c = window.latestCalc;
         const banner = document.getElementById("aiKaizenBanner");
