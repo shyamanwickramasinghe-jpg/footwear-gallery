@@ -76,6 +76,7 @@
             border: 2px solid #334155;
             overflow: hidden;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            min-height: 250px; /* Ensures camera doesn't collapse */
         }
         video { width: 100%; height: 100%; object-fit: cover; }
         
@@ -99,12 +100,13 @@
             background: rgba(15,23,42,0.9); border: 1px solid #38bdf8; color: #fff;
             padding: 10px 20px; border-radius: 30px; font-size: 1.1em; font-weight: bold;
             display: none; text-align: center; box-shadow: 0 4px 15px rgba(56,189,248,0.3);
+            width: 80%;
         }
 
         /* Control Buttons */
-        .video-controls { display: flex; gap: 10px; }
+        .video-controls { display: flex; gap: 10px; flex-wrap: wrap; }
         .btn-action { 
-            flex: 1; padding: 15px; border-radius: 8px; font-size: 1.05em; font-weight: bold; border: none; cursor: pointer; transition: 0.2s;
+            flex: 1; min-width: 150px; padding: 15px; border-radius: 8px; font-size: 1.05em; font-weight: bold; border: none; cursor: pointer; transition: 0.2s;
         }
         .btn-start { background: #2563eb; color: white; }
         .btn-start:hover { background: #1d4ed8; }
@@ -134,15 +136,15 @@
         .kpi-box.highlight .val { color: #22c55e; }
 
         /* Auto-Elements Table */
-        .table-container { flex: 1; overflow-y: auto; border: 1px solid #334155; border-radius: 8px; background: #000; }
+        .table-container { flex: 1; overflow-y: auto; border: 1px solid #334155; border-radius: 8px; background: #000; min-height: 150px; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9em; }
         th { background: #1e293b; color: #94a3b8; padding: 10px; position: sticky; top: 0; }
         td { padding: 10px; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
         tr.active-row { background: rgba(56,189,248,0.15); }
         
         /* Bottom Actions */
-        .bottom-actions { display: flex; gap: 10px; }
-        .bottom-actions button { flex: 1; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; border: none; }
+        .bottom-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .bottom-actions button { flex: 1; min-width: 140px; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; border: none; }
         .btn-pdf { background: #f59e0b; color: #000; }
         .btn-audit { background: #8b5cf6; color: #fff; }
 
@@ -151,9 +153,48 @@
         /* Official PDF hidden area */
         #printArea { display: none; }
         @media print {
-            body { background: #fff !important; color: #000 !important; }
+            body { background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; }
             .top-bar, .meta-bar, .workspace { display: none !important; }
             #printArea { display: block !important; }
+        }
+
+        /* --- MOBILE PHONE FIXES --- */
+        @media (max-width: 768px) {
+            body {
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto; /* Allows scrolling on mobile */
+            }
+            .top-bar {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 10px;
+            }
+            .brand h2 {
+                font-size: 1em;
+            }
+            .meta-bar {
+                padding: 10px;
+                gap: 10px;
+            }
+            .workspace {
+                flex-direction: column; /* Stacks Video on top of Data */
+                overflow-y: visible;
+                padding: 10px;
+            }
+            .video-container {
+                min-height: 350px; /* Gives camera plenty of room on phone */
+            }
+            .ai-element-popup {
+                font-size: 0.9em;
+                width: 90%;
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .kpi-box .val {
+                font-size: 1.3em;
+            }
         }
     </style>
 </head>
@@ -291,7 +332,13 @@
         
         try {
             if (camStream) camStream.getTracks().forEach(t => t.stop());
-            camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+            
+            // On mobile, request the back camera
+            camStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment" }, 
+                audio: false 
+            });
+            
             vid.srcObject = camStream;
             document.getElementById("btnImprove").style.display = "none";
             document.getElementById("btnStart").style.display = "block";
@@ -320,7 +367,12 @@
         const vid = document.getElementById("liveCam");
         if (vid.srcObject) {
             recordedChunks = [];
-            mediaRecorder = new MediaRecorder(vid.srcObject, { mimeType: 'video/webm' });
+            try {
+                mediaRecorder = new MediaRecorder(vid.srcObject, { mimeType: 'video/webm' });
+            } catch (err) {
+                // Fallback for some mobile browsers (like iOS Safari)
+                mediaRecorder = new MediaRecorder(vid.srcObject);
+            }
             mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.start();
         }
@@ -426,7 +478,8 @@
         // Allowances
         const maPct = parseFloat(document.getElementById("mMachine").value) || 0;
         const pnfPct = parseFloat(document.getElementById("mPnf").value) || 8;
-        const targetRsmv = parseFloat(document.getElementById("mTargetRSmv").value) || 0.450;
+        // Default target SMV for Kaizen improvements
+        const targetRsmv = 0.450; 
 
         // Base times (Apply Rating)
         const baseMins = avgMins.map(m => m * (currentRating / 100));
@@ -444,16 +497,13 @@
 
         // Update UI
         document.getElementById("kpiSmv").innerText = finalSmv.toFixed(3);
-        document.getElementById("kpiTarget").innerText = targetHr + " / hr";
-        document.getElementById("hudSmv").innerText = finalSmv.toFixed(3);
-        document.getElementById("hudTargetHr").innerText = targetHr + "/hr";
-        document.getElementById("hudImpSmv").innerText = targetRsmv.toFixed(3) + ` (${impTargetHr}/hr)`;
+        document.getElementById("kpiTarget").innerText = impTargetHr + " / hr";
 
         // Save globally for printing
         window.finalStudyData = {
             op: document.getElementById("mOperation").value,
             style: document.getElementById("mProduct").value,
-            ma: maPct, pnf: pnfPct, smv: finalSmv, target: targetHr,
+            ma: maPct, pnf: pnfPct, smv: finalSmv, target: targetHr, kaizenSmv: targetRsmv,
             avgs: avgMins, base: baseMins, comments: document.getElementById("mComments").value
         };
     }
@@ -478,7 +528,7 @@
         
         // Speed up video to simulate 100% efficient kaizen target
         const currentSmv = window.finalStudyData ? window.finalStudyData.smv : 0.6;
-        const targetRsmv = parseFloat(document.getElementById("mTargetRSmv").value) || 0.45;
+        const targetRsmv = window.finalStudyData ? window.finalStudyData.kaizenSmv : 0.45;
         const boost = Math.min(1.5, Math.max(1.1, currentSmv / targetRsmv));
         
         impV.playbackRate = boost;
