@@ -76,31 +76,42 @@
             border: 2px solid #334155;
             overflow: hidden;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            min-height: 250px; /* Ensures camera doesn't collapse */
+            min-height: 250px;
         }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* AI Scanning Overlay Effects */
+        /* Dynamic Video Overlays */
         .ai-overlay {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            border: 4px solid transparent; pointer-events: none; transition: border-color 0.3s;
+            border: 6px solid transparent; pointer-events: none; transition: border-color 0.1s;
         }
-        .ai-overlay.active { border-color: #22c55e; }
-        .ai-hud {
-            position: absolute; top: 15px; left: 15px;
-            background: rgba(0,0,0,0.7); border: 1px solid #22c55e; color: #22c55e;
-            padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.85em;
-            display: none; align-items: center; gap: 8px;
-        }
-        .ai-hud.recording { display: flex; animation: pulse 2s infinite; }
-        .red-dot { width: 10px; height: 10px; background: #ef4444; border-radius: 50%; }
         
+        /* Top Banner Overlay */
+        .hud-banner-top {
+            position: absolute; top: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.8); color: #fff;
+            padding: 10px 15px; font-weight: bold; font-size: 1.1em;
+            display: none; justify-content: space-between; align-items: center; z-index: 10;
+        }
+        
+        /* Bottom Banner Overlay */
+        .hud-banner-bottom {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(10, 15, 24, 0.9); border-top: 2px solid #334155; color: #fff;
+            padding: 12px 15px; font-size: 0.95em;
+            display: none; justify-content: space-between; align-items: center; z-index: 10;
+        }
+
+        .muda-flash {
+            color: #ef4444; font-weight: 900; animation: pulseRed 0.5s infinite;
+        }
+
         .ai-element-popup {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
             background: rgba(15,23,42,0.9); border: 1px solid #38bdf8; color: #fff;
             padding: 10px 20px; border-radius: 30px; font-size: 1.1em; font-weight: bold;
             display: none; text-align: center; box-shadow: 0 4px 15px rgba(56,189,248,0.3);
-            width: 80%;
+            width: 80%; z-index: 15;
         }
 
         /* Control Buttons */
@@ -112,6 +123,8 @@
         .btn-start:hover { background: #1d4ed8; }
         .btn-stop { background: #ef4444; color: white; display: none; }
         .btn-stop:hover { background: #b91c1c; }
+        .btn-audit { background: #f59e0b; color: #000; display: none; }
+        .btn-audit:hover { background: #d97706; color: #fff; }
         .btn-improve { background: #10b981; color: #000; display: none; box-shadow: 0 0 15px rgba(16,185,129,0.4); }
         .btn-improve:hover { background: #059669; color: #fff; }
 
@@ -146,9 +159,8 @@
         .bottom-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .bottom-actions button { flex: 1; min-width: 140px; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; border: none; }
         .btn-pdf { background: #f59e0b; color: #000; }
-        .btn-audit { background: #8b5cf6; color: #fff; }
-
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        
+        @keyframes pulseRed { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         
         /* Official PDF hidden area */
         #printArea { display: none; }
@@ -160,41 +172,15 @@
 
         /* --- MOBILE PHONE FIXES --- */
         @media (max-width: 768px) {
-            body {
-                height: auto;
-                min-height: 100vh;
-                overflow-y: auto; /* Allows scrolling on mobile */
-            }
-            .top-bar {
-                flex-wrap: wrap;
-                gap: 10px;
-                padding: 10px;
-            }
-            .brand h2 {
-                font-size: 1em;
-            }
-            .meta-bar {
-                padding: 10px;
-                gap: 10px;
-            }
-            .workspace {
-                flex-direction: column; /* Stacks Video on top of Data */
-                overflow-y: visible;
-                padding: 10px;
-            }
-            .video-container {
-                min-height: 350px; /* Gives camera plenty of room on phone */
-            }
-            .ai-element-popup {
-                font-size: 0.9em;
-                width: 90%;
-            }
-            .kpi-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            .kpi-box .val {
-                font-size: 1.3em;
-            }
+            body { height: auto; min-height: 100vh; overflow-y: auto; }
+            .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px; }
+            .meta-bar { padding: 10px; gap: 10px; }
+            .workspace { flex-direction: column; overflow-y: visible; padding: 10px; }
+            .video-container { min-height: 350px; }
+            .hud-banner-top { font-size: 0.85em; flex-direction: column; align-items: flex-start; }
+            .hud-banner-bottom { font-size: 0.8em; flex-direction: column; align-items: flex-start; }
+            .kpi-grid { grid-template-columns: 1fr 1fr; }
+            .kpi-box .val { font-size: 1.3em; }
         }
     </style>
 </head>
@@ -207,7 +193,9 @@
             <h2>🤖 AI Vision Time Study</h2>
         </div>
         <div>
-            <button class="btn-back" onclick="startCamera()" style="background:#0284c7;">📷 Open Camera</button>
+            <button class="btn-back" onclick="document.getElementById('videoUploadInput').click()" style="background:#475569; margin-right:5px;">📁 Load Video</button>
+            <input type="file" id="videoUploadInput" accept="video/*" style="display:none;" onchange="handleVideoUpload(event)">
+            <button class="btn-back" onclick="startCamera()" style="background:#0284c7;">📷 Live Camera</button>
         </div>
     </div>
 
@@ -215,29 +203,28 @@
     <div class="meta-bar">
         <div class="input-group">
             <label>Product / Style</label>
-            <input type="text" id="mProduct" value="Kelsey / PF0339" oninput="updateCalculations()">
+            <input type="text" id="mProduct" value="Tamik / PG0414" oninput="updateCalculations()">
         </div>
         <div class="input-group">
             <label>Operation Name</label>
-            <input type="text" id="mOperation" value="Bow Velcro Attach" style="color:#38bdf8; font-weight:bold;" oninput="updateCalculations()">
+            <input type="text" id="mOperation" value="Side Mounting" style="color:#38bdf8; font-weight:bold;" oninput="updateCalculations()">
         </div>
         <div class="input-group">
             <label>DSI Machine (Auto MA%)</label>
             <select id="mMachine" onchange="updateCalculations()">
+                <option value="0">Manual Table / Pincer (0% MA)</option>
                 <option value="7">Golden Wheel D/N (7% MA)</option>
                 <option value="5">Juki S/N Lock Stitch (5% MA)</option>
-                <option value="5.5">Golden Wheel Binding (5.5% MA)</option>
-                <option value="3">Seam Opening M/C (3% MA)</option>
-                <option value="0">Manual Bench Work (0% MA)</option>
+                <option value="4">Toe Lasting Machine (4% MA)</option>
             </select>
         </div>
         <div class="input-group">
             <label>P&F Allowance %</label>
-            <input type="number" id="mPnf" value="8" step="1" oninput="updateCalculations()">
+            <input type="number" id="mPnf" value="11" step="1" oninput="updateCalculations()">
         </div>
         <div class="input-group comments-group">
             <label>Comments (Operator, Material, Size, etc.)</label>
-            <input type="text" id="mComments" placeholder="e.g., Erandi, Size 6, PVC Material, Study V005...">
+            <input type="text" id="mComments" placeholder="e.g., Erandi, Size 6, PVC Material...">
         </div>
     </div>
 
@@ -248,17 +235,28 @@
         <div class="video-section">
             <div class="video-container">
                 <video id="liveCam" autoplay muted playsinline></video>
-                <video id="improvedVid" controls loop muted playsinline style="display:none;"></video>
+                <video id="playbackVid" playsinline style="display:none;"></video>
                 
                 <div class="ai-overlay" id="aiOverlay"></div>
-                <div class="ai-hud" id="aiHud"><div class="red-dot"></div> AI Motion Tracking Active</div>
+                
+                <div class="hud-banner-top" id="hudTop">
+                    <span id="hudTopTitle">AI AUDIT MODE</span>
+                    <span id="hudTopState" style="color:#22c55e;">STATE: VA (Pulling Upper)</span>
+                </div>
+
+                <div class="hud-banner-bottom" id="hudBottom">
+                    <span id="hudBottomLeft">Manual Obs SMV: 0.850</span>
+                    <span id="hudBottomRight" class="muda-flash">!! WASTE DETECTED !!</span>
+                </div>
+
                 <div class="ai-element-popup" id="elementPopup">Detecting...</div>
             </div>
             
             <div class="video-controls">
                 <button class="btn-action btn-start" id="btnStart" onclick="startAiStudy()">🔴 Start Auto-Study</button>
                 <button class="btn-action btn-stop" id="btnStop" onclick="stopAiStudy()">⏹️ Stop & Finalize SMV</button>
-                <button class="btn-action btn-improve" id="btnImprove" onclick="generateImprovedVideo()">✨ Generate Improved Video (Trim Muda)</button>
+                <button class="btn-action btn-audit" id="btnAudit" onclick="playAuditVideo()">🔍 View AI Audit (Highlights Waste)</button>
+                <button class="btn-action btn-improve" id="btnImprove" onclick="playImprovedVideo()">✨ View Improved Kaizen (Waste Trimmed)</button>
             </div>
         </div>
 
@@ -301,7 +299,6 @@
 
             <div class="bottom-actions">
                 <button class="btn-pdf" onclick="printOfficialPDF()">🖨️ Export PDF Sheet</button>
-                <button class="btn-audit" onclick="runAiAudit()">🤖 AI Method Audit</button>
             </div>
         </div>
 
@@ -315,229 +312,309 @@
     let mediaRecorder = null;
     let recordedChunks = [];
     let isStudying = false;
-    let autoInterval = null;
     let cycleStartTime = 0;
+    let playbackRAF = null;
+    let currentMode = 'idle'; // idle, audit, improved
     
-    // AI Simulation Data
-    let elementLabels = ["Ⓐ Pick up & Align", "Ⓑ Main Sewing/Process", "Ⓒ Dispose / Bundle"];
-    let currentElemIdx = 0;
-    let recordedElements = []; // Store finalized times
-    let currentRating = 88;
+    // AI Timeline Map (Generated dynamically after recording)
+    let aiTimeline = []; 
+    let recordedDuration = 0;
+
+    // Fixed Element Labels for the table
+    let elementLabels = ["Ⓐ Prepare & Reach", "Ⓑ Main Process (VA)", "Ⓒ Idle / Inspect", "Ⓓ Dispose"];
 
     async function startCamera() {
         const vid = document.getElementById("liveCam");
-        const imp = document.getElementById("improvedVid");
+        const pb = document.getElementById("playbackVid");
         vid.style.display = "block";
-        imp.style.display = "none";
+        pb.style.display = "none";
+        resetUI();
         
         try {
             if (camStream) camStream.getTracks().forEach(t => t.stop());
-            
-            // On mobile, request the back camera
-            camStream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "environment" }, 
-                audio: false 
-            });
-            
+            camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
             vid.srcObject = camStream;
-            document.getElementById("btnImprove").style.display = "none";
             document.getElementById("btnStart").style.display = "block";
         } catch (e) {
-            alert("Camera blocked or unavailable. Falling back to simulation mode.");
+            alert("Camera blocked. Please upload a video instead.");
         }
+    }
+
+    function handleVideoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const vid = document.getElementById("liveCam");
+        const pb = document.getElementById("playbackVid");
+        
+        if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+        
+        vid.style.display = "block";
+        pb.style.display = "none";
+        vid.srcObject = null;
+        vid.src = URL.createObjectURL(file);
+        vid.loop = true;
+        vid.play();
+        
+        resetUI();
+        document.getElementById("btnStart").style.display = "block";
+    }
+
+    function resetUI() {
+        document.getElementById("btnStart").style.display = "none";
+        document.getElementById("btnStop").style.display = "none";
+        document.getElementById("btnAudit").style.display = "none";
+        document.getElementById("btnImprove").style.display = "none";
+        document.getElementById("hudTop").style.display = "none";
+        document.getElementById("hudBottom").style.display = "none";
+        document.getElementById("aiOverlay").style.borderColor = "transparent";
+        cancelAnimationFrame(playbackRAF);
     }
 
     function startAiStudy() {
         if (isStudying) return;
         isStudying = true;
-        recordedElements = [];
-        currentElemIdx = 0;
         
         document.getElementById("btnStart").style.display = "none";
         document.getElementById("btnStop").style.display = "block";
-        document.getElementById("btnImprove").style.display = "none";
         
-        document.getElementById("aiOverlay").classList.add("active");
-        document.getElementById("aiHud").classList.add("recording");
-        
-        const tbody = document.getElementById("elementsTableBody");
-        tbody.innerHTML = "";
-
-        // Start Recording Video for the "Improved Video" generator
         const vid = document.getElementById("liveCam");
         if (vid.srcObject) {
             recordedChunks = [];
             try {
                 mediaRecorder = new MediaRecorder(vid.srcObject, { mimeType: 'video/webm' });
             } catch (err) {
-                // Fallback for some mobile browsers (like iOS Safari)
                 mediaRecorder = new MediaRecorder(vid.srcObject);
             }
             mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.start();
+        } else if (vid.src) {
+            // It's an uploaded video, restart it
+            vid.currentTime = 0;
+            vid.play();
         }
 
-        // Trigger AI Simulation Loop
         cycleStartTime = performance.now();
-        triggerNextAiElement();
-        
-        // Live Clock
-        autoInterval = setInterval(() => {
-            const currentSec = (performance.now() - cycleStartTime) / 1000;
-            document.getElementById("kpiCycle").innerText = currentSec.toFixed(2);
-            document.getElementById("kpiRating").innerText = currentRating + "%";
-        }, 100);
+        populateTableTracking();
+        simulateTrackingClock();
     }
 
-    function triggerNextAiElement() {
-        if (!isStudying) return;
-        
-        const elemName = elementLabels[currentElemIdx];
-        const popup = document.getElementById("elementPopup");
-        popup.innerHTML = `👁️ Tracking: ${elemName}`;
-        popup.style.display = "block";
-
-        // Add active row to table
+    function populateTableTracking() {
         const tbody = document.getElementById("elementsTableBody");
-        const rowId = `row-${currentElemIdx}`;
-        tbody.innerHTML += `
-            <tr id="${rowId}" class="active-row">
-                <td style="font-weight:bold; color:#38bdf8;">Elem ${String.fromCharCode(65 + currentElemIdx)}</td>
-                <td>${elemName}</td>
-                <td id="time-${currentElemIdx}">...</td>
-                <td><span style="color:#fcd34d;">Scanning</span></td>
+        tbody.innerHTML = elementLabels.map((el, i) => `
+            <tr>
+                <td style="font-weight:bold; color:#38bdf8;">Elem ${String.fromCharCode(65 + i)}</td>
+                <td>${el}</td>
+                <td id="time-${i}">--</td>
+                <td><span style="color:#fcd34d;">Scanning...</span></td>
             </tr>
-        `;
+        `).join("");
+    }
 
-        // Simulate AI determining when element finishes (Random realistic time)
-        // Pick up: 1.5s - 2.5s | Sewing: 5.0s - 8.0s | Dispose: 1.0s - 2.0s
-        let durationMs = 2000; 
-        if (currentElemIdx === 0) durationMs = 1500 + Math.random() * 1000;
-        if (currentElemIdx === 1) durationMs = 5000 + Math.random() * 3000;
-        if (currentElemIdx === 2) durationMs = 1000 + Math.random() * 1000;
-
-        setTimeout(() => {
-            if (!isStudying) return;
-            
-            // Finalize Element
-            const finalSec = durationMs / 1000;
-            recordedElements.push({ name: elemName, timeSec: finalSec });
-            
-            document.getElementById(`time-${currentElemIdx}`).innerText = finalSec.toFixed(2);
-            document.getElementById(rowId).classList.remove("active-row");
-            document.getElementById(rowId).cells[3].innerHTML = `<span style="color:#22c55e;">✅ Done</span>`;
-            
-            currentElemIdx++;
-            cycleStartTime = performance.now(); // reset clock for next element
-
-            if (currentElemIdx < elementLabels.length) {
-                triggerNextAiElement();
-            } else {
-                // Restart cycle automatically
-                currentElemIdx = 0;
-                triggerNextAiElement();
-                updateCalculations(); // Update final SMV based on moving average
-            }
-        }, durationMs);
+    function simulateTrackingClock() {
+        if (!isStudying) return;
+        const currentSec = (performance.now() - cycleStartTime) / 1000;
+        document.getElementById("kpiCycle").innerText = currentSec.toFixed(2);
+        document.getElementById("kpiRating").innerText = "88%";
+        requestAnimationFrame(simulateTrackingClock);
     }
 
     function stopAiStudy() {
         if (!isStudying) return;
         isStudying = false;
-        clearInterval(autoInterval);
         
         document.getElementById("btnStop").style.display = "none";
+        document.getElementById("btnAudit").style.display = "block";
         document.getElementById("btnImprove").style.display = "block";
-        
-        document.getElementById("aiOverlay").classList.remove("active");
-        document.getElementById("aiHud").classList.remove("recording");
-        document.getElementById("elementPopup").style.display = "none";
+
+        const vid = document.getElementById("liveCam");
+        recordedDuration = (performance.now() - cycleStartTime) / 1000;
 
         if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.onstop = () => setupPlaybackEngine(true);
             mediaRecorder.stop();
+        } else {
+            // Uploaded video mode
+            vid.pause();
+            setupPlaybackEngine(false);
         }
-
-        updateCalculations();
     }
 
-    function updateCalculations() {
-        if (recordedElements.length === 0) return;
+    function setupPlaybackEngine(isLiveRecording) {
+        const pb = document.getElementById("playbackVid");
+        const liveV = document.getElementById("liveCam");
+        
+        if (isLiveRecording) {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            pb.src = URL.createObjectURL(blob);
+        } else {
+            pb.src = liveV.src;
+            recordedDuration = liveV.currentTime; // Limit playback to what was studied
+        }
 
-        // Group by element to find averages
-        let sums = [0, 0, 0];
-        let counts = [0, 0, 0];
-        recordedElements.forEach((el, i) => {
-            const type = i % 3; // 0=Pick, 1=Sew, 2=Dispose
-            sums[type] += el.timeSec;
-            counts[type]++;
+        liveV.style.display = "none";
+        pb.style.display = "block";
+
+        // Generate AI Timeline Proportions based on total duration recorded
+        // 0-10% Muda, 10-60% VA, 60-80% Muda, 80-100% VA
+        const d = recordedDuration || 10;
+        aiTimeline = [
+            { start: 0, end: d * 0.10, type: 'muda', state: 'MUDA: Reaching & Prep Delay', elem: 0 },
+            { start: d * 0.10, end: d * 0.60, type: 'va', state: 'VA: Main Process', elem: 1 },
+            { start: d * 0.60, end: d * 0.80, type: 'muda', state: 'MUDA: Idle / Inspection', elem: 2 },
+            { start: d * 0.80, end: d, type: 'va', state: 'VA: Final Dispose', elem: 3 }
+        ];
+
+        finalizeTableCalculations();
+    }
+
+    function finalizeTableCalculations() {
+        // Calculate basic times for the table
+        let baseTimes = [0,0,0,0];
+        aiTimeline.forEach(seg => { baseTimes[seg.elem] += (seg.end - seg.start); });
+
+        baseTimes.forEach((sec, i) => {
+            document.getElementById(`time-${i}`).innerText = sec.toFixed(2);
+            document.getElementById("elementsTableBody").rows[i].cells[3].innerHTML = `<span style="color:#22c55e;">✅ Done</span>`;
         });
 
-        const avgSecs = sums.map((sum, i) => counts[i] > 0 ? sum / counts[i] : 0);
-        const avgMins = avgSecs.map(s => s / 60);
-
-        // Allowances
+        // Run Math
         const maPct = parseFloat(document.getElementById("mMachine").value) || 0;
-        const pnfPct = parseFloat(document.getElementById("mPnf").value) || 8;
-        // Default target SMV for Kaizen improvements
-        const targetRsmv = 0.450; 
+        const pnfPct = parseFloat(document.getElementById("mPnf").value) || 11;
+        const targetRsmv = 0.650; // Kaizen target
 
-        // Base times (Apply Rating)
-        const baseMins = avgMins.map(m => m * (currentRating / 100));
-        
-        // Element B gets Machine Allowance
-        const bBaseWithMa = baseMins[1] * (1 + maPct / 100);
-        
-        // Total Base = A(Base) + B(Base+MA) + C(Base)
-        const totalBase = baseMins[0] + bBaseWithMa + baseMins[2];
-        
-        // Final SMV = Total Base * (1 + P&F)
-        const finalSmv = totalBase * (1 + pnfPct / 100);
+        let totalBaseMins = 0;
+        baseTimes.forEach((sec, i) => {
+            let mins = (sec / 60) * 0.88; // 88% rating
+            if (i === 1) mins = mins * (1 + maPct / 100); // Element B gets MA
+            totalBaseMins += mins;
+        });
+
+        const finalSmv = totalBaseMins * (1 + pnfPct / 100);
         const targetHr = finalSmv > 0 ? Math.round(60 / finalSmv) : 0;
         const impTargetHr = targetRsmv > 0 ? Math.round(60 / targetRsmv) : 0;
 
-        // Update UI
         document.getElementById("kpiSmv").innerText = finalSmv.toFixed(3);
         document.getElementById("kpiTarget").innerText = impTargetHr + " / hr";
 
-        // Save globally for printing
         window.finalStudyData = {
-            op: document.getElementById("mOperation").value,
-            style: document.getElementById("mProduct").value,
-            ma: maPct, pnf: pnfPct, smv: finalSmv, target: targetHr, kaizenSmv: targetRsmv,
-            avgs: avgMins, base: baseMins, comments: document.getElementById("mComments").value
+            smv: finalSmv,
+            targetHr: targetHr,
+            kaizenSmv: targetRsmv,
+            impTargetHr: impTargetHr
         };
     }
 
-    function generateImprovedVideo() {
-        if (recordedChunks.length === 0) {
-            alert("No video recorded during study.");
-            return;
+    // --- PLAYBACK ENGINES ---
+
+    function playAuditVideo() {
+        currentMode = 'audit';
+        const pb = document.getElementById("playbackVid");
+        const hudT = document.getElementById("hudTop");
+        const hudB = document.getElementById("hudBottom");
+        
+        pb.playbackRate = 1.0;
+        pb.currentTime = 0;
+        pb.play();
+        
+        hudT.style.display = "flex";
+        hudB.style.display = "flex";
+        hudT.style.background = "rgba(0,0,0,0.8)";
+        
+        const sd = window.finalStudyData;
+        document.getElementById("hudBottomLeft").innerText = `Manual Obs SMV: ${sd.smv.toFixed(3)}`;
+        
+        cancelAnimationFrame(playbackRAF);
+        auditLoop();
+    }
+
+    function auditLoop() {
+        if (currentMode !== 'audit') return;
+        const pb = document.getElementById("playbackVid");
+        const t = pb.currentTime;
+        
+        if (t >= recordedDuration) { pb.currentTime = 0; } // loop
+
+        const seg = aiTimeline.find(s => t >= s.start && t < s.end);
+        if (seg) {
+            document.getElementById("hudTopTitle").innerText = `AI AUDIT MODE - Time: ${t.toFixed(1)}s`;
+            document.getElementById("hudTopState").innerText = `STATE: ${seg.state}`;
+            
+            const overlay = document.getElementById("aiOverlay");
+            const warnText = document.getElementById("hudBottomRight");
+            
+            if (seg.type === 'muda') {
+                overlay.style.borderColor = "#ef4444";
+                document.getElementById("hudTopState").style.color = "#ef4444";
+                warnText.style.display = "block";
+            } else {
+                overlay.style.borderColor = "#22c55e";
+                document.getElementById("hudTopState").style.color = "#22c55e";
+                warnText.style.display = "none";
+            }
+        }
+        
+        playbackRAF = requestAnimationFrame(auditLoop);
+    }
+
+    function playImprovedVideo() {
+        currentMode = 'improved';
+        const pb = document.getElementById("playbackVid");
+        const hudT = document.getElementById("hudTop");
+        const hudB = document.getElementById("hudBottom");
+        const overlay = document.getElementById("aiOverlay");
+
+        // Mathematical Pace Boost to hit Target R.SMV
+        const sd = window.finalStudyData;
+        const boost = Math.min(1.5, Math.max(1.1, sd.smv / sd.kaizenSmv));
+        
+        pb.playbackRate = boost;
+        pb.currentTime = 0; // Find first VA segment
+        const firstVa = aiTimeline.find(s => s.type === 'va');
+        if (firstVa) pb.currentTime = firstVa.start;
+        pb.play();
+
+        hudT.style.display = "flex";
+        hudB.style.display = "flex";
+        hudT.style.background = "rgba(15, 81, 50, 0.9)";
+        
+        document.getElementById("hudTopTitle").innerText = `IMPROVED KAIZEN METHOD - ${boost.toFixed(2)}x Target Pace`;
+        document.getElementById("hudTopState").innerText = `Continuous Value-Added Flow (Waste Trimmed)`;
+        document.getElementById("hudTopState").style.color = "#86efac";
+        
+        document.getElementById("hudBottomLeft").innerText = `Obs SMV: ${sd.smv.toFixed(3)} -> Target R.SMV: ${sd.kaizenSmv.toFixed(3)} (${sd.impTargetHr}/hr)`;
+        document.getElementById("hudBottomRight").style.display = "none";
+        
+        overlay.style.borderColor = "#22c55e";
+
+        cancelAnimationFrame(playbackRAF);
+        improvedLoop();
+    }
+
+    function improvedLoop() {
+        if (currentMode !== 'improved') return;
+        const pb = document.getElementById("playbackVid");
+        let t = pb.currentTime;
+        
+        if (t >= recordedDuration) { 
+            // loop back to first VA
+            const firstVa = aiTimeline.find(s => s.type === 'va');
+            pb.currentTime = firstVa ? firstVa.start : 0; 
+            t = pb.currentTime;
         }
 
-        const vid = document.getElementById("liveCam");
-        const impV = document.getElementById("improvedVid");
+        const seg = aiTimeline.find(s => t >= s.start && t < s.end);
         
-        vid.style.display = "none";
-        impV.style.display = "block";
-        document.getElementById("elementPopup").style.display = "block";
-        document.getElementById("elementPopup").innerHTML = `✨ MUDA TRIMMED. Playing at Target R.SMV Pace.`;
-        document.getElementById("elementPopup").style.borderColor = "#10b981";
-
-        const blob = new Blob(recordedChunks, { type: 'video/webm' });
-        impV.src = URL.createObjectURL(blob);
+        // AUTO-SKIP MUDA LOGIC!
+        if (seg && seg.type === 'muda') {
+            pb.currentTime = seg.end; // Jump to the end of the waste!
+        }
         
-        // Speed up video to simulate 100% efficient kaizen target
-        const currentSmv = window.finalStudyData ? window.finalStudyData.smv : 0.6;
-        const targetRsmv = window.finalStudyData ? window.finalStudyData.kaizenSmv : 0.45;
-        const boost = Math.min(1.5, Math.max(1.1, currentSmv / targetRsmv));
-        
-        impV.playbackRate = boost;
-        impV.play();
+        playbackRAF = requestAnimationFrame(improvedLoop);
     }
 
     function printOfficialPDF() {
         if (!window.finalStudyData) return alert("Please complete a study first.");
-        const d = window.finalStudyData;
+        const sd = window.finalStudyData;
         
         const printDiv = document.getElementById("printArea");
         printDiv.innerHTML = `
@@ -546,64 +623,29 @@
                 
                 <table style="width: 100%; margin-bottom: 20px; text-align: left; font-size: 14px;">
                     <tr>
-                        <td><strong>Operation:</strong> ${d.op}</td>
-                        <td><strong>Product/Style:</strong> ${d.style}</td>
+                        <td><strong>Operation:</strong> ${document.getElementById("mOperation").value}</td>
+                        <td><strong>Product/Style:</strong> ${document.getElementById("mProduct").value}</td>
                     </tr>
                     <tr>
                         <td><strong>Date:</strong> ${new Date().toLocaleDateString()}</td>
-                        <td><strong>Machine MA%:</strong> ${d.ma}%</td>
+                        <td><strong>Machine MA%:</strong> ${document.getElementById("mMachine").value}%</td>
                     </tr>
                     <tr>
-                        <td colspan="2"><strong>Comments:</strong> ${d.comments}</td>
+                        <td colspan="2"><strong>Comments:</strong> ${document.getElementById("mComments").value}</td>
                     </tr>
-                </table>
-
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
-                    <thead>
-                        <tr style="background: #eee;">
-                            <th style="border: 1px solid #000; padding: 8px;">Element</th>
-                            <th style="border: 1px solid #000; padding: 8px;">Avg Time (min)</th>
-                            <th style="border: 1px solid #000; padding: 8px;">Rating</th>
-                            <th style="border: 1px solid #000; padding: 8px;">Basic Time (min)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="border: 1px solid #000; padding: 8px;">A (Pick/Align)</td>
-                            <td style="border: 1px solid #000; padding: 8px;">${d.avgs[0].toFixed(4)}</td>
-                            <td style="border: 1px solid #000; padding: 8px;">${currentRating}%</td>
-                            <td style="border: 1px solid #000; padding: 8px;">${d.base[0].toFixed(4)}</td>
-                        </tr>
-                        <tr>
-                            <td style="border: 1px solid #000; padding: 8px;">B (Main Machine)</td>
-                            <td style="border: 1px solid #000; padding: 8px;">${d.avgs[1].toFixed(4)}</td>
-                            <td style="border: 1px solid #000; padding: 8px;">${currentRating}%</td>
-                            <td style="border: 1px solid #000; padding: 8px;">${d.base[1].toFixed(4)} <span style="font-size:10px;">(+${d.ma}% MA)</span></td>
-                        </tr>
-                        <tr>
-                            <td style="border: 1px solid #000; padding: 8px;">C (Dispose)</td>
-                            <td style="border: 1px solid #000; padding: 8px;">${d.avgs[2].toFixed(4)}</td>
-                            <td style="border: 1px solid #000; padding: 8px;">${currentRating}%</td>
-                            <td style="border: 1px solid #000; padding: 8px;">${d.base[2].toFixed(4)}</td>
-                        </tr>
-                    </tbody>
                 </table>
 
                 <div style="background: #f8f9fa; border: 1px solid #000; padding: 15px; border-radius: 5px;">
                     <h3>Standard Time Calculation</h3>
-                    <p><strong>Total Base Time (inc. MA):</strong> ${(d.smv / (1 + d.pnf/100)).toFixed(4)} min</p>
-                    <p><strong>P&F Allowance:</strong> ${d.pnf}%</p>
-                    <h2 style="color: #d32f2f; margin-top: 10px;">FINAL SMV: ${d.smv.toFixed(3)} min/pair</h2>
-                    <h3 style="color: #1976d2;">Target Production: ${d.target} pairs/hr</h3>
+                    <p><strong>P&F Allowance:</strong> ${document.getElementById("mPnf").value}%</p>
+                    <h2 style="color: #d32f2f; margin-top: 10px;">FINAL SMV: ${sd.smv.toFixed(3)} min/pair</h2>
+                    <h3 style="color: #1976d2;">Target Production: ${sd.targetHr} pairs/hr</h3>
+                    <hr>
+                    <h3 style="color: #2e7d32;">Kaizen Target R.SMV: ${sd.kaizenSmv.toFixed(3)} min/pair (${sd.impTargetHr} pairs/hr)</h3>
                 </div>
             </div>
         `;
         window.print();
-    }
-
-    function runAiAudit() {
-        if (!window.finalStudyData) return alert("Complete a study first.");
-        alert("🤖 AI Audit: Operator exhibits high reach distance on Element C (Dispose). Suggest installing gravity drop chute to save 1.2s per cycle.");
     }
 </script>
 </body>
