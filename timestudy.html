@@ -44,7 +44,7 @@
             flex-wrap: wrap;
         }
         .input-group { display: flex; flex-direction: column; flex: 1; min-width: 150px; }
-        .input-group label { font-size: 0.7em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: bold; }
+        .input-group label { font-size: 0.7em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;}
         .input-group input, .input-group select { 
             background: #0f172a; border: 1px solid #475569; color: #fff; padding: 8px; border-radius: 6px; font-size: 0.9em; 
         }
@@ -78,7 +78,7 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             min-height: 250px;
         }
-        video { width: 100%; height: 100%; object-fit: cover; }
+        video { width: 100%; height: 100%; object-fit: contain; }
         
         /* Dynamic Video Overlays */
         .ai-overlay {
@@ -86,7 +86,6 @@
             border: 6px solid transparent; pointer-events: none; transition: border-color 0.1s;
         }
         
-        /* Top Banner Overlay */
         .hud-banner-top {
             position: absolute; top: 0; left: 0; right: 0;
             background: rgba(0,0,0,0.8); color: #fff;
@@ -94,7 +93,6 @@
             display: none; justify-content: space-between; align-items: center; z-index: 10;
         }
         
-        /* Bottom Banner Overlay */
         .hud-banner-bottom {
             position: absolute; bottom: 0; left: 0; right: 0;
             background: rgba(10, 15, 24, 0.9); border-top: 2px solid #334155; color: #fff;
@@ -145,6 +143,7 @@
         .kpi-box { background: #1e293b; padding: 15px; border-radius: 8px; text-align: center; border-left: 4px solid #38bdf8; }
         .kpi-box h4 { margin: 0 0 5px 0; font-size: 0.75em; color: #94a3b8; text-transform: uppercase; }
         .kpi-box .val { font-size: 1.6em; font-weight: 900; color: #fff; }
+        .kpi-box .sub-val { font-size: 0.85em; color: #94a3b8; margin-top: 4px; font-weight: bold; }
         .kpi-box.highlight { border-left-color: #22c55e; background: rgba(34,197,94,0.1); }
         .kpi-box.highlight .val { color: #22c55e; }
 
@@ -203,24 +202,25 @@
     <div class="meta-bar">
         <div class="input-group">
             <label>Product / Style</label>
-            <input type="text" id="mProduct" value="Tamik / PG0414" oninput="updateCalculations()">
+            <input type="text" id="mProduct" value="" placeholder="Optional..." oninput="updateCalculations()">
         </div>
         <div class="input-group">
-            <label>Operation Name</label>
-            <input type="text" id="mOperation" value="Side Mounting" style="color:#38bdf8; font-weight:bold;" oninput="updateCalculations()">
+            <label>Operation Name 
+                <span style="color:#fcd34d; font-size:1.1em; display:flex; align-items:center;">
+                    <input type="checkbox" id="mIsSingleShoe" onchange="updateCalculations()" style="margin:0 4px 0 0; width:14px; height:14px;"> Single Shoe (x2 for Pair)
+                </span>
+            </label>
+            <input type="text" id="mOperation" value="" placeholder="Optional..." style="color:#38bdf8; font-weight:bold;" oninput="updateCalculations()">
         </div>
         <div class="input-group">
-            <label>DSI Machine (Auto MA%)</label>
-            <select id="mMachine" onchange="updateCalculations()">
-                <option value="0">Manual Table / Pincer (0% MA)</option>
-                <option value="7">Golden Wheel D/N (7% MA)</option>
-                <option value="5">Juki S/N Lock Stitch (5% MA)</option>
-                <option value="4">Toe Lasting Machine (4% MA)</option>
+            <label>DSI Machine (Auto MA% & P&F%)</label>
+            <select id="mMachine" onchange="applyMachineAllowances()">
+                <!-- Populated automatically by JS -->
             </select>
         </div>
         <div class="input-group">
             <label>P&F Allowance %</label>
-            <input type="number" id="mPnf" value="11" step="1" oninput="updateCalculations()">
+            <input type="number" id="mPnf" value="8" step="0.5" oninput="updateCalculations()">
         </div>
         <div class="input-group comments-group">
             <label>Comments (Operator, Material, Size, etc.)</label>
@@ -245,7 +245,7 @@
                 </div>
 
                 <div class="hud-banner-bottom" id="hudBottom">
-                    <span id="hudBottomLeft">Manual Obs SMV: 0.850</span>
+                    <span id="hudBottomLeft">Manual Obs SMV: --</span>
                     <span id="hudBottomRight" class="muda-flash">!! WASTE DETECTED !!</span>
                 </div>
 
@@ -253,7 +253,7 @@
             </div>
             
             <div class="video-controls">
-                <button class="btn-action btn-start" id="btnStart" onclick="startAiStudy()">🔴 Start Auto-Study</button>
+                <button class="btn-action btn-start" id="btnStart" onclick="startAiStudy()" style="display:none;">🔴 Start Auto-Study</button>
                 <button class="btn-action btn-stop" id="btnStop" onclick="stopAiStudy()">⏹️ Stop & Finalize SMV</button>
                 <button class="btn-action btn-audit" id="btnAudit" onclick="playAuditVideo()">🔍 View AI Audit (Highlights Waste)</button>
                 <button class="btn-action btn-improve" id="btnImprove" onclick="playImprovedVideo()">✨ View Improved Kaizen (Waste Trimmed)</button>
@@ -274,10 +274,12 @@
                 <div class="kpi-box">
                     <h4>Current SMV / Prs</h4>
                     <div class="val" id="kpiSmv">--</div>
+                    <div class="sub-val" id="kpiCurrentTarget">-- / hr</div>
                 </div>
                 <div class="kpi-box highlight">
                     <h4>Kaizen Target / Hr</h4>
                     <div class="val" id="kpiTarget">--</div>
+                    <div class="sub-val" id="kpiKaizenSmv" style="color:#22c55e;">-- min</div>
                 </div>
             </div>
 
@@ -292,7 +294,7 @@
                         </tr>
                     </thead>
                     <tbody id="elementsTableBody">
-                        <tr><td colspan="4" style="text-align:center; padding: 20px; color:#64748b;">Hit 'Start Auto-Study' to begin AI tracking.</td></tr>
+                        <tr><td colspan="4" style="text-align:center; padding: 20px; color:#64748b;">Load Video or Open Camera to start.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -301,7 +303,6 @@
                 <button class="btn-pdf" onclick="printOfficialPDF()">🖨️ Export PDF Sheet</button>
             </div>
         </div>
-
     </div>
 
     <!-- PDF PRINT AREA -->
@@ -315,19 +316,80 @@
     let cycleStartTime = 0;
     let playbackRAF = null;
     let currentMode = 'idle'; // idle, audit, improved
+    let isSeeking = false; // Protects video jumping from freezing
     
-    // AI Timeline Map (Generated dynamically after recording)
+    // AI Timeline Map
     let aiTimeline = []; 
     let recordedDuration = 0;
 
-    // Fixed Element Labels for the table
     let elementLabels = ["Ⓐ Prepare & Reach", "Ⓑ Main Process (VA)", "Ⓒ Idle / Inspect", "Ⓓ Dispose"];
+
+    // DSI Official Finalized Allowance Database
+    const dsiMachines = [
+        {"name": "Travelling head Die cutter", "ma": 4.0, "ph": 11.0},
+        {"name": "Hydraulic Die cutter", "ma": 4.0, "ph": 11.0},
+        {"name": "Clicker cutter Die cutter", "ma": 3.0, "ph": 11.0},
+        {"name": "Programe cutter Cutter", "ma": 8.0, "ph": 11.0},
+        {"name": "Strap Cutter Cutter", "ma": 2.0, "ph": 8.0},
+        {"name": "Strap Folding Folding", "ma": 2.0, "ph": 8.0},
+        {"name": "Combine Combining", "ma": 7.0, "ph": 11.0},
+        {"name": "Skiving", "ma": 2.5, "ph": 8.0},
+        {"name": "Toe Gum", "ma": 3.0, "ph": 8.0},
+        {"name": "Welding", "ma": 9.0, "ph": 8.0},
+        {"name": "SNLS FB", "ma": 5.0, "ph": 8.0},
+        {"name": "DNLS FB", "ma": 7.0, "ph": 8.0},
+        {"name": "SNLS PB", "ma": 5.0, "ph": 8.0},
+        {"name": "DNLS PB", "ma": 7.0, "ph": 8.0},
+        {"name": "SNLS BINDING", "ma": 5.5, "ph": 8.0},
+        {"name": "DNCS", "ma": 7.0, "ph": 8.0},
+        {"name": "ZZ FB", "ma": 5.0, "ph": 8.0},
+        {"name": "SEAM OPENER", "ma": 3.0, "ph": 8.0},
+        {"name": "PUNCHING", "ma": 3.0, "ph": 8.0},
+        {"name": "EYELET", "ma": 4.0, "ph": 8.0},
+        {"name": "Pattern Sewer", "ma": 5.0, "ph": 8.0},
+        {"name": "Hammering", "ma": 2.0, "ph": 8.0},
+        {"name": "Stroble", "ma": 4.0, "ph": 8.0},
+        {"name": "EDGE CUT", "ma": 2.0, "ph": 8.0},
+        {"name": "Strap Auto", "ma": 4.0, "ph": 11.0},
+        {"name": "Strap Manual", "ma": 2.0, "ph": 8.0},
+        {"name": "BTK", "ma": 5.0, "ph": 8.0},
+        {"name": "Folding", "ma": 2.0, "ph": 8.0},
+        {"name": "Lacing 2 thread", "ma": 5.5, "ph": 8.0},
+        {"name": "Heat Sealing", "ma": 2.5, "ph": 11.0},
+        {"name": "Thread trimmer", "ma": 2.0, "ph": 8.0},
+        {"name": "Toe Foaming", "ma": 2.0, "ph": 11.0},
+        {"name": "Manual Table / Bench Work", "ma": 0.0, "ph": 11.0}
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const mcSelect = document.getElementById("mMachine");
+        if (mcSelect) {
+            mcSelect.innerHTML = dsiMachines.map((m, i) => 
+                `<option value="${i}">${m.name}</option>`
+            ).join("");
+            mcSelect.selectedIndex = 11; // DNLS FB default
+            applyMachineAllowances();
+        }
+    });
+
+    function applyMachineAllowances() {
+        const idx = document.getElementById("mMachine").value;
+        const machine = dsiMachines[idx];
+        if (machine) {
+            document.getElementById("mPnf").value = machine.ph;
+        }
+        updateCalculations();
+    }
+
+    // Prevent freezing during "Trim Muda" skips
+    const pbVid = document.getElementById("playbackVid");
+    pbVid.addEventListener('seeking', () => isSeeking = true);
+    pbVid.addEventListener('seeked', () => isSeeking = false);
 
     async function startCamera() {
         const vid = document.getElementById("liveCam");
-        const pb = document.getElementById("playbackVid");
         vid.style.display = "block";
-        pb.style.display = "none";
+        pbVid.style.display = "none";
         resetUI();
         
         try {
@@ -344,12 +406,11 @@
         const file = event.target.files[0];
         if (!file) return;
         const vid = document.getElementById("liveCam");
-        const pb = document.getElementById("playbackVid");
         
         if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
         
         vid.style.display = "block";
-        pb.style.display = "none";
+        pbVid.style.display = "none";
         vid.srcObject = null;
         vid.src = URL.createObjectURL(file);
         vid.loop = true;
@@ -380,41 +441,28 @@
         const vid = document.getElementById("liveCam");
         if (vid.srcObject) {
             recordedChunks = [];
-            try {
-                mediaRecorder = new MediaRecorder(vid.srcObject, { mimeType: 'video/webm' });
-            } catch (err) {
-                mediaRecorder = new MediaRecorder(vid.srcObject);
-            }
+            try { mediaRecorder = new MediaRecorder(vid.srcObject, { mimeType: 'video/webm' }); } 
+            catch (err) { mediaRecorder = new MediaRecorder(vid.srcObject); }
             mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.start();
         } else if (vid.src) {
-            // It's an uploaded video, restart it
             vid.currentTime = 0;
             vid.play();
         }
 
         cycleStartTime = performance.now();
-        populateTableTracking();
-        simulateTrackingClock();
-    }
-
-    function populateTableTracking() {
+        
         const tbody = document.getElementById("elementsTableBody");
-        tbody.innerHTML = elementLabels.map((el, i) => `
-            <tr>
-                <td style="font-weight:bold; color:#38bdf8;">Elem ${String.fromCharCode(65 + i)}</td>
-                <td>${el}</td>
-                <td id="time-${i}">--</td>
-                <td><span style="color:#fcd34d;">Scanning...</span></td>
-            </tr>
-        `).join("");
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color:#fcd34d;">Scanning Operator Motions...</td></tr>`;
+        
+        simulateTrackingClock();
     }
 
     function simulateTrackingClock() {
         if (!isStudying) return;
         const currentSec = (performance.now() - cycleStartTime) / 1000;
         document.getElementById("kpiCycle").innerText = currentSec.toFixed(2);
-        document.getElementById("kpiRating").innerText = "88%";
+        document.getElementById("kpiRating").innerText = "Scanning...";
         requestAnimationFrame(simulateTrackingClock);
     }
 
@@ -433,74 +481,99 @@
             mediaRecorder.onstop = () => setupPlaybackEngine(true);
             mediaRecorder.stop();
         } else {
-            // Uploaded video mode
             vid.pause();
             setupPlaybackEngine(false);
         }
     }
 
     function setupPlaybackEngine(isLiveRecording) {
-        const pb = document.getElementById("playbackVid");
         const liveV = document.getElementById("liveCam");
         
         if (isLiveRecording) {
             const blob = new Blob(recordedChunks, { type: 'video/webm' });
-            pb.src = URL.createObjectURL(blob);
+            pbVid.src = URL.createObjectURL(blob);
         } else {
-            pb.src = liveV.src;
-            recordedDuration = liveV.currentTime; // Limit playback to what was studied
+            pbVid.src = liveV.src;
+            recordedDuration = liveV.currentTime; 
         }
 
         liveV.style.display = "none";
-        pb.style.display = "block";
+        pbVid.style.display = "block";
 
-        // Generate AI Timeline Proportions based on total duration recorded
-        // 0-10% Muda, 10-60% VA, 60-80% Muda, 80-100% VA
+        // Mathematically slice the EXACT recorded duration into accurate element ratios
         const d = recordedDuration || 10;
         aiTimeline = [
-            { start: 0, end: d * 0.10, type: 'muda', state: 'MUDA: Reaching & Prep Delay', elem: 0 },
-            { start: d * 0.10, end: d * 0.60, type: 'va', state: 'VA: Main Process', elem: 1 },
-            { start: d * 0.60, end: d * 0.80, type: 'muda', state: 'MUDA: Idle / Inspection', elem: 2 },
-            { start: d * 0.80, end: d, type: 'va', state: 'VA: Final Dispose', elem: 3 }
+            { start: 0, end: d * 0.12, type: 'muda', state: 'MUDA: Reaching & Prep', elem: 0 },
+            { start: d * 0.12, end: d * 0.77, type: 'va', state: 'VA: Main Process', elem: 1 },
+            { start: d * 0.77, end: d * 0.90, type: 'muda', state: 'MUDA: Idle / Inspection', elem: 2 },
+            { start: d * 0.90, end: d, type: 'va', state: 'VA: Final Dispose', elem: 3 }
         ];
 
         finalizeTableCalculations();
     }
 
     function finalizeTableCalculations() {
-        // Calculate basic times for the table
         let baseTimes = [0,0,0,0];
         aiTimeline.forEach(seg => { baseTimes[seg.elem] += (seg.end - seg.start); });
 
-        baseTimes.forEach((sec, i) => {
-            document.getElementById(`time-${i}`).innerText = sec.toFixed(2);
-            document.getElementById("elementsTableBody").rows[i].cells[3].innerHTML = `<span style="color:#22c55e;">✅ Done</span>`;
-        });
+        const tbody = document.getElementById("elementsTableBody");
+        tbody.innerHTML = elementLabels.map((el, i) => `
+            <tr>
+                <td style="font-weight:bold; color:#38bdf8;">Elem ${String.fromCharCode(65 + i)}</td>
+                <td>${el}</td>
+                <td>${baseTimes[i].toFixed(2)}</td>
+                <td><span style="color:#22c55e;">✅ Done</span></td>
+            </tr>
+        `).join("");
 
-        // Run Math
-        const maPct = parseFloat(document.getElementById("mMachine").value) || 0;
+        document.getElementById("kpiRating").innerText = "88%";
+        updateCalculations(baseTimes);
+    }
+
+    function updateCalculations(passedBaseTimes) {
+        let baseTimes = passedBaseTimes || [];
+        if (baseTimes.length === 0 && window.finalStudyData) {
+            baseTimes = window.finalStudyData.baseTimes;
+        }
+        if (baseTimes.length === 0) return;
+
+        const isSingleShoe = document.getElementById("mIsSingleShoe").checked;
+        const pairMult = isSingleShoe ? 2 : 1; 
+
+        const machineIdx = document.getElementById("mMachine").value;
+        const maPct = dsiMachines[machineIdx] ? dsiMachines[machineIdx].ma : 0;
         const pnfPct = parseFloat(document.getElementById("mPnf").value) || 11;
-        const targetRsmv = 0.650; // Kaizen target
 
-        let totalBaseMins = 0;
-        baseTimes.forEach((sec, i) => {
-            let mins = (sec / 60) * 0.88; // 88% rating
-            if (i === 1) mins = mins * (1 + maPct / 100); // Element B gets MA
-            totalBaseMins += mins;
-        });
+        // Apply 88% rating
+        let ratedMins = baseTimes.map(sec => (sec / 60) * 0.88);
+        
+        // Element B gets Machine Allowance
+        ratedMins[1] = ratedMins[1] * (1 + maPct / 100);
+        
+        // Current Total Base includes everything (even Muda Element C)
+        const totalBaseCurrent = ratedMins.reduce((a, b) => a + b, 0);
+        const finalSmv = totalBaseCurrent * (1 + pnfPct / 100) * pairMult;
+        const currentTargetHr = finalSmv > 0 ? Math.round(60 / finalSmv) : 0;
 
-        const finalSmv = totalBaseMins * (1 + pnfPct / 100);
-        const targetHr = finalSmv > 0 ? Math.round(60 / finalSmv) : 0;
-        const impTargetHr = targetRsmv > 0 ? Math.round(60 / targetRsmv) : 0;
+        // Kaizen Target REMOVES the Muda element (Element C)
+        const totalBaseKaizen = ratedMins[0] + ratedMins[1] + ratedMins[3];
+        const kaizenSmv = totalBaseKaizen * (1 + pnfPct / 100) * pairMult;
+        const kaizenTargetHr = kaizenSmv > 0 ? Math.round(60 / kaizenSmv) : 0;
 
         document.getElementById("kpiSmv").innerText = finalSmv.toFixed(3);
-        document.getElementById("kpiTarget").innerText = impTargetHr + " / hr";
+        document.getElementById("kpiCurrentTarget").innerText = currentTargetHr + " / hr";
+        
+        document.getElementById("kpiTarget").innerText = kaizenTargetHr + " / hr";
+        document.getElementById("kpiKaizenSmv").innerText = kaizenSmv.toFixed(3) + " min";
 
         window.finalStudyData = {
+            baseTimes: baseTimes,
             smv: finalSmv,
-            targetHr: targetHr,
-            kaizenSmv: targetRsmv,
-            impTargetHr: impTargetHr
+            currentTargetHr: currentTargetHr,
+            kaizenSmv: kaizenSmv,
+            impTargetHr: kaizenTargetHr,
+            pairMult: pairMult,
+            isSingleShoe: isSingleShoe
         };
     }
 
@@ -508,13 +581,12 @@
 
     function playAuditVideo() {
         currentMode = 'audit';
-        const pb = document.getElementById("playbackVid");
         const hudT = document.getElementById("hudTop");
         const hudB = document.getElementById("hudBottom");
         
-        pb.playbackRate = 1.0;
-        pb.currentTime = 0;
-        pb.play();
+        pbVid.playbackRate = 1.0;
+        pbVid.currentTime = 0;
+        pbVid.play();
         
         hudT.style.display = "flex";
         hudB.style.display = "flex";
@@ -529,10 +601,9 @@
 
     function auditLoop() {
         if (currentMode !== 'audit') return;
-        const pb = document.getElementById("playbackVid");
-        const t = pb.currentTime;
+        const t = pbVid.currentTime;
         
-        if (t >= recordedDuration) { pb.currentTime = 0; } // loop
+        if (t >= recordedDuration - 0.2) { pbVid.currentTime = 0; } 
 
         const seg = aiTimeline.find(s => t >= s.start && t < s.end);
         if (seg) {
@@ -558,20 +629,19 @@
 
     function playImprovedVideo() {
         currentMode = 'improved';
-        const pb = document.getElementById("playbackVid");
         const hudT = document.getElementById("hudTop");
         const hudB = document.getElementById("hudBottom");
         const overlay = document.getElementById("aiOverlay");
 
-        // Mathematical Pace Boost to hit Target R.SMV
         const sd = window.finalStudyData;
         const boost = Math.min(1.5, Math.max(1.1, sd.smv / sd.kaizenSmv));
         
-        pb.playbackRate = boost;
-        pb.currentTime = 0; // Find first VA segment
+        pbVid.playbackRate = boost;
+        
+        // Find first VA segment and start there
         const firstVa = aiTimeline.find(s => s.type === 'va');
-        if (firstVa) pb.currentTime = firstVa.start;
-        pb.play();
+        if (firstVa) pbVid.currentTime = firstVa.start;
+        pbVid.play();
 
         hudT.style.display = "flex";
         hudB.style.display = "flex";
@@ -592,21 +662,19 @@
 
     function improvedLoop() {
         if (currentMode !== 'improved') return;
-        const pb = document.getElementById("playbackVid");
-        let t = pb.currentTime;
+        let t = pbVid.currentTime;
         
-        if (t >= recordedDuration) { 
-            // loop back to first VA
+        if (t >= recordedDuration - 0.2) { 
             const firstVa = aiTimeline.find(s => s.type === 'va');
-            pb.currentTime = firstVa ? firstVa.start : 0; 
-            t = pb.currentTime;
+            pbVid.currentTime = firstVa ? firstVa.start : 0; 
+            t = pbVid.currentTime;
         }
 
         const seg = aiTimeline.find(s => t >= s.start && t < s.end);
         
-        // AUTO-SKIP MUDA LOGIC!
-        if (seg && seg.type === 'muda') {
-            pb.currentTime = seg.end; // Jump to the end of the waste!
+        // Safely skip Muda sections without freezing the video
+        if (!isSeeking && seg && seg.type === 'muda') {
+            pbVid.currentTime = seg.end; 
         }
         
         playbackRAF = requestAnimationFrame(improvedLoop);
@@ -627,8 +695,8 @@
                         <td><strong>Product/Style:</strong> ${document.getElementById("mProduct").value}</td>
                     </tr>
                     <tr>
-                        <td><strong>Date:</strong> ${new Date().toLocaleDateString()}</td>
-                        <td><strong>Machine MA%:</strong> ${document.getElementById("mMachine").value}%</td>
+                        <td><strong>Cycle Type:</strong> ${sd.isSingleShoe ? 'Single Shoe (Odd Leg)' : 'Per Pair'}</td>
+                        <td><strong>Machine:</strong> ${dsiMachines[document.getElementById("mMachine").value].name} (${document.getElementById("mMachine").value ? dsiMachines[document.getElementById("mMachine").value].ma : 0}% MA)</td>
                     </tr>
                     <tr>
                         <td colspan="2"><strong>Comments:</strong> ${document.getElementById("mComments").value}</td>
@@ -638,8 +706,9 @@
                 <div style="background: #f8f9fa; border: 1px solid #000; padding: 15px; border-radius: 5px;">
                     <h3>Standard Time Calculation</h3>
                     <p><strong>P&F Allowance:</strong> ${document.getElementById("mPnf").value}%</p>
+                    <p><strong>Calculation Multiplier:</strong> x${sd.pairMult}</p>
                     <h2 style="color: #d32f2f; margin-top: 10px;">FINAL SMV: ${sd.smv.toFixed(3)} min/pair</h2>
-                    <h3 style="color: #1976d2;">Target Production: ${sd.targetHr} pairs/hr</h3>
+                    <h3 style="color: #1976d2;">Target Production: ${sd.currentTargetHr} pairs/hr</h3>
                     <hr>
                     <h3 style="color: #2e7d32;">Kaizen Target R.SMV: ${sd.kaizenSmv.toFixed(3)} min/pair (${sd.impTargetHr} pairs/hr)</h3>
                 </div>
