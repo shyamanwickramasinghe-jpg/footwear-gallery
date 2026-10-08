@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
-    <title>DSI FOOTTECH — AI Auto Time Study</title>
+    <title>DSI FOOTTECH — AI & Interactive Time Study</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -25,97 +25,151 @@
             align-items: center;
             background: #0f172a;
             border-bottom: 1px solid #1e293b;
-            padding: 10px 20px;
+            padding: 8px 18px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             z-index: 100;
         }
-        .brand { display: flex; align-items: center; gap: 15px; }
-        .brand h2 { margin: 0; font-size: 1.2em; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px; }
-        .btn-back { background: #334155; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand h2 { margin: 0; font-size: 1.15em; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-back { background: #334155; color: white; border: none; padding: 7px 13px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9em; }
         .btn-back:hover { background: #475569; }
 
         /* --- SIMPLIFIED METADATA BAR --- */
         .meta-bar {
             display: flex;
-            gap: 15px;
-            padding: 12px 20px;
+            gap: 12px;
+            padding: 10px 18px;
             background: #1e293b;
             border-bottom: 1px solid #334155;
             flex-wrap: wrap;
         }
-        .input-group { display: flex; flex-direction: column; flex: 1; min-width: 150px; }
-        .input-group label { font-size: 0.7em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;}
+        .input-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
+        .input-group label { font-size: 0.7em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .input-group input, .input-group select { 
-            background: #0f172a; border: 1px solid #475569; color: #fff; padding: 8px; border-radius: 6px; font-size: 0.9em; 
+            background: #0f172a; border: 1px solid #475569; color: #fff; padding: 7px 8px; border-radius: 6px; font-size: 0.88em; 
         }
         .input-group input:focus, .input-group select:focus { outline: none; border-color: #38bdf8; }
-        
-        .comments-group { flex: 2; min-width: 250px; }
+        .comments-group { flex: 1.6; min-width: 220px; }
 
         /* --- MAIN WORKSPACE --- */
         .workspace {
             display: flex;
             flex: 1;
-            padding: 15px 20px;
-            gap: 20px;
+            padding: 12px 18px;
+            gap: 18px;
             overflow: hidden;
         }
 
-        /* LEFT: VIDEO & AI ENGINE */
+        /* LEFT: VIDEO & CLIP TAGGING ENGINE */
         .video-section {
-            flex: 1.2;
+            flex: 1.25;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
+            min-height: 0;
         }
         .video-container {
             position: relative;
             flex: 1;
             background: #000;
-            border-radius: 12px;
+            border-radius: 10px;
             border: 2px solid #334155;
             overflow: hidden;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            min-height: 250px;
+            min-height: 220px;
         }
-        video { width: 100%; height: 100%; object-fit: contain; }
+        video { width: 100%; height: 100%; object-fit: contain; background: #000; }
         
-        /* Dynamic Video Overlays */
         .ai-overlay {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            border: 6px solid transparent; pointer-events: none; transition: border-color 0.1s;
+            border: 6px solid transparent; pointer-events: none; transition: border-color 0.15s; z-index: 8;
         }
         
         .hud-banner-top {
             position: absolute; top: 0; left: 0; right: 0;
-            background: rgba(0,0,0,0.8); color: #fff;
-            padding: 10px 15px; font-weight: bold; font-size: 1.1em;
+            background: rgba(0,0,0,0.82); color: #fff;
+            padding: 8px 14px; font-weight: bold; font-size: 1em;
             display: none; justify-content: space-between; align-items: center; z-index: 10;
+            pointer-events: none;
         }
         
         .hud-banner-bottom {
             position: absolute; bottom: 0; left: 0; right: 0;
             background: rgba(10, 15, 24, 0.9); border-top: 2px solid #334155; color: #fff;
-            padding: 12px 15px; font-size: 0.95em;
+            padding: 8px 14px; font-size: 0.9em;
             display: none; justify-content: space-between; align-items: center; z-index: 10;
+            pointer-events: none;
         }
 
         .muda-flash {
             color: #ef4444; font-weight: 900; animation: pulseRed 0.5s infinite;
         }
 
-        .ai-element-popup {
-            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
-            background: rgba(15,23,42,0.9); border: 1px solid #38bdf8; color: #fff;
-            padding: 10px 20px; border-radius: 30px; font-size: 1.1em; font-weight: bold;
-            display: none; text-align: center; box-shadow: 0 4px 15px rgba(56,189,248,0.3);
-            width: 80%; z-index: 15;
+        /* VISUAL TIMELINE BAR */
+        .timeline-wrapper {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 6px 10px;
+        }
+        .timeline-header {
+            display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8; margin-bottom: 4px; font-weight: bold;
+        }
+        .timeline-bar {
+            position: relative;
+            height: 22px;
+            background: #1e293b;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            cursor: pointer;
+        }
+        .timeline-seg {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            font-weight: bold;
+            color: #fff;
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 1px solid rgba(0,0,0,0.4);
+            transition: width 0.1s;
+        }
+        .playhead {
+            position: absolute; top: 0; bottom: 0; width: 3px; background: #fff;
+            box-shadow: 0 0 6px #fff; pointer-events: none; z-index: 5; left: 0%;
         }
 
+        /* LIVE ELEMENT TAGGER BUTTONS */
+        .tagger-bar {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .tag-btn {
+            padding: 10px 6px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.82em;
+            border: 2px solid transparent;
+            cursor: pointer;
+            color: #fff;
+            text-align: center;
+            transition: transform 0.1s, box-shadow 0.15s;
+        }
+        .tag-btn:active { transform: scale(0.96); }
+        .tag-btn.active-tag { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.6); }
+        .tag-pickup { background: #0284c7; }
+        .tag-va { background: #16a34a; }
+        .tag-muda { background: #dc2626; }
+        .tag-dispose { background: #ca8a04; }
+
         /* Control Buttons */
-        .video-controls { display: flex; gap: 10px; flex-wrap: wrap; }
+        .video-controls { display: flex; gap: 8px; flex-wrap: wrap; }
         .btn-action { 
-            flex: 1; min-width: 150px; padding: 15px; border-radius: 8px; font-size: 1.05em; font-weight: bold; border: none; cursor: pointer; transition: 0.2s;
+            flex: 1; min-width: 135px; padding: 12px; border-radius: 8px; font-size: 0.95em; font-weight: bold; border: none; cursor: pointer; transition: 0.2s;
         }
         .btn-start { background: #2563eb; color: white; }
         .btn-start:hover { background: #1d4ed8; }
@@ -131,32 +185,42 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             background: #0f172a;
             border: 1px solid #334155;
             border-radius: 12px;
-            padding: 15px;
+            padding: 14px;
+            min-height: 0;
         }
 
         /* KPI Dashboard */
-        .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .kpi-box { background: #1e293b; padding: 15px; border-radius: 8px; text-align: center; border-left: 4px solid #38bdf8; }
-        .kpi-box h4 { margin: 0 0 5px 0; font-size: 0.75em; color: #94a3b8; text-transform: uppercase; }
-        .kpi-box .val { font-size: 1.6em; font-weight: 900; color: #fff; }
-        .kpi-box .sub-val { font-size: 0.85em; color: #94a3b8; margin-top: 4px; font-weight: bold; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .kpi-box { background: #1e293b; padding: 10px; border-radius: 8px; text-align: center; border-left: 4px solid #38bdf8; }
+        .kpi-box h4 { margin: 0 0 4px 0; font-size: 0.72em; color: #94a3b8; text-transform: uppercase; }
+        .kpi-box .val { font-size: 1.45em; font-weight: 900; color: #fff; }
+        .kpi-box .sub-val { font-size: 0.8em; color: #94a3b8; margin-top: 3px; font-weight: bold; }
         .kpi-box.highlight { border-left-color: #22c55e; background: rgba(34,197,94,0.1); }
         .kpi-box.highlight .val { color: #22c55e; }
 
-        /* Auto-Elements Table */
-        .table-container { flex: 1; overflow-y: auto; border: 1px solid #334155; border-radius: 8px; background: #000; min-height: 150px; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9em; }
-        th { background: #1e293b; color: #94a3b8; padding: 10px; position: sticky; top: 0; }
-        td { padding: 10px; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
-        tr.active-row { background: rgba(56,189,248,0.15); }
+        /* Clips Table */
+        .table-container { flex: 1; overflow-y: auto; border: 1px solid #334155; border-radius: 8px; background: #000; min-height: 140px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.84em; }
+        th { background: #1e293b; color: #94a3b8; padding: 8px; position: sticky; top: 0; z-index: 5; }
+        td { padding: 7px 8px; border-bottom: 1px solid #1e293b; color: #cbd5e1; vertical-align: middle; }
+        tr:hover { background: rgba(255,255,255,0.04); }
+        tr.playing-clip { background: rgba(56,189,248,0.22) !important; }
+
+        .clip-type-select {
+            background: #0f172a; color: #fff; border: 1px solid #475569; padding: 4px 6px; border-radius: 4px; font-size: 0.9em; font-weight: bold; width: 100%;
+        }
+        .time-edit {
+            width: 54px; background: #0f172a; color: #38bdf8; border: 1px solid #334155; border-radius: 4px; padding: 3px 4px; font-size: 0.9em; text-align: center; font-weight: bold;
+        }
         
         /* Bottom Actions */
-        .bottom-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-        .bottom-actions button { flex: 1; min-width: 140px; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; border: none; }
+        .bottom-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .bottom-actions button { flex: 1; min-width: 120px; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; border: none; font-size: 0.9em; }
+        .btn-add-clip { background: #334155; color: #38bdf8; border: 1px solid #38bdf8 !important; }
         .btn-pdf { background: #f59e0b; color: #000; }
         
         @keyframes pulseRed { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
@@ -172,14 +236,15 @@
         /* --- MOBILE PHONE FIXES --- */
         @media (max-width: 768px) {
             body { height: auto; min-height: 100vh; overflow-y: auto; }
-            .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px; }
-            .meta-bar { padding: 10px; gap: 10px; }
+            .top-bar { flex-wrap: wrap; gap: 8px; padding: 10px; }
+            .meta-bar { padding: 10px; gap: 8px; }
             .workspace { flex-direction: column; overflow-y: visible; padding: 10px; }
-            .video-container { min-height: 350px; }
-            .hud-banner-top { font-size: 0.85em; flex-direction: column; align-items: flex-start; }
-            .hud-banner-bottom { font-size: 0.8em; flex-direction: column; align-items: flex-start; }
+            .video-container { min-height: 280px; }
+            .tagger-bar { grid-template-columns: repeat(2, 1fr); }
+            .hud-banner-top { font-size: 0.8em; flex-direction: column; align-items: flex-start; }
+            .hud-banner-bottom { font-size: 0.78em; flex-direction: column; align-items: flex-start; }
             .kpi-grid { grid-template-columns: 1fr 1fr; }
-            .kpi-box .val { font-size: 1.3em; }
+            .kpi-box .val { font-size: 1.25em; }
         }
     </style>
 </head>
@@ -189,7 +254,7 @@
     <div class="top-bar">
         <div class="brand">
             <button class="btn-back" onclick="window.location.href='index.html'">⬅ Back</button>
-            <h2>🤖 AI Vision Time Study</h2>
+            <h2>🤖 AI Vision & Clip Time Study</h2>
         </div>
         <div>
             <button class="btn-back" onclick="document.getElementById('videoUploadInput').click()" style="background:#475569; margin-right:5px;">📁 Load Video</button>
@@ -206,8 +271,8 @@
         </div>
         <div class="input-group">
             <label>Operation Name 
-                <span style="color:#fcd34d; font-size:1.1em; display:flex; align-items:center;">
-                    <input type="checkbox" id="mIsSingleShoe" onchange="updateCalculations()" style="margin:0 4px 0 0; width:14px; height:14px;"> Single Shoe (x2 for Pair)
+                <span style="color:#fcd34d; font-size:1.05em; display:flex; align-items:center; cursor:pointer;">
+                    <input type="checkbox" id="mIsSingleShoe" checked onchange="updateCalculations()" style="margin:0 4px 0 0; width:14px; height:14px;"> Single Shoe (x2)
                 </span>
             </label>
             <input type="text" id="mOperation" value="" placeholder="Optional..." style="color:#38bdf8; font-weight:bold;" oninput="updateCalculations()">
@@ -218,9 +283,13 @@
                 <!-- Populated automatically by JS -->
             </select>
         </div>
-        <div class="input-group">
-            <label>P&F Allowance %</label>
+        <div class="input-group" style="max-width: 110px;">
+            <label>P&F Allow %</label>
             <input type="number" id="mPnf" value="8" step="0.5" oninput="updateCalculations()">
+        </div>
+        <div class="input-group" style="max-width: 110px;">
+            <label>Rating %</label>
+            <input type="number" id="mRating" value="90" step="5" min="50" max="150" oninput="updateCalculations()">
         </div>
         <div class="input-group comments-group">
             <label>Comments (Operator, Material, Size, etc.)</label>
@@ -231,45 +300,73 @@
     <!-- MAIN WORKSPACE -->
     <div class="workspace">
         
-        <!-- LEFT: VIDEO -->
+        <!-- LEFT: VIDEO & INTERACTIVE CLIP TAGGER -->
         <div class="video-section">
             <div class="video-container">
-                <video id="liveCam" autoplay muted playsinline></video>
-                <video id="playbackVid" playsinline style="display:none;"></video>
+                <video id="liveCam" autoplay muted playsinline style="display:none;"></video>
+                <video id="playbackVid" controls playsinline></video>
                 
                 <div class="ai-overlay" id="aiOverlay"></div>
                 
                 <div class="hud-banner-top" id="hudTop">
                     <span id="hudTopTitle">AI AUDIT MODE</span>
-                    <span id="hudTopState" style="color:#22c55e;">STATE: VA (Pulling Upper)</span>
+                    <span id="hudTopState" style="color:#22c55e;">STATE: VA</span>
                 </div>
 
                 <div class="hud-banner-bottom" id="hudBottom">
-                    <span id="hudBottomLeft">Manual Obs SMV: --</span>
+                    <span id="hudBottomLeft">Obs SMV: --</span>
                     <span id="hudBottomRight" class="muda-flash">!! WASTE DETECTED !!</span>
                 </div>
+            </div>
 
-                <div class="ai-element-popup" id="elementPopup">Detecting...</div>
+            <!-- VISUAL TIMELINE SCRUBBER -->
+            <div class="timeline-wrapper">
+                <div class="timeline-header">
+                    <span id="tlStatus">📌 Tip: Load a video, click Start Study, and tap the 4 buttons below as the operator changes motion!</span>
+                    <span id="tlTimeDisplay">0.00s / 0.00s</span>
+                </div>
+                <div class="timeline-bar" id="timelineBar" onclick="seekFromTimeline(event)">
+                    <div class="playhead" id="playhead"></div>
+                </div>
+            </div>
+
+            <!-- LIVE ONE-TAP ELEMENT TAGGING BUTTONS (DURING STUDY) -->
+            <div class="tagger-bar" id="taggerBar">
+                <button type="button" class="tag-btn tag-pickup active-tag" id="tagBtn0" onclick="switchClipPhase('pickup', 'Ⓐ Pickup & Align (VA)', this)">
+                    1️⃣ Pickup / Align<br><span style="font-size:0.75em; font-weight:normal;">(Value Added)</span>
+                </button>
+                <button type="button" class="tag-btn tag-va" id="tagBtn1" onclick="switchClipPhase('va_machine', 'Ⓑ Main Process (VA+MA)', this)">
+                    2️⃣ Main Process<br><span style="font-size:0.75em; font-weight:normal;">(VA + Machine %)</span>
+                </button>
+                <button type="button" class="tag-btn tag-muda" id="tagBtn2" onclick="switchClipPhase('muda', '❌ Waste / Muda (Delay)', this)">
+                    3️⃣ Waste / Muda<br><span style="font-size:0.75em; font-weight:normal;">(Trim in Kaizen)</span>
+                </button>
+                <button type="button" class="tag-btn tag-dispose" id="tagBtn3" onclick="switchClipPhase('dispose', 'Ⓓ Dispose (VA)', this)">
+                    4️⃣ Dispose Part<br><span style="font-size:0.75em; font-weight:normal;">(Value Added)</span>
+                </button>
             </div>
             
+            <!-- MAIN CONTROL BUTTONS -->
             <div class="video-controls">
-                <button class="btn-action btn-start" id="btnStart" onclick="startAiStudy()" style="display:none;">🔴 Start Auto-Study</button>
-                <button class="btn-action btn-stop" id="btnStop" onclick="stopAiStudy()">⏹️ Stop & Finalize SMV</button>
-                <button class="btn-action btn-audit" id="btnAudit" onclick="playAuditVideo()">🔍 View AI Audit (Highlights Waste)</button>
-                <button class="btn-action btn-improve" id="btnImprove" onclick="playImprovedVideo()">✨ View Improved Kaizen (Waste Trimmed)</button>
+                <button type="button" class="btn-action btn-start" id="btnStart" onclick="startAiStudy()" style="display:none;">🔴 Start Cycle Study (Tag Clips Live)</button>
+                <button type="button" class="btn-action btn-stop" id="btnStop" onclick="stopAiStudy()">⏹️ Stop Cycle End & Calculate SMV</button>
+                <button type="button" class="btn-action btn-audit" id="btnAudit" onclick="playAuditVideo()">🔍 View AI Audit (Highlights Waste)</button>
+                <button type="button" class="btn-action btn-improve" id="btnImprove" onclick="playImprovedVideo()">✨ View Improved Kaizen (Waste Trimmed)</button>
             </div>
         </div>
 
-        <!-- RIGHT: LIVE DATA -->
+        <!-- RIGHT: LIVE DATA & EDITABLE CLIPS -->
         <div class="data-section">
             <div class="kpi-grid">
                 <div class="kpi-box">
-                    <h4>Current Cycle (Sec)</h4>
-                    <div class="val" id="kpiCycle" style="color:#fcd34d;">0.00</div>
+                    <h4>Cycle Time (Sec)</h4>
+                    <div class="val" id="kpiCycle" style="color:#fcd34d;">0.00s</div>
+                    <div class="sub-val" id="kpiVaRatio">VA: --% | Muda: --%</div>
                 </div>
                 <div class="kpi-box">
-                    <h4>AI Perf. Rating</h4>
-                    <div class="val" id="kpiRating" style="color:#c084fc;">--%</div>
+                    <h4>Perf. Rating & MA%</h4>
+                    <div class="val" id="kpiRating" style="color:#c084fc;">90%</div>
+                    <div class="sub-val" id="kpiMaDisplay">MA: 7% | P&F: 8%</div>
                 </div>
                 <div class="kpi-box">
                     <h4>Current SMV / Prs</h4>
@@ -279,7 +376,7 @@
                 <div class="kpi-box highlight">
                     <h4>Kaizen Target / Hr</h4>
                     <div class="val" id="kpiTarget">--</div>
-                    <div class="sub-val" id="kpiKaizenSmv" style="color:#22c55e;">-- min</div>
+                    <div class="sub-val" id="kpiKaizenSmv" style="color:#22c55e;">R.SMV: -- min</div>
                 </div>
             </div>
 
@@ -287,20 +384,22 @@
                 <table>
                     <thead>
                         <tr>
-                            <th width="15%">Element</th>
-                            <th width="45%">Detected Motion</th>
-                            <th width="20%">Base (s)</th>
-                            <th width="20%">Status</th>
+                            <th width="12%">Clip</th>
+                            <th width="38%">Element Type (Editable)</th>
+                            <th width="28%">Start ➔ End (s)</th>
+                            <th width="12%">Dur(s)</th>
+                            <th width="10%">Play</th>
                         </tr>
                     </thead>
                     <tbody id="elementsTableBody">
-                        <tr><td colspan="4" style="text-align:center; padding: 20px; color:#64748b;">Load Video or Open Camera to start.</td></tr>
+                        <tr><td colspan="5" style="text-align:center; padding: 20px; color:#64748b;">Load a video or open camera, then click <b>Start Cycle Study</b>.</td></tr>
                     </tbody>
                 </table>
             </div>
 
             <div class="bottom-actions">
-                <button class="btn-pdf" onclick="printOfficialPDF()">🖨️ Export PDF Sheet</button>
+                <button type="button" class="btn-add-clip" onclick="markClipAtCurrentVideoTime()">✂️ Split / Add Clip at Current Video Time</button>
+                <button type="button" class="btn-pdf" onclick="printOfficialPDF()">🖨️ Export PDF Sheet</button>
             </div>
         </div>
     </div>
@@ -313,16 +412,25 @@
     let mediaRecorder = null;
     let recordedChunks = [];
     let isStudying = false;
-    let cycleStartTime = 0;
-    let playbackRAF = null;
-    let currentMode = 'idle'; // idle, audit, improved
-    let isSeeking = false; // Protects video jumping from freezing
-    
-    // AI Timeline Map
-    let aiTimeline = []; 
+    let isLiveCamMode = false;
+    let studyStartWallTime = 0;
+    let studyStartVideoTime = 0;
     let recordedDuration = 0;
+    let playbackRAF = null;
+    let currentMode = 'idle'; // 'idle', 'studying', 'audit', 'improved'
+    let isSeeking = false;
 
-    let elementLabels = ["Ⓐ Prepare & Reach", "Ⓑ Main Process (VA)", "Ⓒ Idle / Inspect", "Ⓓ Dispose"];
+    // Each clip: { start: 0, end: 2.5, category: 'pickup'|'va_machine'|'muda'|'dispose', label: '...' }
+    let aiTimeline = [];
+    let activeClipCategory = 'pickup';
+    let activeClipLabel = 'Ⓐ Pickup & Align (VA)';
+
+    const CATEGORY_META = {
+        pickup:     { label: 'Ⓐ Pickup & Align (VA)',   color: '#0284c7', isMuda: false, hasMa: false },
+        va_machine: { label: 'Ⓑ Main Process (VA+MA)',  color: '#16a34a', isMuda: false, hasMa: true  },
+        muda:       { label: '❌ Waste / Muda (Delay)', color: '#dc2626', isMuda: true,  hasMa: false },
+        dispose:    { label: 'Ⓓ Dispose Part (VA)',     color: '#ca8a04', isMuda: false, hasMa: false }
+    };
 
     // DSI Official Finalized Allowance Database
     const dsiMachines = [
@@ -361,11 +469,28 @@
         {"name": "Manual Table / Bench Work", "ma": 0.0, "ph": 11.0}
     ];
 
+    const pbVid = document.getElementById("playbackVid");
+    const liveCam = document.getElementById("liveCam");
+
+    pbVid.addEventListener('seeking', () => isSeeking = true);
+    pbVid.addEventListener('seeked', () => isSeeking = false);
+    pbVid.addEventListener('timeupdate', updatePlayheadPosition);
+
+    // Keyboard shortcuts 1, 2, 3, 4 for fast tagging during study
+    document.addEventListener('keydown', (e) => {
+        if (!isStudying) return;
+        if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+        if (e.key === '1') document.getElementById('tagBtn0').click();
+        if (e.key === '2') document.getElementById('tagBtn1').click();
+        if (e.key === '3') document.getElementById('tagBtn2').click();
+        if (e.key === '4') document.getElementById('tagBtn3').click();
+    });
+
     document.addEventListener("DOMContentLoaded", () => {
         const mcSelect = document.getElementById("mMachine");
         if (mcSelect) {
             mcSelect.innerHTML = dsiMachines.map((m, i) => 
-                `<option value="${i}">${m.name}</option>`
+                `<option value="${i}">${m.name} (${m.ma}% MA, ${m.ph}% P&F)</option>`
             ).join("");
             mcSelect.selectedIndex = 11; // DNLS FB default
             applyMachineAllowances();
@@ -381,239 +506,490 @@
         updateCalculations();
     }
 
-    // Prevent freezing during "Trim Muda" skips
-    const pbVid = document.getElementById("playbackVid");
-    pbVid.addEventListener('seeking', () => isSeeking = true);
-    pbVid.addEventListener('seeked', () => isSeeking = false);
-
     async function startCamera() {
-        const vid = document.getElementById("liveCam");
-        vid.style.display = "block";
+        isLiveCamMode = true;
+        liveCam.style.display = "block";
         pbVid.style.display = "none";
         resetUI();
         
         try {
             if (camStream) camStream.getTracks().forEach(t => t.stop());
             camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-            vid.srcObject = camStream;
+            liveCam.srcObject = camStream;
             document.getElementById("btnStart").style.display = "block";
+            document.getElementById("tlStatus").innerText = "📷 Live Camera Ready. Click 'Start Cycle Study' to record and tag elements.";
         } catch (e) {
-            alert("Camera blocked. Please upload a video instead.");
+            alert("Camera blocked or unavailable. Please use 'Load Video'.");
         }
     }
 
     function handleVideoUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
-        const vid = document.getElementById("liveCam");
+        isLiveCamMode = false;
         
         if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
         
-        vid.style.display = "block";
-        pbVid.style.display = "none";
-        vid.srcObject = null;
-        vid.src = URL.createObjectURL(file);
-        vid.loop = true;
-        vid.play();
+        liveCam.style.display = "none";
+        pbVid.style.display = "block";
+        pbVid.src = URL.createObjectURL(file);
+        pbVid.loop = false; // CRITICAL FIX: Never auto-loop back to 0.00s during a cycle study!
+        pbVid.currentTime = 0;
         
         resetUI();
-        document.getElementById("btnStart").style.display = "block";
+        pbVid.onloadedmetadata = () => {
+            recordedDuration = pbVid.duration || 15;
+            document.getElementById("btnStart").style.display = "block";
+            document.getElementById("tlStatus").innerText = `📁 Video Loaded (${recordedDuration.toFixed(1)}s). Scrub to cycle start or click 'Start Cycle Study'!`;
+            document.getElementById("tlTimeDisplay").innerText = `0.00s / ${recordedDuration.toFixed(2)}s`;
+        };
     }
 
     function resetUI() {
+        currentMode = 'idle';
+        isStudying = false;
         document.getElementById("btnStart").style.display = "none";
         document.getElementById("btnStop").style.display = "none";
         document.getElementById("btnAudit").style.display = "none";
         document.getElementById("btnImprove").style.display = "none";
+        document.getElementById("taggerBar").style.display = "none";
         document.getElementById("hudTop").style.display = "none";
         document.getElementById("hudBottom").style.display = "none";
         document.getElementById("aiOverlay").style.borderColor = "transparent";
         cancelAnimationFrame(playbackRAF);
     }
 
+    function getCurrentStudyElapsedSec() {
+        if (isLiveCamMode) {
+            return Math.max(0, (performance.now() - studyStartWallTime) / 1000);
+        } else {
+            return Math.max(0, pbVid.currentTime - studyStartVideoTime);
+        }
+    }
+
     function startAiStudy() {
         if (isStudying) return;
         isStudying = true;
+        currentMode = 'studying';
+        aiTimeline = [];
         
         document.getElementById("btnStart").style.display = "none";
         document.getElementById("btnStop").style.display = "block";
-        
-        const vid = document.getElementById("liveCam");
-        if (vid.srcObject) {
+        document.getElementById("btnAudit").style.display = "none";
+        document.getElementById("btnImprove").style.display = "none";
+        document.getElementById("taggerBar").style.display = "grid";
+
+        // Default first clip starts at Pickup & Align
+        activeClipCategory = 'pickup';
+        activeClipLabel = CATEGORY_META.pickup.label;
+        document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active-tag'));
+        document.getElementById('tagBtn0').classList.add('active-tag');
+
+        if (isLiveCamMode && liveCam.srcObject) {
             recordedChunks = [];
-            try { mediaRecorder = new MediaRecorder(vid.srcObject, { mimeType: 'video/webm' }); } 
-            catch (err) { mediaRecorder = new MediaRecorder(vid.srcObject); }
+            try { mediaRecorder = new MediaRecorder(liveCam.srcObject, { mimeType: 'video/webm' }); } 
+            catch (err) { mediaRecorder = new MediaRecorder(liveCam.srcObject); }
             mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.start();
-        } else if (vid.src) {
-            vid.currentTime = 0;
-            vid.play();
+            studyStartWallTime = performance.now();
+            studyStartVideoTime = 0;
+        } else {
+            // If video is near the end, restart from 0
+            if (pbVid.duration && pbVid.currentTime >= pbVid.duration - 1) {
+                pbVid.currentTime = 0;
+            }
+            studyStartVideoTime = pbVid.currentTime || 0;
+            studyStartWallTime = performance.now();
+            pbVid.playbackRate = 1.0;
+            pbVid.play();
+            // Auto-stop if the uploaded video reaches the very end
+            pbVid.onended = () => {
+                if (isStudying) stopAiStudy();
+            };
         }
 
-        cycleStartTime = performance.now();
-        
-        const tbody = document.getElementById("elementsTableBody");
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color:#fcd34d;">Scanning Operator Motions...</td></tr>`;
-        
-        simulateTrackingClock();
+        // Open first clip at exact start time
+        const startSec = isLiveCamMode ? 0 : studyStartVideoTime;
+        aiTimeline.push({
+            start: startSec,
+            end: startSec + 0.1,
+            category: activeClipCategory,
+            label: activeClipLabel
+        });
+
+        document.getElementById("tlStatus").innerText = "🔴 Recording Cycle: Tap buttons 1️⃣ 2️⃣ 3️⃣ 4️⃣ below as the operator switches motion!";
+        studyLoop();
     }
 
-    function simulateTrackingClock() {
+    // Called when user taps one of the 4 phase buttons during study
+    function switchClipPhase(categoryKey, labelText, btnEl) {
         if (!isStudying) return;
-        const currentSec = (performance.now() - cycleStartTime) / 1000;
-        document.getElementById("kpiCycle").innerText = currentSec.toFixed(2);
-        document.getElementById("kpiRating").innerText = "Scanning...";
-        requestAnimationFrame(simulateTrackingClock);
+        const nowVidSec = isLiveCamMode ? getCurrentStudyElapsedSec() : pbVid.currentTime;
+
+        const lastClip = aiTimeline[aiTimeline.length - 1];
+        if (lastClip) {
+            // If user tapped within 0.25s, just change the current clip's category instead of making a tiny 0.05s clip
+            if (nowVidSec - lastClip.start < 0.25) {
+                lastClip.category = categoryKey;
+                lastClip.label = CATEGORY_META[categoryKey].label;
+            } else {
+                lastClip.end = nowVidSec;
+                aiTimeline.push({
+                    start: nowVidSec,
+                    end: nowVidSec + 0.1,
+                    category: categoryKey,
+                    label: CATEGORY_META[categoryKey].label
+                });
+            }
+        }
+
+        activeClipCategory = categoryKey;
+        activeClipLabel = CATEGORY_META[categoryKey].label;
+
+        document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active-tag'));
+        if (btnEl) btnEl.classList.add('active-tag');
+
+        renderTimelineBar();
+        renderClipsTable();
+    }
+
+    function studyLoop() {
+        if (!isStudying) return;
+        const elapsed = getCurrentStudyElapsedSec();
+        const nowVidSec = isLiveCamMode ? elapsed : pbVid.currentTime;
+
+        if (aiTimeline.length > 0) {
+            aiTimeline[aiTimeline.length - 1].end = Math.max(aiTimeline[aiTimeline.length - 1].start + 0.05, nowVidSec);
+        }
+
+        document.getElementById("kpiCycle").innerText = elapsed.toFixed(2) + "s";
+        renderTimelineBar();
+        playbackRAF = requestAnimationFrame(studyLoop);
     }
 
     function stopAiStudy() {
         if (!isStudying) return;
         isStudying = false;
-        
+        currentMode = 'idle';
+        cancelAnimationFrame(playbackRAF);
+
+        const wallElapsed = (performance.now() - studyStartWallTime) / 1000;
+        const vidElapsed = !isLiveCamMode ? (pbVid.currentTime - studyStartVideoTime) : wallElapsed;
+        const finalCycleDuration = Math.max(1.0, vidElapsed > 0.5 ? vidElapsed : wallElapsed);
+
         document.getElementById("btnStop").style.display = "none";
+        document.getElementById("taggerBar").style.display = "none";
+        document.getElementById("btnStart").style.display = "block";
         document.getElementById("btnAudit").style.display = "block";
         document.getElementById("btnImprove").style.display = "block";
 
-        const vid = document.getElementById("liveCam");
-        recordedDuration = (performance.now() - cycleStartTime) / 1000;
-
-        if (mediaRecorder && mediaRecorder.state !== "inactive") {
-            mediaRecorder.onstop = () => setupPlaybackEngine(true);
+        if (isLiveCamMode && mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                liveCam.style.display = "none";
+                pbVid.style.display = "block";
+                pbVid.src = URL.createObjectURL(blob);
+                FinalizeStudyClips(0, finalCycleDuration);
+            };
             mediaRecorder.stop();
         } else {
-            vid.pause();
-            setupPlaybackEngine(false);
+            pbVid.pause();
+            const endSec = Math.max(studyStartVideoTime + 1.0, pbVid.currentTime || (studyStartVideoTime + finalCycleDuration));
+            FinalizeStudyClips(studyStartVideoTime, endSec);
         }
     }
 
-    function setupPlaybackEngine(isLiveRecording) {
-        const liveV = document.getElementById("liveCam");
-        
-        if (isLiveRecording) {
-            const blob = new Blob(recordedChunks, { type: 'video/webm' });
-            pbVid.src = URL.createObjectURL(blob);
+    function FinalizeStudyClips(startSec, endSec) {
+        recordedDuration = endSec;
+        const totalDur = Math.max(1.0, endSec - startSec);
+
+        // If user didn't tap any buttons during the study (only 1 clip exists), auto-split into 4 realistic editable clips!
+        if (aiTimeline.length <= 1) {
+            aiTimeline = [
+                { start: startSec,                    end: startSec + totalDur * 0.14, category: 'pickup',     label: CATEGORY_META.pickup.label },
+                { start: startSec + totalDur * 0.14,  end: startSec + totalDur * 0.72, category: 'va_machine', label: CATEGORY_META.va_machine.label },
+                { start: startSec + totalDur * 0.72,  end: startSec + totalDur * 0.88, category: 'muda',       label: CATEGORY_META.muda.label },
+                { start: startSec + totalDur * 0.88,  end: endSec,                     category: 'dispose',    label: CATEGORY_META.dispose.label }
+            ];
+            document.getElementById("tlStatus").innerText = "✅ Cycle Ended! 4 default clips created — you can edit Start/End seconds or Type in the table!";
         } else {
-            pbVid.src = liveV.src;
-            recordedDuration = liveV.currentTime; 
+            aiTimeline[aiTimeline.length - 1].end = endSec;
+            document.getElementById("tlStatus").innerText = `✅ Cycle Ended (${aiTimeline.length} clips tagged)! Click any row to preview or adjust times.`;
         }
 
-        liveV.style.display = "none";
-        pbVid.style.display = "block";
-
-        // Mathematically slice the EXACT recorded duration into accurate element ratios
-        const d = recordedDuration || 10;
-        aiTimeline = [
-            { start: 0, end: d * 0.12, type: 'muda', state: 'MUDA: Reaching & Prep', elem: 0 },
-            { start: d * 0.12, end: d * 0.77, type: 'va', state: 'VA: Main Process', elem: 1 },
-            { start: d * 0.77, end: d * 0.90, type: 'muda', state: 'MUDA: Idle / Inspection', elem: 2 },
-            { start: d * 0.90, end: d, type: 'va', state: 'VA: Final Dispose', elem: 3 }
-        ];
-
-        finalizeTableCalculations();
+        renderTimelineBar();
+        renderClipsTable();
+        updateCalculations();
     }
 
-    function finalizeTableCalculations() {
-        let baseTimes = [0,0,0,0];
-        aiTimeline.forEach(seg => { baseTimes[seg.elem] += (seg.end - seg.start); });
+    // Allows user to split/insert a new clip at the current video playhead position
+    function markClipAtCurrentVideoTime() {
+        if (aiTimeline.length === 0) return alert("Run or load a cycle first.");
+        const t = pbVid.currentTime;
+        const idx = aiTimeline.findIndex(c => t > c.start + 0.2 && t < c.end - 0.2);
+        if (idx === -1) {
+            return alert("Move the video playhead inside a clip (at least 0.2s from its edges) to split it.");
+        }
+        const orig = aiTimeline[idx];
+        const secondHalf = {
+            start: Number(t.toFixed(2)),
+            end: Number(orig.end.toFixed(2)),
+            category: 'muda',
+            label: CATEGORY_META.muda.label
+        };
+        orig.end = Number(t.toFixed(2));
+        aiTimeline.splice(idx + 1, 0, secondHalf);
+        renderTimelineBar();
+        renderClipsTable();
+        updateCalculations();
+    }
 
+    function renderTimelineBar() {
+        const bar = document.getElementById("timelineBar");
+        if (!bar || aiTimeline.length === 0) return;
+
+        const minStart = aiTimeline[0].start;
+        const maxEnd = aiTimeline[aiTimeline.length - 1].end;
+        const span = Math.max(0.1, maxEnd - minStart);
+
+        const segsHtml = aiTimeline.map((seg, i) => {
+            const widthPct = Math.max(2, ((seg.end - seg.start) / span) * 100);
+            const meta = CATEGORY_META[seg.category] || CATEGORY_META.pickup;
+            const dur = (seg.end - seg.start).toFixed(1);
+            return `<div class="timeline-seg" style="width:${widthPct}%; background:${meta.color};" title="Clip ${i+1}: ${meta.label} (${dur}s)">
+                ${widthPct > 9 ? `C${i+1} (${dur}s)` : ''}
+            </div>`;
+        }).join("");
+
+        bar.innerHTML = segsHtml + `<div class="playhead" id="playhead"></div>`;
+    }
+
+    function updatePlayheadPosition() {
+        if (aiTimeline.length === 0) return;
+        const minStart = aiTimeline[0].start;
+        const maxEnd = aiTimeline[aiTimeline.length - 1].end;
+        const span = Math.max(0.1, maxEnd - minStart);
+        const pct = Math.min(100, Math.max(0, ((pbVid.currentTime - minStart) / span) * 100));
+        const ph = document.getElementById("playhead");
+        if (ph) ph.style.left = pct + "%";
+        document.getElementById("tlTimeDisplay").innerText = `${pbVid.currentTime.toFixed(2)}s / ${maxEnd.toFixed(2)}s`;
+    }
+
+    function seekFromTimeline(event) {
+        if (aiTimeline.length === 0) return;
+        const bar = document.getElementById("timelineBar");
+        const rect = bar.getBoundingClientRect();
+        const clickRatio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+        const minStart = aiTimeline[0].start;
+        const maxEnd = aiTimeline[aiTimeline.length - 1].end;
+        pbVid.currentTime = minStart + clickRatio * (maxEnd - minStart);
+        updatePlayheadPosition();
+    }
+
+    function renderClipsTable() {
         const tbody = document.getElementById("elementsTableBody");
-        tbody.innerHTML = elementLabels.map((el, i) => `
-            <tr>
-                <td style="font-weight:bold; color:#38bdf8;">Elem ${String.fromCharCode(65 + i)}</td>
-                <td>${el}</td>
-                <td>${baseTimes[i].toFixed(2)}</td>
-                <td><span style="color:#22c55e;">✅ Done</span></td>
-            </tr>
-        `).join("");
+        if (aiTimeline.length === 0) return;
 
-        document.getElementById("kpiRating").innerText = "88%";
-        updateCalculations(baseTimes);
+        tbody.innerHTML = aiTimeline.map((seg, i) => {
+            const dur = Math.max(0, seg.end - seg.start);
+            return `
+                <tr id="clipRow-${i}">
+                    <td style="font-weight:bold; color:#38bdf8;">#${i + 1}</td>
+                    <td>
+                        <select class="clip-type-select" onchange="updateClipCategory(${i}, this.value)">
+                            <option value="pickup" ${seg.category === 'pickup' ? 'selected' : ''}>Ⓐ Pickup & Align (VA)</option>
+                            <option value="va_machine" ${seg.category === 'va_machine' ? 'selected' : ''}>Ⓑ Main Process (VA + MA%)</option>
+                            <option value="muda" ${seg.category === 'muda' ? 'selected' : ''}>❌ Waste / Muda (Trim)</option>
+                            <option value="dispose" ${seg.category === 'dispose' ? 'selected' : ''}>Ⓓ Dispose Part (VA)</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" step="0.1" class="time-edit" value="${seg.start.toFixed(2)}" onchange="updateClipTimes(${i}, 'start', this.value)">
+                        ➔
+                        <input type="number" step="0.1" class="time-edit" value="${seg.end.toFixed(2)}" onchange="updateClipTimes(${i}, 'end', this.value)">
+                    </td>
+                    <td style="font-weight:bold; color:${seg.category === 'muda' ? '#ef4444' : '#22c55e'};">${dur.toFixed(2)}s</td>
+                    <td>
+                        <button type="button" onclick="previewSingleClip(${i})" style="background:#1e293b; color:#38bdf8; border:1px solid #38bdf8; border-radius:4px; padding:3px 7px; cursor:pointer; font-weight:bold;">▶</button>
+                    </td>
+                </tr>
+            `;
+        }).join("");
     }
 
-    function updateCalculations(passedBaseTimes) {
-        let baseTimes = passedBaseTimes || [];
-        if (baseTimes.length === 0 && window.finalStudyData) {
-            baseTimes = window.finalStudyData.baseTimes;
+    function updateClipCategory(idx, newCat) {
+        if (!aiTimeline[idx]) return;
+        aiTimeline[idx].category = newCat;
+        aiTimeline[idx].label = CATEGORY_META[newCat].label;
+        renderTimelineBar();
+        renderClipsTable();
+        updateCalculations();
+    }
+
+    function updateClipTimes(idx, field, val) {
+        const num = parseFloat(val);
+        if (isNaN(num) || num < 0) return;
+        if (field === 'start') {
+            aiTimeline[idx].start = num;
+            if (idx > 0) aiTimeline[idx - 1].end = num; // Keep contiguous
+        } else {
+            aiTimeline[idx].end = num;
+            if (idx < aiTimeline.length - 1) aiTimeline[idx + 1].start = num;
         }
-        if (baseTimes.length === 0) return;
+        renderTimelineBar();
+        renderClipsTable();
+        updateCalculations();
+    }
 
-        const isSingleShoe = document.getElementById("mIsSingleShoe").checked;
-        const pairMult = isSingleShoe ? 2 : 1; 
+    function previewSingleClip(idx) {
+        const seg = aiTimeline[idx];
+        if (!seg) return;
+        currentMode = 'idle';
+        cancelAnimationFrame(playbackRAF);
+        document.querySelectorAll('#elementsTableBody tr').forEach(r => r.classList.remove('playing-clip'));
+        const row = document.getElementById(`clipRow-${idx}`);
+        if (row) row.classList.add('playing-clip');
 
+        pbVid.playbackRate = 1.0;
+        pbVid.currentTime = seg.start;
+        pbVid.play();
+
+        const checkEnd = () => {
+            if (currentMode !== 'idle') return;
+            if (pbVid.currentTime >= seg.end) {
+                pbVid.pause();
+                if (row) row.classList.remove('playing-clip');
+            } else if (!pbVid.paused) {
+                requestAnimationFrame(checkEnd);
+            }
+        };
+        requestAnimationFrame(checkEnd);
+    }
+
+    function updateCalculations() {
         const machineIdx = document.getElementById("mMachine").value;
         const maPct = dsiMachines[machineIdx] ? dsiMachines[machineIdx].ma : 0;
-        const pnfPct = parseFloat(document.getElementById("mPnf").value) || 11;
+        const pnfPct = parseFloat(document.getElementById("mPnf").value) || 8;
+        const ratingPct = parseFloat(document.getElementById("mRating").value) || 90;
+        const ratingFactor = ratingPct / 100;
 
-        // Apply 88% rating
-        let ratedMins = baseTimes.map(sec => (sec / 60) * 0.88);
-        
-        // Element B gets Machine Allowance
-        ratedMins[1] = ratedMins[1] * (1 + maPct / 100);
-        
-        // Current Total Base includes everything (even Muda Element C)
-        const totalBaseCurrent = ratedMins.reduce((a, b) => a + b, 0);
-        const finalSmv = totalBaseCurrent * (1 + pnfPct / 100) * pairMult;
+        document.getElementById("kpiRating").innerText = ratingPct + "%";
+        document.getElementById("kpiMaDisplay").innerText = `MA: ${maPct}% | P&F: ${pnfPct}%`;
+
+        if (aiTimeline.length === 0) return;
+
+        const isSingleShoe = document.getElementById("mIsSingleShoe").checked;
+        const pairMult = isSingleShoe ? 2 : 1;
+
+        let totalSec = 0;
+        let vaSec = 0;
+        let mudaSec = 0;
+        let currentBaseMins = 0;
+        let kaizenBaseMins = 0;
+
+        aiTimeline.forEach(seg => {
+            const durSec = Math.max(0, seg.end - seg.start);
+            totalSec += durSec;
+            const meta = CATEGORY_META[seg.category] || CATEGORY_META.pickup;
+
+            let basicMin = (durSec / 60) * ratingFactor;
+            if (meta.hasMa) {
+                basicMin = basicMin * (1 + maPct / 100);
+            }
+
+            currentBaseMins += basicMin;
+            if (meta.isMuda) {
+                mudaSec += durSec;
+            } else {
+                vaSec += durSec;
+                kaizenBaseMins += basicMin;
+            }
+        });
+
+        const finalSmv = currentBaseMins * (1 + pnfPct / 100) * pairMult;
         const currentTargetHr = finalSmv > 0 ? Math.round(60 / finalSmv) : 0;
 
-        // Kaizen Target REMOVES the Muda element (Element C)
-        const totalBaseKaizen = ratedMins[0] + ratedMins[1] + ratedMins[3];
-        const kaizenSmv = totalBaseKaizen * (1 + pnfPct / 100) * pairMult;
+        // Kaizen SMV removes Muda clips and applies standard 100% target pace if all clips were marked VA
+        let kaizenSmv = kaizenBaseMins * (1 + pnfPct / 100) * pairMult;
+        if (mudaSec < 0.05) {
+            // Even if no Muda clip was marked, show 15% Kaizen pace improvement target
+            kaizenSmv = finalSmv * 0.85;
+        }
         const kaizenTargetHr = kaizenSmv > 0 ? Math.round(60 / kaizenSmv) : 0;
 
+        const vaRatio = totalSec > 0 ? Math.round((vaSec / totalSec) * 100) : 100;
+
+        document.getElementById("kpiCycle").innerText = totalSec.toFixed(2) + "s";
+        document.getElementById("kpiVaRatio").innerText = `VA: ${vaRatio}% | Muda: ${100 - vaRatio}%`;
         document.getElementById("kpiSmv").innerText = finalSmv.toFixed(3);
-        document.getElementById("kpiCurrentTarget").innerText = currentTargetHr + " / hr";
-        
+        document.getElementById("kpiCurrentTarget").innerText = `${currentTargetHr} prs / hr ${isSingleShoe ? '(Pair x2)' : ''}`;
         document.getElementById("kpiTarget").innerText = kaizenTargetHr + " / hr";
-        document.getElementById("kpiKaizenSmv").innerText = kaizenSmv.toFixed(3) + " min";
+        document.getElementById("kpiKaizenSmv").innerText = `R.SMV: ${kaizenSmv.toFixed(3)} min`;
 
         window.finalStudyData = {
-            baseTimes: baseTimes,
+            totalSec, vaSec, mudaSec,
             smv: finalSmv,
-            currentTargetHr: currentTargetHr,
-            kaizenSmv: kaizenSmv,
+            currentTargetHr,
+            kaizenSmv,
             impTargetHr: kaizenTargetHr,
-            pairMult: pairMult,
-            isSingleShoe: isSingleShoe
+            pairMult,
+            isSingleShoe,
+            ratingPct,
+            maPct,
+            pnfPct
         };
     }
 
-    // --- PLAYBACK ENGINES ---
+    // --- PLAYBACK ENGINES (AUDIT & IMPROVED KAIZEN) ---
 
     function playAuditVideo() {
+        if (aiTimeline.length === 0) return alert("Please complete a study first.");
         currentMode = 'audit';
+        cancelAnimationFrame(playbackRAF);
+
         const hudT = document.getElementById("hudTop");
         const hudB = document.getElementById("hudBottom");
-        
+        const minStart = aiTimeline[0].start;
+
         pbVid.playbackRate = 1.0;
-        pbVid.currentTime = 0;
+        pbVid.currentTime = minStart;
         pbVid.play();
-        
+
         hudT.style.display = "flex";
         hudB.style.display = "flex";
-        hudT.style.background = "rgba(0,0,0,0.8)";
-        
+        hudT.style.background = "rgba(0,0,0,0.82)";
+
         const sd = window.finalStudyData;
-        document.getElementById("hudBottomLeft").innerText = `Manual Obs SMV: ${sd.smv.toFixed(3)}`;
-        
-        cancelAnimationFrame(playbackRAF);
+        document.getElementById("hudBottomLeft").innerText = `Obs SMV: ${sd.smv.toFixed(3)} (${sd.currentTargetHr}/hr) | Muda Lost: ${sd.mudaSec.toFixed(1)}s`;
+
         auditLoop();
     }
 
     function auditLoop() {
         if (currentMode !== 'audit') return;
         const t = pbVid.currentTime;
-        
-        if (t >= recordedDuration - 0.2) { pbVid.currentTime = 0; } 
+        const minStart = aiTimeline[0].start;
+        const maxEnd = aiTimeline[aiTimeline.length - 1].end;
 
-        const seg = aiTimeline.find(s => t >= s.start && t < s.end);
-        if (seg) {
-            document.getElementById("hudTopTitle").innerText = `AI AUDIT MODE - Time: ${t.toFixed(1)}s`;
-            document.getElementById("hudTopState").innerText = `STATE: ${seg.state}`;
-            
+        if (t >= maxEnd - 0.08) {
+            pbVid.currentTime = minStart;
+        }
+
+        const segIdx = aiTimeline.findIndex(s => t >= s.start && t < s.end);
+        document.querySelectorAll('#elementsTableBody tr').forEach((r, i) => {
+            r.classList.toggle('playing-clip', i === segIdx);
+        });
+
+        if (segIdx !== -1) {
+            const seg = aiTimeline[segIdx];
+            const meta = CATEGORY_META[seg.category] || CATEGORY_META.pickup;
+            document.getElementById("hudTopTitle").innerText = `AI AUDIT MODE — Clip #${segIdx + 1} (${t.toFixed(1)}s)`;
+            document.getElementById("hudTopState").innerText = meta.label;
+
             const overlay = document.getElementById("aiOverlay");
             const warnText = document.getElementById("hudBottomRight");
-            
-            if (seg.type === 'muda') {
+
+            if (meta.isMuda) {
                 overlay.style.borderColor = "#ef4444";
                 document.getElementById("hudTopState").style.color = "#ef4444";
                 warnText.style.display = "block";
@@ -623,94 +999,133 @@
                 warnText.style.display = "none";
             }
         }
-        
+
         playbackRAF = requestAnimationFrame(auditLoop);
     }
 
     function playImprovedVideo() {
+        if (aiTimeline.length === 0) return alert("Please complete a study first.");
+        const vaClips = aiTimeline.filter(s => !CATEGORY_META[s.category]?.isMuda);
+        if (vaClips.length === 0) return alert("All clips are marked as Waste/Muda! Keep at least one Value-Added clip.");
+
         currentMode = 'improved';
+        cancelAnimationFrame(playbackRAF);
+
         const hudT = document.getElementById("hudTop");
         const hudB = document.getElementById("hudBottom");
         const overlay = document.getElementById("aiOverlay");
-
         const sd = window.finalStudyData;
-        const boost = Math.min(1.5, Math.max(1.1, sd.smv / sd.kaizenSmv));
-        
+
+        const boost = 1.30; // 1.30x Kaizen Target Pace
         pbVid.playbackRate = boost;
-        
-        // Find first VA segment and start there
-        const firstVa = aiTimeline.find(s => s.type === 'va');
-        if (firstVa) pbVid.currentTime = firstVa.start;
+        pbVid.currentTime = vaClips[0].start;
         pbVid.play();
 
         hudT.style.display = "flex";
         hudB.style.display = "flex";
-        hudT.style.background = "rgba(15, 81, 50, 0.9)";
-        
-        document.getElementById("hudTopTitle").innerText = `IMPROVED KAIZEN METHOD - ${boost.toFixed(2)}x Target Pace`;
-        document.getElementById("hudTopState").innerText = `Continuous Value-Added Flow (Waste Trimmed)`;
+        hudT.style.background = "rgba(15, 81, 50, 0.92)";
+
+        document.getElementById("hudTopTitle").innerText = `✨ IMPROVED KAIZEN METHOD — 1.30x Target Pace`;
+        document.getElementById("hudTopState").innerText = `Continuous Value-Added Flow (${sd.mudaSec.toFixed(1)}s Waste Trimmed)`;
         document.getElementById("hudTopState").style.color = "#86efac";
-        
-        document.getElementById("hudBottomLeft").innerText = `Obs SMV: ${sd.smv.toFixed(3)} -> Target R.SMV: ${sd.kaizenSmv.toFixed(3)} (${sd.impTargetHr}/hr)`;
+
+        document.getElementById("hudBottomLeft").innerText = `Obs SMV: ${sd.smv.toFixed(3)} (${sd.currentTargetHr}/hr) ➔ KAIZEN R.SMV: ${sd.kaizenSmv.toFixed(3)} (${sd.impTargetHr}/hr)`;
         document.getElementById("hudBottomRight").style.display = "none";
-        
         overlay.style.borderColor = "#22c55e";
 
-        cancelAnimationFrame(playbackRAF);
         improvedLoop();
     }
 
     function improvedLoop() {
         if (currentMode !== 'improved') return;
-        let t = pbVid.currentTime;
-        
-        if (t >= recordedDuration - 0.2) { 
-            const firstVa = aiTimeline.find(s => s.type === 'va');
-            pbVid.currentTime = firstVa ? firstVa.start : 0; 
-            t = pbVid.currentTime;
+        const t = pbVid.currentTime;
+        const vaClips = aiTimeline.filter(s => !CATEGORY_META[s.category]?.isMuda);
+        const lastVaEnd = vaClips[vaClips.length - 1].end;
+
+        if (!isSeeking) {
+            if (t >= lastVaEnd - 0.08) {
+                pbVid.currentTime = vaClips[0].start;
+            } else {
+                const currentSeg = aiTimeline.find(s => t >= s.start && t < s.end);
+                if (currentSeg && CATEGORY_META[currentSeg.category]?.isMuda) {
+                    // Find next Value-Added clip and jump straight to it!
+                    const nextVa = aiTimeline.find(s => s.start >= currentSeg.end - 0.05 && !CATEGORY_META[s.category]?.isMuda);
+                    pbVid.currentTime = nextVa ? nextVa.start : vaClips[0].start;
+                }
+            }
         }
 
-        const seg = aiTimeline.find(s => t >= s.start && t < s.end);
-        
-        // Safely skip Muda sections without freezing the video
-        if (!isSeeking && seg && seg.type === 'muda') {
-            pbVid.currentTime = seg.end; 
-        }
-        
+        const segIdx = aiTimeline.findIndex(s => t >= s.start && t < s.end);
+        document.querySelectorAll('#elementsTableBody tr').forEach((r, i) => {
+            r.classList.toggle('playing-clip', i === segIdx);
+        });
+
         playbackRAF = requestAnimationFrame(improvedLoop);
     }
 
     function printOfficialPDF() {
-        if (!window.finalStudyData) return alert("Please complete a study first.");
+        if (!window.finalStudyData || aiTimeline.length === 0) return alert("Please complete a study first.");
         const sd = window.finalStudyData;
+        const mcObj = dsiMachines[document.getElementById("mMachine").value];
         
+        const rowsHtml = aiTimeline.map((seg, i) => {
+            const dur = Math.max(0, seg.end - seg.start);
+            const meta = CATEGORY_META[seg.category];
+            const basicMin = (dur / 60) * (sd.ratingPct / 100) * (meta.hasMa ? (1 + sd.maPct / 100) : 1);
+            return `
+                <tr>
+                    <td style="border: 1px solid #000; padding: 6px;">#${i + 1}</td>
+                    <td style="border: 1px solid #000; padding: 6px;">${meta.label}</td>
+                    <td style="border: 1px solid #000; padding: 6px;">${seg.start.toFixed(2)}s - ${seg.end.toFixed(2)}s (${dur.toFixed(2)}s)</td>
+                    <td style="border: 1px solid #000; padding: 6px;">${sd.ratingPct}%</td>
+                    <td style="border: 1px solid #000; padding: 6px;">${meta.isMuda ? '0.0000 (Muda Trimmed)' : basicMin.toFixed(4)}</td>
+                </tr>
+            `;
+        }).join("");
+
         const printDiv = document.getElementById("printArea");
         printDiv.innerHTML = `
             <div style="border: 2px solid #000; padding: 20px; font-family: Arial, sans-serif; color: #000; background: #fff;">
-                <h2 style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px;">DSI TIME AND MOTION ANALYSIS</h2>
+                <h2 style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-top:0;">D. SAMSON INDUSTRIES (PVT) LTD — TIME & MOTION ANALYSIS SHEET</h2>
                 
-                <table style="width: 100%; margin-bottom: 20px; text-align: left; font-size: 14px;">
+                <table style="width: 100%; margin-bottom: 15px; text-align: left; font-size: 13px;">
                     <tr>
-                        <td><strong>Operation:</strong> ${document.getElementById("mOperation").value}</td>
-                        <td><strong>Product/Style:</strong> ${document.getElementById("mProduct").value}</td>
+                        <td><strong>Product / Style:</strong> ${document.getElementById("mProduct").value || 'N/A'}</td>
+                        <td><strong>Operation:</strong> ${document.getElementById("mOperation").value || 'N/A'}</td>
+                        <td><strong>Date:</strong> ${new Date().toLocaleDateString()}</td>
                     </tr>
                     <tr>
-                        <td><strong>Cycle Type:</strong> ${sd.isSingleShoe ? 'Single Shoe (Odd Leg)' : 'Per Pair'}</td>
-                        <td><strong>Machine:</strong> ${dsiMachines[document.getElementById("mMachine").value].name} (${document.getElementById("mMachine").value ? dsiMachines[document.getElementById("mMachine").value].ma : 0}% MA)</td>
+                        <td><strong>Machine:</strong> ${mcObj ? mcObj.name : 'N/A'} (${sd.maPct}% MA)</td>
+                        <td><strong>P&F Allowance:</strong> ${sd.pnfPct}%</td>
+                        <td><strong>Cycle Type:</strong> ${sd.isSingleShoe ? 'Single Shoe (x2 for Pair)' : 'Full Pair'}</td>
                     </tr>
                     <tr>
-                        <td colspan="2"><strong>Comments:</strong> ${document.getElementById("mComments").value}</td>
+                        <td colspan="3"><strong>Comments:</strong> ${document.getElementById("mComments").value || 'None'}</td>
                     </tr>
                 </table>
 
-                <div style="background: #f8f9fa; border: 1px solid #000; padding: 15px; border-radius: 5px;">
-                    <h3>Standard Time Calculation</h3>
-                    <p><strong>P&F Allowance:</strong> ${document.getElementById("mPnf").value}%</p>
-                    <p><strong>Calculation Multiplier:</strong> x${sd.pairMult}</p>
-                    <h2 style="color: #d32f2f; margin-top: 10px;">FINAL SMV: ${sd.smv.toFixed(3)} min/pair</h2>
-                    <h3 style="color: #1976d2;">Target Production: ${sd.currentTargetHr} pairs/hr</h3>
-                    <hr>
-                    <h3 style="color: #2e7d32;">Kaizen Target R.SMV: ${sd.kaizenSmv.toFixed(3)} min/pair (${sd.impTargetHr} pairs/hr)</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px;">
+                    <thead>
+                        <tr style="background: #eee;">
+                            <th style="border: 1px solid #000; padding: 6px;">Clip</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Element / Motion Category</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Observed Time (sec)</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Rating</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Kaizen Basic Time (min)</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+
+                <div style="background: #f8f9fa; border: 1px solid #000; padding: 14px; border-radius: 5px; display:flex; justify-content:space-between;">
+                    <div>
+                        <h3 style="margin:0 0 6px 0; color:#d32f2f;">Current Observed SMV: ${sd.smv.toFixed(3)} min/pair</h3>
+                        <p style="margin:0;"><strong>Current Output Target:</strong> ${sd.currentTargetHr} pairs/hr</p>
+                    </div>
+                    <div>
+                        <h3 style="margin:0 0 6px 0; color:#2e7d32;">Kaizen Target R.SMV: ${sd.kaizenSmv.toFixed(3)} min/pair</h3>
+                        <p style="margin:0;"><strong>Kaizen Target Output:</strong> ${sd.impTargetHr} pairs/hr (Waste Trimmed: ${sd.mudaSec.toFixed(1)}s)</p>
+                    </div>
                 </div>
             </div>
         `;
