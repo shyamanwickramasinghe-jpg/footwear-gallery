@@ -67,7 +67,7 @@
             flex: 1.25;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             min-height: 0;
         }
         .video-container {
@@ -78,7 +78,7 @@
             border: 2px solid #334155;
             overflow: hidden;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            min-height: 220px;
+            min-height: 200px;
         }
         video { width: 100%; height: 100%; object-fit: contain; background: #000; }
         
@@ -105,6 +105,50 @@
 
         .muda-flash {
             color: #ef4444; font-weight: 900; animation: pulseRed 0.5s infinite;
+        }
+
+        /* SLOW MOTION SPEED BAR (0.1x to 1.0x) */
+        .speed-bar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 5px 10px;
+            flex-wrap: wrap;
+        }
+        .speed-label {
+            font-size: 0.75em;
+            font-weight: 800;
+            color: #38bdf8;
+            text-transform: uppercase;
+            margin-right: 6px;
+            white-space: nowrap;
+        }
+        .speed-btn {
+            flex: 1;
+            min-width: 38px;
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #475569;
+            border-radius: 5px;
+            padding: 5px 4px;
+            font-size: 0.78em;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+        }
+        .speed-btn:hover {
+            background: #334155;
+            color: #fff;
+        }
+        .speed-btn.active-speed {
+            background: #0284c7;
+            color: #fff;
+            border-color: #38bdf8;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
         }
 
         /* VISUAL TIMELINE BAR */
@@ -259,7 +303,9 @@
             .top-bar { flex-wrap: wrap; gap: 8px; padding: 10px; }
             .meta-bar { padding: 10px; gap: 8px; }
             .workspace { flex-direction: column; overflow-y: visible; padding: 10px; }
-            .video-container { min-height: 280px; }
+            .video-container { min-height: 260px; }
+            .speed-bar { gap: 3px; padding: 5px 6px; }
+            .speed-btn { min-width: 32px; font-size: 0.72em; padding: 5px 2px; }
             .tagger-bar { grid-template-columns: repeat(2, 1fr); }
             .hud-banner-top { font-size: 0.8em; flex-direction: column; align-items: flex-start; }
             .hud-banner-bottom { font-size: 0.78em; flex-direction: column; align-items: flex-start; }
@@ -342,10 +388,25 @@
                 </div>
             </div>
 
+            <!-- SLOW-MOTION SPEED CONTROL BAR (0.1x to 1.0x) -->
+            <div class="speed-bar" id="speedBar">
+                <span class="speed-label">🐢 Motion Speed:</span>
+                <button type="button" class="speed-btn" onclick="setVideoSpeed(0.1, this)">0.1x</button>
+                <button type="button" class="speed-btn" onclick="setVideoSpeed(0.2, this)">0.2x</button>
+                <button type="button" class="speed-btn" onclick="setVideoSpeed(0.3, this)">0.3x</button>
+                <button type="button" class="speed-btn" onclick="setVideoSpeed(0.4, this)">0.4x</button>
+                <button type="button" class="speed-btn" onclick="setVideoSpeed(0.5, this)">0.5x</button>
+                <button type="button" class="speed-btn" onclick="setVideoSpeed(0.6, this)">0.6x</button>
+                <button type="button" class="speed-btn" onclick="setVideoSpeed(0.7, this)">0.7x</button>
+                <button type="button" class="speed-btn" onclick="setVideoSpeed(0.8, this)">0.8x</button>
+                <button type="button" class="speed-btn" onclick="setVideoSpeed(0.9, this)">0.9x</button>
+                <button type="button" class="speed-btn active-speed" id="defaultSpeedBtn" onclick="setVideoSpeed(1.0, this)">1.0x</button>
+            </div>
+
             <!-- VISUAL TIMELINE SCRUBBER -->
             <div class="timeline-wrapper">
                 <div class="timeline-header">
-                    <span id="tlStatus">📌 Tip: Load a video, click Start Study, and tap the buttons below as the operator changes motion!</span>
+                    <span id="tlStatus">📌 Tip: Load a video, pick a Slow-Motion speed (0.1x–1.0x) if needed, and click Start Cycle Study!</span>
                     <span id="tlTimeDisplay">0.00s / 0.00s</span>
                 </div>
                 <div class="timeline-bar" id="timelineBar" onclick="seekFromTimeline(event)">
@@ -456,6 +517,7 @@
     let playbackRAF = null;
     let currentMode = 'idle'; // 'idle', 'studying', 'audit', 'improved'
     let isSeeking = false;
+    let selectedPlaybackSpeed = 1.0; // User's chosen slow-motion speed (0.1x to 1.0x)
 
     // Each clip: { start: 0, end: 2.5, category: 'pickup'|'va_machine'|'muda'|'dispose', label: '...' }
     let aiTimeline = [];
@@ -512,6 +574,19 @@
     pbVid.addEventListener('seeking', () => isSeeking = true);
     pbVid.addEventListener('seeked', () => isSeeking = false);
     pbVid.addEventListener('timeupdate', updatePlayheadPosition);
+
+    // --- SLOW MOTION SPEED CONTROLLER (0.1x to 1.0x) ---
+    function setVideoSpeed(rate, btnEl) {
+        selectedPlaybackSpeed = rate;
+        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active-speed'));
+        if (btnEl) btnEl.classList.add('active-speed');
+
+        // Apply immediately unless Improved Kaizen (1.30x) is currently running
+        if (currentMode !== 'improved') {
+            pbVid.playbackRate = rate;
+        }
+        document.getElementById("tlStatus").innerText = `🐢 Playback speed set to ${rate.toFixed(1)}x (True video timestamps are preserved for SMV math).`;
+    }
 
     // Keyboard shortcuts: 1, 2, 3, 4 for live tagging, Ctrl+Z for Undo
     document.addEventListener('keydown', (e) => {
@@ -589,7 +664,7 @@
         currentMode = 'idle';
         cancelAnimationFrame(playbackRAF);
         pbVid.pause();
-        pbVid.playbackRate = 1.0;
+        pbVid.playbackRate = selectedPlaybackSpeed;
         document.getElementById("hudTop").style.display = "none";
         document.getElementById("hudBottom").style.display = "none";
         document.getElementById("aiOverlay").style.borderColor = "transparent";
@@ -613,6 +688,7 @@
             document.getElementById("btnStart").style.display = "block";
             if (!isLiveCamMode) {
                 pbVid.currentTime = 0;
+                pbVid.playbackRate = selectedPlaybackSpeed;
             }
         }
 
@@ -708,8 +784,9 @@
         resetCurrentStudy();
         pbVid.onloadedmetadata = () => {
             recordedDuration = pbVid.duration || 15;
+            pbVid.playbackRate = selectedPlaybackSpeed;
             document.getElementById("btnStart").style.display = "block";
-            document.getElementById("tlStatus").innerText = `📁 Video Loaded (${recordedDuration.toFixed(1)}s). Scrub to cycle start or click 'Start Cycle Study'!`;
+            document.getElementById("tlStatus").innerText = `📁 Video Loaded (${recordedDuration.toFixed(1)}s). Pick a Slow-Mo speed (0.1x–1.0x) and click 'Start Cycle Study'!`;
             document.getElementById("tlTimeDisplay").innerText = `0.00s / ${recordedDuration.toFixed(2)}s`;
         };
     }
@@ -755,7 +832,7 @@
             }
             studyStartVideoTime = pbVid.currentTime || 0;
             studyStartWallTime = performance.now();
-            pbVid.playbackRate = 1.0;
+            pbVid.playbackRate = selectedPlaybackSpeed; // Uses selected slow-motion speed!
             pbVid.play();
             pbVid.onended = () => {
                 if (isStudying) stopAiStudy();
@@ -765,12 +842,12 @@
         const startSec = isLiveCamMode ? 0 : studyStartVideoTime;
         aiTimeline.push({
             start: startSec,
-            end: startSec + 0.1,
+            end: startSec + 0.05,
             category: activeClipCategory,
             label: CATEGORY_META[activeClipCategory].label
         });
 
-        document.getElementById("tlStatus").innerText = "🔴 Recording Cycle: Tap buttons 1️⃣ 2️⃣ 3️⃣ 4️⃣ below as the operator switches motion!";
+        document.getElementById("tlStatus").innerText = `🔴 Studying at ${selectedPlaybackSpeed.toFixed(1)}x speed: Tap buttons 1️⃣ 2️⃣ 3️⃣ 4️⃣ below as the operator switches motion!`;
         studyLoop();
     }
 
@@ -780,14 +857,16 @@
 
         const lastClip = aiTimeline[aiTimeline.length - 1];
         if (lastClip) {
-            if (nowVidSec - lastClip.start < 0.25) {
+            // Threshold scales with playback speed so slow-mo taps at 0.1x always register cleanly
+            const minClipGap = isLiveCamMode ? 0.25 : Math.max(0.04, 0.20 * selectedPlaybackSpeed);
+            if (nowVidSec - lastClip.start < minClipGap) {
                 lastClip.category = categoryKey;
                 lastClip.label = CATEGORY_META[categoryKey].label;
             } else {
                 lastClip.end = nowVidSec;
                 aiTimeline.push({
                     start: nowVidSec,
-                    end: nowVidSec + 0.1,
+                    end: nowVidSec + 0.05,
                     category: categoryKey,
                     label: CATEGORY_META[categoryKey].label
                 });
@@ -808,7 +887,7 @@
         const nowVidSec = isLiveCamMode ? elapsed : pbVid.currentTime;
 
         if (aiTimeline.length > 0) {
-            aiTimeline[aiTimeline.length - 1].end = Math.max(aiTimeline[aiTimeline.length - 1].start + 0.05, nowVidSec);
+            aiTimeline[aiTimeline.length - 1].end = Math.max(aiTimeline[aiTimeline.length - 1].start + 0.02, nowVidSec);
         }
 
         document.getElementById("kpiCycle").innerText = elapsed.toFixed(2) + "s";
@@ -824,7 +903,7 @@
 
         const wallElapsed = (performance.now() - studyStartWallTime) / 1000;
         const vidElapsed = !isLiveCamMode ? (pbVid.currentTime - studyStartVideoTime) : wallElapsed;
-        const finalCycleDuration = Math.max(1.0, vidElapsed > 0.5 ? vidElapsed : wallElapsed);
+        const finalCycleDuration = Math.max(0.5, !isLiveCamMode ? vidElapsed : wallElapsed);
 
         document.getElementById("btnStop").style.display = "none";
         document.getElementById("taggerBar").style.display = "none";
@@ -838,19 +917,20 @@
                 liveCam.style.display = "none";
                 pbVid.style.display = "block";
                 pbVid.src = URL.createObjectURL(blob);
+                isLiveCamMode = false;
                 FinalizeStudyClips(0, finalCycleDuration);
             };
             mediaRecorder.stop();
         } else {
             pbVid.pause();
-            const endSec = Math.max(studyStartVideoTime + 1.0, pbVid.currentTime || (studyStartVideoTime + finalCycleDuration));
+            const endSec = Math.max(studyStartVideoTime + 0.5, pbVid.currentTime || (studyStartVideoTime + finalCycleDuration));
             FinalizeStudyClips(studyStartVideoTime, endSec);
         }
     }
 
     function FinalizeStudyClips(startSec, endSec) {
         recordedDuration = endSec;
-        const totalDur = Math.max(1.0, endSec - startSec);
+        const totalDur = Math.max(0.5, endSec - startSec);
 
         if (aiTimeline.length <= 1) {
             aiTimeline = [
@@ -873,9 +953,9 @@
     function markClipAtCurrentVideoTime() {
         if (aiTimeline.length === 0) return alert("Run or load a cycle first.");
         const t = pbVid.currentTime;
-        const idx = aiTimeline.findIndex(c => t > c.start + 0.2 && t < c.end - 0.2);
+        const idx = aiTimeline.findIndex(c => t > c.start + 0.1 && t < c.end - 0.1);
         if (idx === -1) {
-            return alert("Move the video playhead inside a clip (at least 0.2s from its edges) to split it.");
+            return alert("Move the video playhead inside a clip (at least 0.1s from its edges) to split it.");
         }
         saveStateForUndo();
         const orig = aiTimeline[idx];
@@ -896,7 +976,6 @@
         if (aiTimeline.length <= 1) return alert("You must keep at least 1 clip in the cycle.");
         saveStateForUndo();
         const removed = aiTimeline.splice(idx, 1)[0];
-        // Stitch contiguous time so no gap is left behind
         if (idx > 0) {
             aiTimeline[idx - 1].end = removed.end;
         } else if (aiTimeline.length > 0) {
@@ -973,7 +1052,7 @@
                     </td>
                     <td style="font-weight:bold; color:${seg.category === 'muda' ? '#ef4444' : '#22c55e'};">${dur.toFixed(2)}s</td>
                     <td>
-                        <button type="button" class="btn-row-icon" onclick="previewSingleClip(${i})" title="Preview Clip">▶</button>
+                        <button type="button" class="btn-row-icon" onclick="previewSingleClip(${i})" title="Preview Clip at Selected Speed">▶</button>
                         <button type="button" class="btn-row-icon btn-row-del" onclick="deleteClipRow(${i})" title="Delete Clip & Merge">✖</button>
                     </td>
                 </tr>
@@ -1015,7 +1094,7 @@
         const row = document.getElementById(`clipRow-${idx}`);
         if (row) row.classList.add('playing-clip');
 
-        pbVid.playbackRate = 1.0;
+        pbVid.playbackRate = selectedPlaybackSpeed;
         pbVid.currentTime = seg.start;
         pbVid.play();
 
@@ -1114,7 +1193,7 @@
         const hudB = document.getElementById("hudBottom");
         const minStart = aiTimeline[0].start;
 
-        pbVid.playbackRate = 1.0;
+        pbVid.playbackRate = selectedPlaybackSpeed;
         pbVid.currentTime = minStart;
         pbVid.play();
 
@@ -1147,7 +1226,7 @@
         if (segIdx !== -1) {
             const seg = aiTimeline[segIdx];
             const meta = CATEGORY_META[seg.category] || CATEGORY_META.pickup;
-            document.getElementById("hudTopTitle").innerText = `AI AUDIT MODE — Clip #${segIdx + 1} (${t.toFixed(1)}s)`;
+            document.getElementById("hudTopTitle").innerText = `AI AUDIT (${selectedPlaybackSpeed.toFixed(1)}x) — Clip #${segIdx + 1} (${t.toFixed(1)}s)`;
             document.getElementById("hudTopState").innerText = meta.label;
 
             const overlay = document.getElementById("aiOverlay");
