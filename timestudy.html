@@ -151,41 +151,116 @@
             box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
         }
 
-        /* VISUAL TIMELINE BAR */
+        /* VISUAL TIMELINE BAR WITH DRAGGABLE HANDLES */
         .timeline-wrapper {
             background: #0f172a;
             border: 1px solid #334155;
             border-radius: 8px;
-            padding: 6px 10px;
+            padding: 8px 12px 10px;
+            user-select: none;
+            -webkit-user-select: none;
         }
         .timeline-header {
-            display: flex; justify-content: space-between; align-items: center; font-size: 0.75em; color: #94a3b8; margin-bottom: 4px; font-weight: bold; gap: 8px; flex-wrap: wrap;
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.75em; color: #94a3b8; margin-bottom: 6px; font-weight: bold; gap: 8px; flex-wrap: wrap;
         }
         .timeline-bar {
             position: relative;
-            height: 22px;
+            height: 30px;
             background: #1e293b;
-            border-radius: 4px;
-            overflow: hidden;
+            border-radius: 6px;
             display: flex;
             cursor: pointer;
+            touch-action: none;
+            border: 1px solid #475569;
         }
         .timeline-seg {
             height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7em;
-            font-weight: bold;
+            font-size: 0.74em;
+            font-weight: 800;
             color: #fff;
             overflow: hidden;
             white-space: nowrap;
-            border-right: 1px solid rgba(0,0,0,0.4);
-            transition: width 0.1s;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
         }
+        .timeline-seg:first-child { border-radius: 5px 0 0 5px; }
+        
+        /* Draggable Divider Handle Between Clips */
+        .clip-handle {
+            position: absolute;
+            top: -4px;
+            bottom: -4px;
+            width: 14px;
+            transform: translateX(-50%);
+            cursor: ew-resize;
+            z-index: 15;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+        }
+        .clip-handle::before {
+            content: "⇔";
+            font-size: 10px;
+            font-weight: 900;
+            color: #000;
+            background: #fde047;
+            border: 1px solid #000;
+            border-radius: 4px;
+            padding: 4px 2px;
+            line-height: 1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.7);
+            transition: transform 0.1s, background 0.1s;
+        }
+        .clip-handle:hover::before, .clip-handle.dragging::before {
+            background: #fff;
+            transform: scale(1.2);
+            box-shadow: 0 0 10px #fde047;
+        }
+
+        /* Floating Tooltip During Dragging */
+        .drag-tooltip {
+            position: absolute;
+            top: -30px;
+            transform: translateX(-50%);
+            background: #fde047;
+            color: #000;
+            font-weight: 900;
+            font-size: 0.75em;
+            padding: 3px 7px;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 30;
+            display: none;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+        }
+
+        /* Draggable Playhead */
         .playhead {
-            position: absolute; top: 0; bottom: 0; width: 3px; background: #fff;
-            box-shadow: 0 0 6px #fff; pointer-events: none; z-index: 5; left: 0%;
+            position: absolute;
+            top: -5px;
+            bottom: -5px;
+            width: 4px;
+            background: #fff;
+            box-shadow: 0 0 8px #38bdf8;
+            z-index: 12;
+            left: 0%;
+            transform: translateX(-50%);
+            cursor: ew-resize;
+        }
+        .playhead::after {
+            content: "▼";
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #38bdf8;
+            font-size: 10px;
+            text-shadow: 0 1px 3px #000;
         }
 
         /* LIVE ELEMENT TAGGER BUTTONS */
@@ -403,13 +478,14 @@
                 <button type="button" class="speed-btn active-speed" id="defaultSpeedBtn" onclick="setVideoSpeed(1.0, this)">1.0x</button>
             </div>
 
-            <!-- VISUAL TIMELINE SCRUBBER -->
+            <!-- VISUAL TIMELINE SCRUBBER WITH DRAGGABLE HANDLES -->
             <div class="timeline-wrapper">
                 <div class="timeline-header">
-                    <span id="tlStatus">📌 Tip: Load a video, pick a Slow-Motion speed (0.1x–1.0x) if needed, and click Start Cycle Study!</span>
+                    <span id="tlStatus">📌 Tip: Drag the yellow ⇔ handles between clips to adjust element times while watching the video!</span>
                     <span id="tlTimeDisplay">0.00s / 0.00s</span>
                 </div>
-                <div class="timeline-bar" id="timelineBar" onclick="seekFromTimeline(event)">
+                <div class="timeline-bar" id="timelineBar" onmousedown="startTimelineScrub(event)" ontouchstart="startTimelineScrub(event)" ondblclick="splitClipOnDoubleClick(event)">
+                    <div class="drag-tooltip" id="dragTooltip">0.00s</div>
                     <div class="playhead" id="playhead"></div>
                 </div>
             </div>
@@ -517,11 +593,14 @@
     let playbackRAF = null;
     let currentMode = 'idle'; // 'idle', 'studying', 'audit', 'improved'
     let isSeeking = false;
-    let selectedPlaybackSpeed = 1.0; // User's chosen slow-motion speed (0.1x to 1.0x)
+    let selectedPlaybackSpeed = 1.0;
+
+    // Interactive Drag State for Timeline Boundary Handles & Playhead
+    let dragState = null; // { type: 'handle' | 'playhead', boundaryIdx: number }
 
     // Each clip: { start: 0, end: 2.5, category: 'pickup'|'va_machine'|'muda'|'dispose', label: '...' }
     let aiTimeline = [];
-    let historyStack = []; // Stores snapshots of aiTimeline for Undo
+    let historyStack = [];
     let activeClipCategory = 'pickup';
 
     const CATEGORY_META = {
@@ -581,7 +660,6 @@
         document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active-speed'));
         if (btnEl) btnEl.classList.add('active-speed');
 
-        // Apply immediately unless Improved Kaizen (1.30x) is currently running
         if (currentMode !== 'improved') {
             pbVid.playbackRate = rate;
         }
@@ -692,7 +770,7 @@
             }
         }
 
-        document.getElementById("timelineBar").innerHTML = `<div class="playhead" id="playhead"></div>`;
+        document.getElementById("timelineBar").innerHTML = `<div class="drag-tooltip" id="dragTooltip">0.00s</div><div class="playhead" id="playhead"></div>`;
         document.getElementById("kpiCycle").innerText = "0.00s";
         document.getElementById("kpiVaRatio").innerText = "VA: --% | Muda: --%";
         document.getElementById("kpiSmv").innerText = "--";
@@ -739,7 +817,7 @@
         renderTimelineBar();
         renderClipsTable();
         updateCalculations();
-        document.getElementById("tlStatus").innerText = "⚡ Reset to 4 standard clips across the cycle.";
+        document.getElementById("tlStatus").innerText = "⚡ Reset to 4 standard clips! Drag the yellow ⇔ handles to fine-tune each element.";
     }
 
     function applyMachineAllowances() {
@@ -832,7 +910,7 @@
             }
             studyStartVideoTime = pbVid.currentTime || 0;
             studyStartWallTime = performance.now();
-            pbVid.playbackRate = selectedPlaybackSpeed; // Uses selected slow-motion speed!
+            pbVid.playbackRate = selectedPlaybackSpeed;
             pbVid.play();
             pbVid.onended = () => {
                 if (isStudying) stopAiStudy();
@@ -857,7 +935,6 @@
 
         const lastClip = aiTimeline[aiTimeline.length - 1];
         if (lastClip) {
-            // Threshold scales with playback speed so slow-mo taps at 0.1x always register cleanly
             const minClipGap = isLiveCamMode ? 0.25 : Math.max(0.04, 0.20 * selectedPlaybackSpeed);
             if (nowVidSec - lastClip.start < minClipGap) {
                 lastClip.category = categoryKey;
@@ -939,10 +1016,10 @@
                 { start: startSec + totalDur * 0.72,  end: startSec + totalDur * 0.88, category: 'muda',       label: CATEGORY_META.muda.label },
                 { start: startSec + totalDur * 0.88,  end: endSec,                     category: 'dispose',    label: CATEGORY_META.dispose.label }
             ];
-            document.getElementById("tlStatus").innerText = "✅ Cycle Ended! 4 default clips created — edit Start/End, Type, or delete clips in the table!";
+            document.getElementById("tlStatus").innerText = "✅ Cycle Ended! Drag the yellow ⇔ handles on the bar to adjust element boundaries while watching the video!";
         } else {
             aiTimeline[aiTimeline.length - 1].end = endSec;
-            document.getElementById("tlStatus").innerText = `✅ Cycle Ended (${aiTimeline.length} clips tagged)! Click ▶ to preview or ✖ to delete any clip.`;
+            document.getElementById("tlStatus").innerText = `✅ Cycle Ended (${aiTimeline.length} clips)! Drag the yellow ⇔ handles on the bar to fine-tune each element.`;
         }
 
         renderTimelineBar();
@@ -955,7 +1032,7 @@
         const t = pbVid.currentTime;
         const idx = aiTimeline.findIndex(c => t > c.start + 0.1 && t < c.end - 0.1);
         if (idx === -1) {
-            return alert("Move the video playhead inside a clip (at least 0.1s from its edges) to split it.");
+            return alert("Move the white playhead inside a clip (at least 0.1s from its edges) to split it.");
         }
         saveStateForUndo();
         const orig = aiTimeline[idx];
@@ -970,6 +1047,15 @@
         renderTimelineBar();
         renderClipsTable();
         updateCalculations();
+        document.getElementById("tlStatus").innerText = `✂️ Split Clip #${idx + 1} at ${t.toFixed(2)}s! Drag the new ⇔ handle to adjust.`;
+    }
+
+    // Double-click anywhere on the timeline bar to split a clip right at that spot
+    function splitClipOnDoubleClick(event) {
+        if (isStudying || aiTimeline.length === 0) return;
+        const t = getTimestampFromPointerEvent(event);
+        pbVid.currentTime = t;
+        markClipAtCurrentVideoTime();
     }
 
     function deleteClipRow(idx) {
@@ -986,6 +1072,7 @@
         updateCalculations();
     }
 
+    // --- RENDER TIMELINE BAR WITH DRAGGABLE HANDLES (⇔) ---
     function renderTimelineBar() {
         const bar = document.getElementById("timelineBar");
         if (!bar || aiTimeline.length === 0) return;
@@ -995,15 +1082,176 @@
         const span = Math.max(0.1, maxEnd - minStart);
 
         const segsHtml = aiTimeline.map((seg, i) => {
-            const widthPct = Math.max(2, ((seg.end - seg.start) / span) * 100);
+            const widthPct = Math.max(0.5, ((seg.end - seg.start) / span) * 100);
             const meta = CATEGORY_META[seg.category] || CATEGORY_META.pickup;
             const dur = (seg.end - seg.start).toFixed(1);
-            return `<div class="timeline-seg" style="width:${widthPct}%; background:${meta.color};" title="Clip ${i+1}: ${meta.label} (${dur}s)">
-                ${widthPct > 9 ? `C${i+1} (${dur}s)` : ''}
+            return `<div class="timeline-seg" id="tlSeg-${i}" style="width:${widthPct}%; background:${meta.color};" title="Clip ${i+1}: ${meta.label} (${dur}s)">
+                ${widthPct > 8 ? `C${i+1} (${dur}s)` : ''}
             </div>`;
         }).join("");
 
-        bar.innerHTML = segsHtml + `<div class="playhead" id="playhead"></div>`;
+        // Create draggable handles between adjacent clips (Clip i and Clip i+1)
+        let handlesHtml = "";
+        if (!isStudying && aiTimeline.length > 1) {
+            for (let i = 0; i < aiTimeline.length - 1; i++) {
+                const boundarySec = aiTimeline[i].end;
+                const leftPct = Math.min(100, Math.max(0, ((boundarySec - minStart) / span) * 100));
+                handlesHtml += `<div class="clip-handle" id="clipHandle-${i}" style="left:${leftPct}%;" title="Drag left/right to adjust Clip #${i+1} / Clip #${i+2} boundary (${boundarySec.toFixed(2)}s)" onmousedown="startHandleDrag(event, ${i})" ontouchstart="startHandleDrag(event, ${i})"></div>`;
+            }
+        }
+
+        const playheadPct = Math.min(100, Math.max(0, ((pbVid.currentTime - minStart) / span) * 100));
+
+        bar.innerHTML = `
+            ${segsHtml}
+            ${handlesHtml}
+            <div class="drag-tooltip" id="dragTooltip">0.00s</div>
+            <div class="playhead" id="playhead" style="left:${playheadPct}%;"></div>
+        `;
+    }
+
+    // --- INTERACTIVE DRAG ENGINE FOR HANDLES & PLAYHEAD SCRUBBING ---
+    function getClientX(e) {
+        return (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
+    }
+
+    function getTimestampFromPointerEvent(e) {
+        const bar = document.getElementById("timelineBar");
+        const rect = bar.getBoundingClientRect();
+        const clientX = getClientX(e);
+        const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / Math.max(1, rect.width)));
+        const minStart = aiTimeline.length > 0 ? aiTimeline[0].start : 0;
+        const maxEnd = aiTimeline.length > 0 ? aiTimeline[aiTimeline.length - 1].end : (recordedDuration || 10);
+        return minStart + ratio * (maxEnd - minStart);
+    }
+
+    function startHandleDrag(event, boundaryIdx) {
+        event.stopPropagation();
+        if (event.cancelable) event.preventDefault();
+        if (isStudying || !aiTimeline[boundaryIdx] || !aiTimeline[boundaryIdx + 1]) return;
+
+        stopOverlayPlayback();
+        saveStateForUndo(); // Save state once when user starts dragging
+
+        dragState = {
+            type: 'handle',
+            boundaryIdx: boundaryIdx
+        };
+
+        const handleEl = document.getElementById(`clipHandle-${boundaryIdx}`);
+        if (handleEl) handleEl.classList.add('dragging');
+
+        document.addEventListener('mousemove', onGlobalDragMove);
+        document.addEventListener('mouseup', onGlobalDragEnd);
+        document.addEventListener('touchmove', onGlobalDragMove, { passive: false });
+        document.addEventListener('touchend', onGlobalDragEnd);
+    }
+
+    function startTimelineScrub(event) {
+        if (isStudying || aiTimeline.length === 0) return;
+        // Ignore if user clicked directly on a clip-handle (handled by startHandleDrag)
+        if (event.target && event.target.classList && event.target.classList.contains('clip-handle')) return;
+
+        stopOverlayPlayback();
+        dragState = { type: 'playhead' };
+        onGlobalDragMove(event);
+
+        document.addEventListener('mousemove', onGlobalDragMove);
+        document.addEventListener('mouseup', onGlobalDragEnd);
+        document.addEventListener('touchmove', onGlobalDragMove, { passive: false });
+        document.addEventListener('touchend', onGlobalDragEnd);
+    }
+
+    function onGlobalDragMove(event) {
+        if (!dragState || aiTimeline.length === 0) return;
+        if (event.cancelable) event.preventDefault();
+
+        const minStart = aiTimeline[0].start;
+        const maxEnd = aiTimeline[aiTimeline.length - 1].end;
+        const span = Math.max(0.1, maxEnd - minStart);
+        let pointerSec = getTimestampFromPointerEvent(event);
+
+        const tooltip = document.getElementById("dragTooltip");
+
+        if (dragState.type === 'handle') {
+            const idx = dragState.boundaryIdx;
+            const leftClip = aiTimeline[idx];
+            const rightClip = aiTimeline[idx + 1];
+
+            // Clamp so neither clip shrinks below 0.10 seconds
+            const minAllowed = leftClip.start + 0.10;
+            const maxAllowed = rightClip.end - 0.10;
+            const clampedSec = Math.min(maxAllowed, Math.max(minAllowed, pointerSec));
+
+            leftClip.end = Number(clampedSec.toFixed(2));
+            rightClip.start = Number(clampedSec.toFixed(2));
+
+            // Scrub video live to the exact frame being dragged!
+            pbVid.currentTime = clampedSec;
+
+            // Update visual widths and handle position smoothly without destroying DOM nodes
+            const leftWidthPct = ((leftClip.end - leftClip.start) / span) * 100;
+            const rightWidthPct = ((rightClip.end - rightClip.start) / span) * 100;
+            const handlePct = ((clampedSec - minStart) / span) * 100;
+
+            const segLeftEl = document.getElementById(`tlSeg-${idx}`);
+            const segRightEl = document.getElementById(`tlSeg-${idx + 1}`);
+            const handleEl = document.getElementById(`clipHandle-${idx}`);
+            const phEl = document.getElementById("playhead");
+
+            if (segLeftEl) {
+                const durL = (leftClip.end - leftClip.start).toFixed(1);
+                segLeftEl.style.width = leftWidthPct + "%";
+                segLeftEl.innerText = leftWidthPct > 8 ? `C${idx+1} (${durL}s)` : '';
+            }
+            if (segRightEl) {
+                const durR = (rightClip.end - rightClip.start).toFixed(1);
+                segRightEl.style.width = rightWidthPct + "%";
+                segRightEl.innerText = rightWidthPct > 8 ? `C${idx+2} (${durR}s)` : '';
+            }
+            if (handleEl) handleEl.style.left = handlePct + "%";
+            if (phEl) phEl.style.left = handlePct + "%";
+
+            if (tooltip) {
+                tooltip.style.display = "block";
+                tooltip.style.left = handlePct + "%";
+                tooltip.innerText = `C${idx+1}➔C${idx+2}: ${clampedSec.toFixed(2)}s`;
+            }
+
+            document.getElementById("tlStatus").innerText = `⇔ Dragging C${idx+1}/C${idx+2} split at ${clampedSec.toFixed(2)}s — Video frame synced live!`;
+            updateCalculations();
+        } else if (dragState.type === 'playhead') {
+            const clampedSec = Math.min(maxEnd, Math.max(minStart, pointerSec));
+            pbVid.currentTime = clampedSec;
+            const pct = ((clampedSec - minStart) / span) * 100;
+            const phEl = document.getElementById("playhead");
+            if (phEl) phEl.style.left = pct + "%";
+            if (tooltip) {
+                tooltip.style.display = "block";
+                tooltip.style.left = pct + "%";
+                tooltip.innerText = `${clampedSec.toFixed(2)}s`;
+            }
+        }
+    }
+
+    function onGlobalDragEnd() {
+        if (!dragState) return;
+        const wasHandle = dragState.type === 'handle';
+        dragState = null;
+
+        document.removeEventListener('mousemove', onGlobalDragMove);
+        document.removeEventListener('mouseup', onGlobalDragEnd);
+        document.removeEventListener('touchmove', onGlobalDragMove);
+        document.removeEventListener('touchend', onGlobalDragEnd);
+
+        const tooltip = document.getElementById("dragTooltip");
+        if (tooltip) tooltip.style.display = "none";
+
+        renderTimelineBar();
+        if (wasHandle) {
+            renderClipsTable();
+            updateCalculations();
+        }
     }
 
     function updatePlayheadPosition() {
@@ -1015,17 +1263,6 @@
         const ph = document.getElementById("playhead");
         if (ph) ph.style.left = pct + "%";
         document.getElementById("tlTimeDisplay").innerText = `${pbVid.currentTime.toFixed(2)}s / ${maxEnd.toFixed(2)}s`;
-    }
-
-    function seekFromTimeline(event) {
-        if (aiTimeline.length === 0) return;
-        const bar = document.getElementById("timelineBar");
-        const rect = bar.getBoundingClientRect();
-        const clickRatio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
-        const minStart = aiTimeline[0].start;
-        const maxEnd = aiTimeline[aiTimeline.length - 1].end;
-        pbVid.currentTime = minStart + clickRatio * (maxEnd - minStart);
-        updatePlayheadPosition();
     }
 
     function renderClipsTable() {
@@ -1077,9 +1314,11 @@
         if (field === 'start') {
             aiTimeline[idx].start = num;
             if (idx > 0) aiTimeline[idx - 1].end = num;
+            pbVid.currentTime = num;
         } else {
             aiTimeline[idx].end = num;
             if (idx < aiTimeline.length - 1) aiTimeline[idx + 1].start = num;
+            pbVid.currentTime = num;
         }
         renderTimelineBar();
         renderClipsTable();
