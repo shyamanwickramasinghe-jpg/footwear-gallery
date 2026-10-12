@@ -146,13 +146,13 @@
             border-radius: 8px; 
             margin-top: 20px; 
             border: 1px solid #334155; 
-            display: inline-block; 
-            min-width: 250px;
+            width: 300px !important;
+            max-width: 300px !important; 
+            align-self: flex-start !important; 
             transition: background-color 0.3s, border-color 0.3s;
         }
         .summary-panel h4 { margin: 0 0 10px 0; color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 8px; transition: color 0.3s, border-color 0.3s; font-size: 1.05em; }
         
-        /* Fixed summary table: Overrides the global table's 1250px min-width */
         .summary-table { width: 100%; border-collapse: collapse; font-size: 0.95em; min-width: 0 !important; }
         .summary-table td { padding: 6px 0; border-bottom: 1px dashed #334155; transition: border-color 0.3s; }
         .summary-table td:first-child { padding-right: 50px; } 
@@ -253,12 +253,25 @@
         <div class="info-panel">
             <div class="meta-inputs">
                 <div class="input-group">
-                    <label>Item Type / Sample Number</label>
+                    <label>Item Type / Sample Number <span style="color: #ef4444;">*</span></label>
                     <input type="text" id="sampleName" placeholder="e.g., Kelsey / PF0339" oninput="saveMetaData()">
                 </div>
+                
+                <!-- NEW CUTTING AND ASSEMBLY PROCESS INPUTS -->
+                <div style="display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap;">
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label>Cutting Process Name</label>
+                        <input type="text" id="cuttingProcess" placeholder="Optional (e.g. Laser Cutting)" oninput="saveMetaData()">
+                    </div>
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label>Assembly Process Name</label>
+                        <input type="text" id="assemblyProcess" placeholder="Optional (e.g. Cold Process)" oninput="saveMetaData()">
+                    </div>
+                </div>
+
                 <div class="input-group" style="margin-top: 10px;">
                     <label>General Comments / Bulletin Notes</label>
-                    <textarea id="sampleComments" placeholder="Enter specific instructions or notes for the Costing Department..." oninput="saveMetaData()"></textarea>
+                    <textarea id="sampleComments" placeholder="Enter specific instructions or notes..." oninput="saveMetaData()"></textarea>
                 </div>
             </div>
             
@@ -358,7 +371,7 @@
                         <tr class="total-row" id="totalRow">
                             <td colspan="6" style="text-align: right;">TOTAL:</td>
                             <td class="col-smv" id="totSmv">0.0000</td>
-                            <td id="totTarget"></td> <!-- Intentionally blank -->
+                            <td id="totTarget"></td>
                             <td colspan="3"></td>
                         </tr>
                     </tfoot>
@@ -459,6 +472,8 @@
         if (savedMeta) {
             const m = JSON.parse(savedMeta);
             document.getElementById("sampleName").value = m.name || "";
+            document.getElementById("cuttingProcess").value = m.cutting || "";
+            document.getElementById("assemblyProcess").value = m.assembly || "";
             document.getElementById("sampleComments").value = m.comments || "";
         }
         if (savedImgs) {
@@ -569,6 +584,8 @@
     // --- GOOGLE SHEETS CLOUD DATABASE FUNCTIONS ---
     async function saveBulletinToDB() {
         const sampleName = document.getElementById("sampleName").value.trim();
+        const cuttingProcess = document.getElementById("cuttingProcess").value.trim();
+        const assemblyProcess = document.getElementById("assemblyProcess").value.trim();
         const comments = document.getElementById("sampleComments").value.trim();
         
         if (!sampleName) {
@@ -584,7 +601,12 @@
         const payload = {
             id: sampleName.toLowerCase().replace(/\s+/g, '_'),
             date: new Date().toLocaleDateString(),
-            meta: { name: sampleName, comments: comments },
+            meta: { 
+                name: sampleName, 
+                cutting: cuttingProcess,
+                assembly: assemblyProcess,
+                comments: comments 
+            },
             ops: operationsData,
             imgs: sampleImages
         };
@@ -672,7 +694,10 @@
 
         operationsData = entry.ops || [];
         sampleImages = entry.imgs || [];
+        
         document.getElementById("sampleName").value = entry.meta.name || "";
+        document.getElementById("cuttingProcess").value = entry.meta.cutting || "";
+        document.getElementById("assemblyProcess").value = entry.meta.assembly || "";
         document.getElementById("sampleComments").value = entry.meta.comments || "";
         
         saveMetaData();
@@ -858,6 +883,8 @@
     function saveMetaData() {
         const meta = {
             name: document.getElementById("sampleName").value,
+            cutting: document.getElementById("cuttingProcess").value,
+            assembly: document.getElementById("assemblyProcess").value,
             comments: document.getElementById("sampleComments").value
         };
         localStorage.setItem("dsi_costing_meta", JSON.stringify(meta));
@@ -1052,8 +1079,12 @@
         saveState();
         operationsData = [];
         sampleImages = [];
+        
         document.getElementById("sampleName").value = "";
+        document.getElementById("cuttingProcess").value = "";
+        document.getElementById("assemblyProcess").value = "";
         document.getElementById("sampleComments").value = "";
+        
         localStorage.removeItem("dsi_costing_ops");
         localStorage.removeItem("dsi_costing_meta");
         localStorage.removeItem("dsi_costing_imgs");
@@ -1152,6 +1183,8 @@
 
         try {
             const sampleName = document.getElementById("sampleName").value || "Unknown Sample";
+            const cuttingProcess = document.getElementById("cuttingProcess").value || "N/A";
+            const assemblyProcess = document.getElementById("assemblyProcess").value || "N/A";
             const comments = document.getElementById("sampleComments").value || "None";
             
             const wb = new ExcelJS.Workbook();
@@ -1175,11 +1208,13 @@
             ws.getRow(1).font = { bold: true, size: 14 };
             ws.addRow([]);
             ws.addRow(["Sample / Style:", sampleName]);
+            ws.addRow(["Cutting Process:", cuttingProcess]);
+            ws.addRow(["Assembly Process:", assemblyProcess]);
             ws.addRow(["Comments:", comments]);
             ws.addRow(["Export Date:", new Date().toLocaleDateString()]);
             ws.addRow([]);
 
-            let currentDataRow = 7;
+            let currentDataRow = 9;
 
             // Image Grid Placement
             if (sampleImages.length > 0) {
