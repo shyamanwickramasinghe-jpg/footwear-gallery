@@ -72,7 +72,7 @@
             flex-wrap: wrap;
             transition: background-color 0.3s, border-color 0.3s;
         }
-        .table-panel { flex-direction: column; overflow: hidden; flex: 1; align-items: flex-start; } /* Stops children from stretching full width */
+        .table-panel { flex-direction: column; overflow: hidden; flex: 1; align-items: flex-start; } 
 
         .meta-inputs { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 12px; }
         .input-group { display: flex; flex-direction: column; }
@@ -146,14 +146,16 @@
             border-radius: 8px; 
             margin-top: 20px; 
             border: 1px solid #334155; 
+            /* STRICT SIZING TO PREVENT STRETCHING */
+            width: 300px !important;
+            max-width: 300px !important; 
+            align-self: flex-start !important; 
             transition: background-color 0.3s, border-color 0.3s;
         }
         .summary-panel h4 { margin: 0 0 10px 0; color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 8px; transition: color 0.3s, border-color 0.3s; font-size: 1.05em; }
         
         .summary-table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
         .summary-table td { padding: 6px 0; border-bottom: 1px dashed #334155; transition: border-color 0.3s; }
-        /* THIS CONTROLS THE EXACT GAP BETWEEN PART AND SMV */
-        .summary-table td:first-child { padding-right: 50px; } 
         .summary-table tr:last-child td { border-bottom: none; border-top: 2px solid #334155; padding-top: 8px; margin-top: 4px; font-weight: bold; }
         
         .p-name { color: #ef4444; font-weight: 900; }
@@ -364,7 +366,7 @@
             </div>
 
             <!-- COMPACT COLUMN PART-WISE SMV SUMMARY PANEL -->
-            <div class="summary-panel" id="summaryPanel" style="width: max-content; min-width: 250px; align-self: flex-start;">
+            <div class="summary-panel" id="summaryPanel">
                 <h4>Part-Wise SMV Summary</h4>
                 <div id="partSummaryContainer">
                     <!-- Populated dynamically via JS -->
