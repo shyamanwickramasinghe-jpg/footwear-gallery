@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>DSI FOOTTECH — Operation Bulletin</title>
+    <!-- ADVANCED EXCEL LIBRARIES (Supports Images) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background: #0b1120;
+            color: #f8fafc;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- TOP HEADER --- */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f172a;
+            border-bottom: 1px solid #1e293b;
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand h2 { margin: 0; font-size: 1.2em; color: #10b981; text-transform: uppercase; letter-spacing: 1px; }
+        .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-top { background: #334155; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.15s; }
+        .btn-top:hover { opacity: 0.9; }
+
+        .storage-path {
+            background: #1e293b;
+            color: #94a3b8;
+            font-size: 0.75em;
+            padding: 4px 20px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* --- MAIN DASHBOARD CONTAINER --- */
+        .dashboard-container {
+            padding: 20px;
+            max-width: 1500px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1;
+        }
+
+        /* --- SAMPLE INFO & IMAGES (TOP SECTION) --- */
+        .info-panel {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .meta-inputs {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .input-group { display: flex; flex-direction: column; }
+        .input-group label { font-size: 0.75em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: bold; }
+        .input-group input, .input-group textarea { 
+            background: #1e293b; border: 1px solid #475569; color: #fff; padding: 10px; border-radius: 6px; font-size: 0.95em; width: 100%;
+        }
+        .input-group textarea { resize: vertical; min-height: 60px; }
+        
+        .image-gallery-container {
+            flex: 2;
+            min-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-left: 1px dashed #334155;
+            padding-left: 20px;
+        }
+        .image-gallery {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            min-height: 120px;
+            background: #000;
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #334155;
+        }
+        .sample-thumb {
+            width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #475569; cursor: pointer;
+        }
+
+        /* --- OPERATIONS TABLE SECTION --- */
+        .table-panel {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .table-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .search-box {
+            background: #1e293b; border: 1px solid #475569; color: #fff; padding: 8px 12px; border-radius: 20px; width: 250px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            flex: 1;
+        }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88em; min-width: 1100px; }
+        th { background: #1e293b; color: #94a3b8; padding: 12px 8px; position: sticky; top: 0; font-weight: bold; border-bottom: 2px solid #334155; z-index: 5;}
+        td { padding: 8px; border-bottom: 1px solid #1e293b; vertical-align: middle; }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        
+        .form-row { background: rgba(16, 185, 129, 0.05); }
+        .form-row td input, .form-row td select {
+            background: #0b1120; border: 1px solid #475569; color: #fff; padding: 6px; border-radius: 4px; width: 100%; font-size: 0.9em;
+        }
+        .form-row td input:focus, .form-row td select:focus { border-color: #10b981; outline: none; }
+
+        .btn-table { padding: 6px 10px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; font-size: 0.85em; }
+        .btn-save-row { background: #10b981; color: #000; width: 100%;}
+        .btn-edit { background: #38bdf8; color: #000; padding: 4px 8px;}
+        .btn-delete { background: #ef4444; color: #fff; padding: 4px 8px;}
+        .btn-move { background: #475569; color: #fff; padding: 4px 8px; }
+        .btn-move:hover { background: #64748b; }
+        
+        .btn-add-machine {
+            background: #f59e0b; color: #000; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8em; margin-left: 4px;
+        }
+
+        .total-row td { background: #1e293b; font-weight: bold; font-size: 1.1em; color: #10b981; border-top: 2px solid #334155; }
+
+        /* --- DATABASE SEARCH MODAL --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: #0f172a; border: 1px solid #38bdf8; border-radius: 12px; width: 90%; max-width: 700px; padding: 20px; display: flex; flex-direction: column; gap: 15px; max-height: 85vh;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .modal-header h3 { margin: 0; color: #f8fafc; }
+        .btn-close { background: transparent; border: none; color: #ef4444; font-size: 1.5em; cursor: pointer; font-weight: bold; }
+        .db-search { background: #1e293b; border: 1px solid #38bdf8; color: #fff; padding: 12px; border-radius: 6px; font-size: 1.05em; width: 100%; }
+        .db-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex: 1; padding-right: 5px; }
+        .db-card { background: #1e293b; border-left: 4px solid #38bdf8; padding: 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .db-card-info h4 { margin: 0 0 5px 0; color: #10b981; font-size: 1.1em; }
+        .db-card-info p { margin: 0; font-size: 0.85em; color: #94a3b8; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .db-actions { display: flex; gap: 8px; }
+
+        @media (max-width: 768px) {
+            .info-panel { flex-direction: column; }
+            .image-gallery-container { border-left: none; padding-left: 0; border-top: 1px dashed #334155; padding-top: 15px; }
+            .meta-inputs { min-width: 100%; }
+            .db-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="brand">
+            <button class="btn-top" onclick="window.location.href='index.html'">⬅ Home Hub</button>
+            <h2>📊 Operation Bulletin</h2>
+        </div>
+        <div class="top-actions">
+            <button class="btn-top" onclick="undoLastAction()" id="btnUndo" disabled style="background:#f59e0b; color:#000;">🔙 Undo</button>
+            <button class="btn-top" id="btnSaveDB" onclick="saveBulletinToDB()" style="background:#0284c7; color:#fff;">💾 Save to Cloud DB</button>
+            <button class="btn-top" onclick="openLoadModal()" style="background:#3b82f6; color:#fff;">🔍 Load / Search DB</button>
+            <button class="btn-top" onclick="exportToExcel()" style="background:#10b981; color:#000;" id="btnExport">🟢 Export to Excel</button>
+            <button class="btn-top" onclick="clearAllData()" style="background:#ef4444;">🧹 Clear All</button>
+        </div>
+    </div>
+    <div class="storage-path">
+        <span><b>Cloud Database Linked:</b> Connected to DSI Google Sheets Secure Network</span>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <div class="info-panel">
+            <div class="meta-inputs">
+                <div class="input-group">
+                    <label>Item Type / Sample Number</label>
+                    <input type="text" id="sampleName" placeholder="e.g., Kelsey / PF0339" oninput="saveMetaData()">
+                </div>
+                <div class="input-group" style="margin-top: 10px;">
+                    <label>General Comments / Bulletin Notes</label>
+                    <textarea id="sampleComments" placeholder="Enter specific instructions or notes for the Costing Department..." oninput="saveMetaData()"></textarea>
+                </div>
+            </div>
+            
+            <div class="image-gallery-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="font-size: 0.75em; text-transform: uppercase; color: #94a3b8; font-weight: bold;">Sample Photos (Upload up to 6)</label>
+                    <button class="btn-top" onclick="document.getElementById('imgUpload').click()" style="padding: 4px 10px; font-size: 0.75em; background: #38bdf8; color: #000;">➕ Upload Photo</button>
+                    <input type="file" id="imgUpload" accept="image/*" multiple style="display:none;" onchange="handleImageUpload(event)">
+                </div>
+                <div class="image-gallery" id="imageGallery">
+                    <span style="color:#64748b; margin:auto; font-size:0.9em; text-align:center;">No images uploaded.<br>Click 'Upload Photo' to add sample pictures.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-panel">
+            <div class="table-toolbar">
+                <h3 style="margin: 0; color: #f8fafc;">Operation Breakdown</h3>
+                <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search operations..." oninput="renderTable()">
+            </div>
+            
+            <div class="table-container">
+                <table id="opsTable">
+                    <thead>
+                        <tr>
+                            <th width="5%">No.</th>
+                            <th width="20%">Operation Name</th>
+                            <th width="15%">Machine Type</th>
+                            <th width="8%">SMV (Min)</th>
+                            <th width="9%">Target/Hr</th>
+                            <th width="14%">Remarks</th>
+                            <th width="14%">Special Attachment</th>
+                            <th width="15%">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Dynamic Rows -->
+                    </tbody>
+                    <tfoot id="tableFooter">
+                        <tr class="form-row" id="inputRow">
+                            <td><input type="number" id="inNo" placeholder="Auto" title="Type a number here to insert between existing operations"></td>
+                            <td><input type="text" id="inOpName" placeholder="e.g. Toe Lasting"></td>
+                            <td>
+                                <div style="display:flex; align-items:center;">
+                                    <select id="inMachine" onchange="autoFillSMV()" style="flex:1;">
+                                        <!-- Populated via JS -->
+                                    </select>
+                                    <button class="btn-add-machine" onclick="addNewMachineType()" title="Add custom machine">➕</button>
+                                </div>
+                            </td>
+                            <td><input type="number" id="inSmv" step="0.001" placeholder="0.000" oninput="calculateTargetFromSmv()"></td>
+                            <td><input type="number" id="inTarget" step="1" placeholder="0" oninput="calculateSmvFromTarget()"></td>
+                            <td><input type="text" id="inRemarks" placeholder="Notes..."></td>
+                            <td><input type="text" id="inAttach" placeholder="e.g. Edge Guide"></td>
+                            <td><button class="btn-table btn-save-row" onclick="addOperationRow()">➕ Add Row</button></td>
+                        </tr>
+                        <tr class="total-row" id="totalRow">
+                            <td colspan="3" style="text-align: right;">TOTAL:</td>
+                            <td id="totSmv">0.000</td>
+                            <td id="totTarget">0</td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- DATABASE SEARCH MODAL -->
+    <div class="modal-overlay" id="dbModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📂 Load Saved Cloud Bulletin Database</h3>
+                <button class="btn-close" onclick="closeLoadModal()">✖</button>
+            </div>
+            <input type="text" id="dbSearchInput" class="db-search" placeholder="🔍 Search by Item Number or Comments..." oninput="renderDatabaseList()">
+            <div class="db-list" id="dbListContainer">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+<script>
+    let operationsData = [];
+    let sampleImages = [];
+    let historyStack = [];
+
+    // The Google Web App URL you just created!
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyKFcBI3wbWgpgIYrYeksBjtLmdGDy7-A1Hg3ZskznD73wPG3NJw4Peq0pwuOnyZw8X/exec";
+
+    let dsiMachines = [
+        {"name": "Travelling head Die cutter", "ma": 4.0},
+        {"name": "Hydraulic Die cutter", "ma": 4.0},
+        {"name": "Clicker cutter Die cutter", "ma": 3.0},
+        {"name": "Programe cutter Cutter", "ma": 8.0},
+        {"name": "Strap Cutter Cutter", "ma": 2.0},
+        {"name": "Strap Folding Folding", "ma": 2.0},
+        {"name": "Combine Combining", "ma": 7.0},
+        {"name": "Skiving", "ma": 2.5},
+        {"name": "Toe Gum", "ma": 3.0},
+        {"name": "Welding", "ma": 9.0},
+        {"name": "SNLS FB", "ma": 5.0},
+        {"name": "DNLS FB", "ma": 7.0},
+        {"name": "SNLS PB", "ma": 5.0},
+        {"name": "DNLS PB", "ma": 7.0},
+        {"name": "SNLS BINDING", "ma": 5.5},
+        {"name": "DNCS", "ma": 7.0},
+        {"name": "ZZ FB", "ma": 5.0},
+        {"name": "SEAM OPENER", "ma": 3.0},
+        {"name": "PUNCHING", "ma": 3.0},
+        {"name": "EYELET", "ma": 4.0},
+        {"name": "Pattern Sewer", "ma": 5.0},
+        {"name": "Hammering", "ma": 2.0},
+        {"name": "Stroble", "ma": 4.0},
+        {"name": "EDGE CUT", "ma": 2.0},
+        {"name": "Strap Auto", "ma": 4.0},
+        {"name": "Strap Manual", "ma": 2.0},
+        {"name": "BTK", "ma": 5.0},
+        {"name": "Folding", "ma": 2.0},
+        {"name": "Lacing 2 thread", "ma": 5.5},
+        {"name": "Heat Sealing", "ma": 2.5},
+        {"name": "Thread trimmer", "ma": 2.0},
+        {"name": "Toe Foaming", "ma": 2.0},
+        {"name": "Manual Table / Bench Work", "ma": 0.0}
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedCustomMachines = localStorage.getItem("dsi_custom_machines");
+        if (savedCustomMachines) {
+            const customMachines = JSON.parse(savedCustomMachines);
+            dsiMachines = dsiMachines.concat(customMachines);
+        }
+        populateMachineDropdown();
+
+        const savedOps = localStorage.getItem("dsi_costing_ops");
+        const savedMeta = localStorage.getItem("dsi_costing_meta");
+        const savedImgs = localStorage.getItem("dsi_costing_imgs");
+
+        if (savedOps) operationsData = JSON.parse(savedOps);
+        if (savedMeta) {
+            const m = JSON.parse(savedMeta);
+            document.getElementById("sampleName").value = m.name || "";
+            document.getElementById("sampleComments").value = m.comments || "";
+        }
+        if (savedImgs) {
+            sampleImages = JSON.parse(savedImgs);
+            renderGallery();
+        }
+        reindexOperations();
+        renderTable();
+    });
+
+    // --- GOOGLE SHEETS CLOUD DATABASE FUNCTIONS ---
+    async function saveBulletinToDB() {
+        const sampleName = document.getElementById("sampleName").value.trim();
+        const comments = document.getElementById("sampleComments").value.trim();
+        
+        if (!sampleName) {
+            alert("Please enter an 'Item Type / Sample Number' at the top before saving to the cloud.");
+            return;
+        }
+
+        const btn = document.getElementById("btnSaveDB");
+        const originalText = btn.innerText;
+        btn.innerText = "⏳ Saving to Cloud...";
+        btn.disabled = true;
+
+        const payload = {
+            id: sampleName.toLowerCase().replace(/\s+/g, '_'),
+            date: new Date().toLocaleDateString(),
+            meta: { name: sampleName, comments: comments },
+            ops: operationsData,
+            imgs: sampleImages
+        };
+
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "save", payload: payload })
+            });
+            const result = await response.json();
+            if (result.status === "success") {
+                alert(`✅ Operation Bulletin for "${sampleName}" saved to Google Sheets securely!`);
+            }
+        } catch (e) {
+            alert("Error saving to cloud. Please check your connection.");
+            console.error(e);
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    let loadedCloudDB = [];
+
+    async function openLoadModal() {
+        document.getElementById("dbModal").style.display = "flex";
+        const container = document.getElementById("dbListContainer");
+        container.innerHTML = `<span style="color:#64748b; text-align:center; margin-top:20px; font-weight:bold;">⏳ Fetching Bulletins from Google Sheets...</span>`;
+        
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL);
+            loadedCloudDB = await response.json();
+            document.getElementById("dbSearchInput").value = "";
+            renderDatabaseList();
+        } catch (e) {
+            container.innerHTML = `<span style="color:#ef4444; text-align:center; margin-top:20px; font-weight:bold;">Error fetching data. Check connection.</span>`;
+            console.error(e);
+        }
+    }
+
+    function closeLoadModal() {
+        document.getElementById("dbModal").style.display = "none";
+    }
+
+    function renderDatabaseList() {
+        const query = document.getElementById("dbSearchInput").value.toLowerCase();
+        const container = document.getElementById("dbListContainer");
+
+        const filtered = loadedCloudDB.filter(entry => 
+            (entry.meta.name || "").toLowerCase().includes(query) ||
+            (entry.meta.comments || "").toLowerCase().includes(query)
+        );
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<span style="color:#64748b; text-align:center; margin-top:20px; font-weight:bold;">No saved bulletins found matching your search.</span>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map(entry => `
+            <div class="db-card">
+                <div class="db-card-info">
+                    <h4>👟 ${entry.meta.name}</h4>
+                    <p><b>Comments:</b> ${entry.meta.comments ? entry.meta.comments : 'N/A'}</p>
+                    <span style="font-size:0.75em; color:#38bdf8; font-weight:bold;">Saved: ${entry.date} | Total Operations: ${entry.ops.length} | Images: ${entry.imgs.length}</span>
+                </div>
+                <div class="db-actions">
+                    <button class="btn-table btn-save-row" style="padding: 8px 12px; font-size:1em;" onclick="loadFromCloudDB('${entry.id}')">📂 Load</button>
+                    <button class="btn-table btn-delete" style="padding: 8px 12px; font-size:1em;" onclick="deleteFromCloudDB('${entry.id}')">✖ Delete</button>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    function loadFromCloudDB(id) {
+        if (!confirm("This will overwrite your current active table and images on screen. Do you want to proceed?")) return;
+        const entry = loadedCloudDB.find(e => e.id === id);
+        if (!entry) return;
+
+        operationsData = entry.ops || [];
+        sampleImages = entry.imgs || [];
+        document.getElementById("sampleName").value = entry.meta.name || "";
+        document.getElementById("sampleComments").value = entry.meta.comments || "";
+        
+        saveMetaData();
+        localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
+        localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
+
+        renderGallery();
+        renderTable();
+        closeLoadModal();
+    }
+
+    async function deleteFromCloudDB(id) {
+        if (!confirm("Are you sure you want to permanently delete this saved bulletin from the Google Sheet?")) return;
+        
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "delete", payload: { id: id } })
+            });
+            const result = await response.json();
+            if (result.status === "deleted") {
+                loadedCloudDB = loadedCloudDB.filter(e => e.id !== id);
+                renderDatabaseList();
+            }
+        } catch (e) {
+            alert("Error deleting from cloud.");
+            console.error(e);
+        }
+    }
+
+    // --- STANDARD FUNCTIONS ---
+    function populateMachineDropdown(selectValue = "") {
+        const select = document.getElementById("inMachine");
+        select.innerHTML = `<option value="">Select Machine...</option>` + 
+            dsiMachines.map(m => `<option value="${m.name} (${m.ma}% MA)">${m.name} (${m.ma}% MA)</option>`).join("");
+        if (selectValue) select.value = selectValue;
+    }
+
+    function addNewMachineType() {
+        const name = prompt("Enter new Machine Type name:");
+        if (!name) return;
+        const ma = prompt(`Enter MA% for ${name} (e.g., 5.0):`);
+        if (ma === null || isNaN(parseFloat(ma))) return alert("Invalid MA%.");
+
+        const newMachine = { name: name.trim(), ma: parseFloat(ma) };
+        dsiMachines.push(newMachine);
+        
+        const savedCustoms = JSON.parse(localStorage.getItem("dsi_custom_machines") || "[]");
+        savedCustoms.push(newMachine);
+        localStorage.setItem("dsi_custom_machines", JSON.stringify(savedCustoms));
+
+        const optionValue = `${newMachine.name} (${newMachine.ma}% MA)`;
+        populateMachineDropdown(optionValue);
+    }
+
+    function saveMetaData() {
+        const meta = {
+            name: document.getElementById("sampleName").value,
+            comments: document.getElementById("sampleComments").value
+        };
+        localStorage.setItem("dsi_costing_meta", JSON.stringify(meta));
+    }
+
+    function handleImageUpload(event) {
+        const files = Array.from(event.target.files).slice(0, 6); 
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if(sampleImages.length < 6) {
+                    sampleImages.push(e.target.result);
+                    localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
+                    renderGallery();
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function renderGallery() {
+        const gal = document.getElementById("imageGallery");
+        if (sampleImages.length === 0) {
+            gal.innerHTML = `<span style="color:#64748b; margin:auto; font-size:0.9em; text-align:center;">No images uploaded.<br>Click 'Upload Photo' to add sample pictures.</span>`;
+            return;
+        }
+        gal.innerHTML = sampleImages.map((src, i) => `
+            <div style="position:relative;">
+                <img src="${src}" class="sample-thumb" onclick="window.open('${src}')">
+                <button onclick="removeImage(${i})" style="position:absolute; top:-5px; right:-5px; background:#ef4444; color:#fff; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:10px; font-weight:bold;">X</button>
+            </div>
+        `).join("");
+    }
+
+    function removeImage(idx) {
+        sampleImages.splice(idx, 1);
+        localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
+        renderGallery();
+    }
+
+    function calculateTargetFromSmv() {
+        const smv = parseFloat(document.getElementById("inSmv").value);
+        if (smv > 0) {
+            document.getElementById("inTarget").value = Math.round(60 / smv);
+        } else {
+            document.getElementById("inTarget").value = "";
+        }
+    }
+
+    function calculateSmvFromTarget() {
+        const target = parseFloat(document.getElementById("inTarget").value);
+        if (target > 0) {
+            document.getElementById("inSmv").value = (60 / target).toFixed(3);
+        } else {
+            document.getElementById("inSmv").value = "";
+        }
+    }
+
+    function autoFillSMV() {
+        const inNo = document.getElementById("inNo");
+        if (!inNo.value) {
+            inNo.value = operationsData.length > 0 ? operationsData.length + 1 : 1;
+        }
+    }
+
+    function saveState() {
+        historyStack.push(JSON.parse(JSON.stringify(operationsData)));
+        document.getElementById("btnUndo").disabled = false;
+        localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
+    }
+
+    function undoLastAction() {
+        if (historyStack.length === 0) return;
+        operationsData = historyStack.pop();
+        if (historyStack.length === 0) document.getElementById("btnUndo").disabled = true;
+        reindexOperations();
+        renderTable();
+    }
+
+    function reindexOperations() {
+        operationsData.forEach((op, i) => op.no = i + 1);
+        localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
+    }
+
+    function addOperationRow() {
+        let no = parseInt(document.getElementById("inNo").value);
+        const name = document.getElementById("inOpName").value.trim();
+        const machine = document.getElementById("inMachine").value;
+        const remarks = document.getElementById("inRemarks").value.trim();
+        const attach = document.getElementById("inAttach").value.trim();
+        const smv = parseFloat(document.getElementById("inSmv").value) || 0;
+        const target = parseInt(document.getElementById("inTarget").value) || 0;
+
+        if (!name || smv <= 0) return alert("Operation Name and SMV are required.");
+
+        saveState();
+
+        if (!no) {
+            no = operationsData.length > 0 ? operationsData.length + 1 : 1;
+        } else {
+            operationsData.forEach(op => {
+                if (op.no >= no) op.no += 1;
+            });
+        }
+
+        operationsData.push({
+            id: Date.now(),
+            no: no,
+            name, machine, smv, target, remarks, attach
+        });
+        
+        operationsData.sort((a, b) => a.no - b.no);
+        reindexOperations(); 
+
+        document.getElementById("inNo").value = "";
+        document.getElementById("inOpName").value = "";
+        document.getElementById("inMachine").value = "";
+        document.getElementById("inRemarks").value = "";
+        document.getElementById("inAttach").value = "";
+        document.getElementById("inSmv").value = "";
+        document.getElementById("inTarget").value = "";
+
+        renderTable();
+    }
+
+    function moveRowUp(id) {
+        const index = operationsData.findIndex(o => o.id === id);
+        if (index > 0) {
+            saveState();
+            const temp = operationsData[index - 1];
+            operationsData[index - 1] = operationsData[index];
+            operationsData[index] = temp;
+            reindexOperations();
+            renderTable();
+        }
+    }
+
+    function moveRowDown(id) {
+        const index = operationsData.findIndex(o => o.id === id);
+        if (index !== -1 && index < operationsData.length - 1) {
+            saveState();
+            const temp = operationsData[index + 1];
+            operationsData[index + 1] = operationsData[index];
+            operationsData[index] = temp;
+            reindexOperations();
+            renderTable();
+        }
+    }
+
+    function deleteRow(id, bypassConfirm = false) {
+        if (!bypassConfirm && !confirm("Are you sure you want to delete this operation?")) return;
+        saveState();
+        operationsData = operationsData.filter(op => op.id !== id);
+        reindexOperations(); 
+        renderTable();
+    }
+
+    function editRow(id) {
+        const op = operationsData.find(o => o.id === id);
+        if (!op) return;
+
+        document.getElementById("inNo").value = op.no;
+        document.getElementById("inOpName").value = op.name;
+        document.getElementById("inMachine").value = op.machine;
+        document.getElementById("inRemarks").value = op.remarks || '';
+        document.getElementById("inAttach").value = op.attach || '';
+        document.getElementById("inSmv").value = op.smv;
+        document.getElementById("inTarget").value = op.target;
+
+        deleteRow(id, true); 
+    }
+
+    function clearAllData() {
+        if (!confirm("Are you sure you want to clear the current table and images? (Saved cloud databases will not be deleted)")) return;
+        saveState();
+        operationsData = [];
+        sampleImages = [];
+        document.getElementById("sampleName").value = "";
+        document.getElementById("sampleComments").value = "";
+        localStorage.removeItem("dsi_costing_ops");
+        localStorage.removeItem("dsi_costing_meta");
+        localStorage.removeItem("dsi_costing_imgs");
+        renderGallery();
+        renderTable();
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById("tableBody");
+        const query = document.getElementById("searchInput").value.toLowerCase();
+        
+        let totalSmv = 0;
+        
+        const filteredOps = operationsData.filter(op => 
+            op.name.toLowerCase().includes(query) || 
+            (op.machine || '').toLowerCase().includes(query) ||
+            op.no.toString().includes(query) ||
+            (op.remarks || '').toLowerCase().includes(query) ||
+            (op.attach || '').toLowerCase().includes(query)
+        );
+
+        tbody.innerHTML = filteredOps.map(op => {
+            totalSmv += op.smv;
+            return `
+                <tr>
+                    <td style="color:#38bdf8; font-weight:bold;">${op.no}</td>
+                    <td style="font-weight:bold;">${op.name}</td>
+                    <td style="color:#94a3b8;">${op.machine || '-'}</td>
+                    <td style="color:#10b981; font-weight:bold;">${op.smv.toFixed(3)}</td>
+                    <td>${op.target}</td>
+                    <td style="color:#94a3b8;">${op.remarks || '-'}</td>
+                    <td style="color:#cbd5e1;">${op.attach || '-'}</td>
+                    <td>
+                        <div style="display:flex; gap:4px;">
+                            <button class="btn-table btn-move" onclick="moveRowUp(${op.id})" title="Move Up">⬆️</button>
+                            <button class="btn-table btn-move" onclick="moveRowDown(${op.id})" title="Move Down">⬇️</button>
+                            <button class="btn-table btn-edit" onclick="editRow(${op.id})" title="Edit">✏️</button>
+                            <button class="btn-table btn-delete" onclick="deleteRow(${op.id})" title="Delete">✖</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+
+        if (filteredOps.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:#64748b;">No operations found. Use the row below to add data.</td></tr>`;
+        }
+
+        const bottleneckSmv = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.smv)) : 0;
+        const lineTarget = bottleneckSmv > 0 ? Math.round(60 / bottleneckSmv) : 0;
+
+        document.getElementById("totSmv").innerText = totalSmv.toFixed(3);
+        document.getElementById("totTarget").innerText = lineTarget + " (Line Target based on bottleneck)";
+        
+        localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
+    }
+
+    // --- ADVANCED EXCEL EXPORT (WITH ALIGNED IMAGES & HEADERS) ---
+    async function exportToExcel() {
+        if (operationsData.length === 0) return alert("Table is empty.");
+        
+        const btn = document.getElementById("btnExport");
+        btn.innerText = "⏳ Generating Excel...";
+        btn.disabled = true;
+
+        try {
+            const sampleName = document.getElementById("sampleName").value || "Unknown Sample";
+            const comments = document.getElementById("sampleComments").value || "None";
+            
+            const wb = new ExcelJS.Workbook();
+            const ws = wb.addWorksheet("Operations");
+
+            // Fixed Column Widths (Sum = 163 units)
+            ws.getColumn(1).width = 10;  // No
+            ws.getColumn(2).width = 40;  // Name
+            ws.getColumn(3).width = 25;  // Machine
+            ws.getColumn(4).width = 15;  // SMV
+            ws.getColumn(5).width = 18;  // Target
+            ws.getColumn(6).width = 30;  // Remarks
+            ws.getColumn(7).width = 25;  // Attachment
+
+            ws.addRow(["D. SAMSON INDUSTRIES (PVT) LTD - OPERATION BULLETIN"]);
+            ws.getRow(1).font = { bold: true, size: 14 };
+            ws.addRow([]);
+            ws.addRow(["Sample / Style:", sampleName]);
+            ws.addRow(["Comments:", comments]);
+            ws.addRow(["Export Date:", new Date().toLocaleDateString()]);
+            ws.addRow([]);
+
+            let currentDataRow = 7;
+
+            // Image Grid Placement (3 columns: Col A (0), Col C (2), Col F (5))
+            if (sampleImages.length > 0) {
+                ws.addRow(["Sample Photos:"]);
+                ws.getRow(currentDataRow).font = { bold: true };
+                currentDataRow++;
+
+                const colPos = [0, 2, 5]; 
+
+                sampleImages.forEach((imgBase64, idx) => {
+                    try {
+                        const base64Data = imgBase64.split(',')[1];
+                        const ext = imgBase64.substring(imgBase64.indexOf('/') + 1, imgBase64.indexOf(';'));
+                        
+                        const imageId = wb.addImage({
+                            base64: base64Data,
+                            extension: ext === 'jpeg' ? 'jpeg' : 'png',
+                        });
+
+                        const c = colPos[idx % 3];
+                        const r = currentDataRow - 1 + Math.floor(idx / 3) * 8; 
+
+                        ws.addImage(imageId, {
+                            tl: { col: c + 0.1, row: r + 0.2 },
+                            ext: { width: 140, height: 140 }
+                        });
+                        
+                    } catch (e) {
+                        console.error("Error adding image to Excel:", e);
+                    }
+                });
+
+                const numRowsNeeded = Math.ceil(sampleImages.length / 3) * 8;
+                for (let i = 0; i < numRowsNeeded; i++) {
+                    ws.addRow([]);
+                    currentDataRow++;
+                }
+                ws.addRow([]); 
+                currentDataRow++;
+            }
+
+            const headerRow = ws.addRow(["Operation No", "Operation Name", "Machine Type", "SMV (Min)", "Hourly Target", "Remarks", "Special Attachment"]);
+            headerRow.eachCell(cell => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1e293b' } };
+                cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+                cell.border = { bottom: { style: 'thin' } };
+            });
+
+            let totSmv = 0;
+            operationsData.forEach(op => {
+                totSmv += op.smv;
+                ws.addRow([op.no, op.name, op.machine, op.smv, op.target, op.remarks || '', op.attach || '']);
+            });
+
+            ws.addRow([]);
+            const bottleneck = Math.max(...operationsData.map(o => o.smv));
+            const totalRow = ws.addRow(["", "", "TOTAL SMV:", totSmv.toFixed(3), Math.round(60/bottleneck) + " (Line Target)", "", ""]);
+            
+            totalRow.getCell(3).alignment = { horizontal: 'right' };
+            totalRow.getCell(4).alignment = { horizontal: 'center' };
+            totalRow.font = { bold: true, color: { argb: 'FF10b981' } };
+
+            const buffer = await wb.xlsx.writeBuffer();
+            saveAs(new Blob([buffer], { type: "application/octet-stream" }), `DSI_Operation_Bulletin_${sampleName.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
+
+        } catch (error) {
+            console.error(error);
+            alert("Error exporting to Excel. Please check console for details.");
+        } finally {
+            btn.innerText = "🟢 Export to Excel";
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
