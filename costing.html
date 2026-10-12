@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
     <title>DSI FOOTTECH — Operation Bulletin</title>
-    <!-- ADVANCED EXCEL LIBRARIES (Supports Images) -->
+    <!-- ADVANCED EXCEL LIBRARIES (Supports Images and Reading) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
@@ -162,7 +162,7 @@
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
         }
         .modal-content {
-            background: #0f172a; border: 1px solid #38bdf8; border-radius: 12px; width: 90%; max-width: 700px; padding: 20px; display: flex; flex-direction: column; gap: 15px; max-height: 85vh;
+            background: #0f172a; border: 1px solid #38bdf8; border-radius: 12px; width: 90%; max-width: 750px; padding: 20px; display: flex; flex-direction: column; gap: 15px; max-height: 85vh;
         }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         .modal-header h3 { margin: 0; color: #f8fafc; }
@@ -171,14 +171,17 @@
         .db-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex: 1; padding-right: 5px; }
         .db-card { background: #1e293b; border-left: 4px solid #38bdf8; padding: 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
         .db-card-info h4 { margin: 0 0 5px 0; color: #10b981; font-size: 1.1em; }
-        .db-card-info p { margin: 0; font-size: 0.85em; color: #94a3b8; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .db-actions { display: flex; gap: 8px; }
+        .db-card-info p { margin: 0; font-size: 0.85em; color: #94a3b8; max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .db-actions { display: flex; gap: 8px; flex-direction: column; align-items: flex-end;}
+        .db-images { display: flex; gap: 4px; margin-top: 6px; }
+        .db-mini-thumb { width: 35px; height: 35px; object-fit: cover; border-radius: 4px; border: 1px solid #475569; }
 
         @media (max-width: 768px) {
             .info-panel { flex-direction: column; }
             .image-gallery-container { border-left: none; padding-left: 0; border-top: 1px dashed #334155; padding-top: 15px; }
             .meta-inputs { min-width: 100%; }
             .db-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .db-actions { flex-direction: row; width: 100%; justify-content: space-between; }
         }
     </style>
 </head>
@@ -230,7 +233,11 @@
         <div class="table-panel">
             <div class="table-toolbar">
                 <h3 style="margin: 0; color: #f8fafc;">Operation Breakdown</h3>
-                <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search operations..." oninput="renderTable()">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <button class="btn-top" style="background:#8b5cf6;" onclick="document.getElementById('excelUpload').click()">📥 Import Excel</button>
+                    <input type="file" id="excelUpload" accept=".xlsx, .xls" style="display:none;" onchange="handleExcelImport(event)">
+                    <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search operations..." oninput="renderTable()">
+                </div>
             </div>
             
             <div class="table-container">
@@ -441,24 +448,31 @@
             return;
         }
 
-        container.innerHTML = filtered.map(entry => `
+        container.innerHTML = filtered.map(entry => {
+            const imgHtml = (entry.imgs || []).slice(0, 4).map(img => 
+                `<img src="${img}" class="db-mini-thumb">`
+            ).join("");
+
+            return `
             <div class="db-card">
                 <div class="db-card-info">
                     <h4>👟 ${entry.meta.name}</h4>
                     <p><b>Comments:</b> ${entry.meta.comments ? entry.meta.comments : 'N/A'}</p>
-                    <span style="font-size:0.75em; color:#38bdf8; font-weight:bold;">Saved: ${entry.date} | Total Operations: ${entry.ops.length} | Images: ${entry.imgs.length}</span>
+                    <div class="db-images">${imgHtml}</div>
+                    <span style="font-size:0.75em; color:#38bdf8; font-weight:bold; display:block; margin-top:5px;">Saved: ${entry.date} | Total Operations: ${entry.ops ? entry.ops.length : 0} | Images: ${entry.imgs ? entry.imgs.length : 0}</span>
                 </div>
                 <div class="db-actions">
-                    <button class="btn-table btn-save-row" style="padding: 8px 12px; font-size:1em;" onclick="loadFromCloudDB('${entry.id}')">📂 Load</button>
-                    <button class="btn-table btn-delete" style="padding: 8px 12px; font-size:1em;" onclick="deleteFromCloudDB('${entry.id}')">✖ Delete</button>
+                    <button class="btn-table btn-save-row" style="padding: 6px 12px; font-size:1em; margin-bottom:5px;" onclick="loadFromCloudDB('${entry.id}')">📂 Load</button>
+                    <button class="btn-table btn-delete" style="padding: 6px 12px; font-size:1em;" onclick="deleteFromCloudDB('${entry.id}')">✖ Delete</button>
                 </div>
             </div>
-        `).join("");
+            `;
+        }).join("");
     }
 
     function loadFromCloudDB(id) {
         if (!confirm("This will overwrite your current active table and images on screen. Do you want to proceed?")) return;
-        const entry = loadedCloudDB.find(e => e.id === id);
+        const entry = loadedCloudDB.find(e => String(e.id) === String(id));
         if (!entry) return;
 
         operationsData = entry.ops || [];
@@ -476,6 +490,9 @@
     }
 
     async function deleteFromCloudDB(id) {
+        const pass = prompt("Enter Admin Password to Delete (9999):");
+        if (pass !== "9999") return alert("Incorrect password. Deletion blocked.");
+
         if (!confirm("Are you sure you want to permanently delete this saved bulletin from the Google Sheet?")) return;
         
         try {
@@ -485,13 +502,119 @@
             });
             const result = await response.json();
             if (result.status === "deleted") {
-                loadedCloudDB = loadedCloudDB.filter(e => e.id !== id);
+                loadedCloudDB = loadedCloudDB.filter(e => String(e.id) !== String(id));
                 renderDatabaseList();
             }
         } catch (e) {
             alert("Error deleting from cloud.");
             console.error(e);
         }
+    }
+
+    // --- IMPORT EXCEL MAGIC SCANNER ---
+    async function handleExcelImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        
+        reader.onload = async function(e) {
+            try {
+                const buffer = e.target.result;
+                const wb = new ExcelJS.Workbook();
+                await wb.xlsx.load(buffer);
+                const ws = wb.worksheets[0]; 
+                
+                let headerRowIdx = -1;
+                let colMap = { op: -1, smv: -1, mac: -1, tgt: -1, rem: -1, att: -1 };
+                
+                // Scan the first 20 rows to find headers intelligently
+                for (let r = 1; r <= Math.min(ws.rowCount, 20); r++) {
+                    const row = ws.getRow(r);
+                    let foundOp = false;
+                    let foundSmv = false;
+                    
+                    row.eachCell((cell, colNumber) => {
+                        const val = String(cell.value || '').toLowerCase();
+                        if (val.includes("operation") || val.includes("name")) { colMap.op = colNumber; foundOp = true; }
+                        else if (val.includes("smv") || val.includes("minute")) { colMap.smv = colNumber; foundSmv = true; }
+                        else if (val.includes("machine")) { colMap.mac = colNumber; }
+                        else if (val.includes("target")) { colMap.tgt = colNumber; }
+                        else if (val.includes("remark") || val.includes("comment")) { colMap.rem = colNumber; }
+                        else if (val.includes("attach")) { colMap.att = colNumber; }
+                    });
+                    
+                    if (foundOp && foundSmv) {
+                        headerRowIdx = r;
+                        break;
+                    }
+                }
+                
+                if (headerRowIdx === -1 || colMap.op === -1 || colMap.smv === -1) {
+                    alert("Error: Could not automatically detect 'Operation' and 'SMV' columns in this Excel file.");
+                    return;
+                }
+
+                let newOps = [];
+                let currentNo = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.no)) + 1 : 1;
+
+                // Extract data below the header
+                for (let r = headerRowIdx + 1; r <= ws.rowCount; r++) {
+                    const row = ws.getRow(r);
+                    
+                    let opNameCell = row.getCell(colMap.op).value;
+                    let opNameStr = opNameCell ? (opNameCell.richText ? opNameCell.richText.map(t=>t.text).join('') : opNameCell.toString()).trim() : '';
+                    
+                    let smvCell = row.getCell(colMap.smv).value;
+                    if (smvCell && smvCell.result !== undefined) smvCell = smvCell.result; // handle formulas
+                    let smvVal = parseFloat(smvCell);
+                    
+                    // Skip empty rows or "Total" rows
+                    if (!opNameStr || isNaN(smvVal) || opNameStr.toLowerCase().includes("total")) continue;
+
+                    let targetVal = 0;
+                    if (colMap.tgt > -1) {
+                        let tVal = row.getCell(colMap.tgt).value;
+                        if (tVal && tVal.result !== undefined) tVal = tVal.result;
+                        targetVal = parseInt(tVal) || 0;
+                    }
+                    if (targetVal === 0 && smvVal > 0) {
+                        targetVal = Math.round(60 / smvVal);
+                    }
+                    
+                    let macStr = '';
+                    if(colMap.mac > -1) { let cv = row.getCell(colMap.mac).value; macStr = cv ? cv.toString().trim() : ''; }
+                    let remStr = '';
+                    if(colMap.rem > -1) { let cv = row.getCell(colMap.rem).value; remStr = cv ? cv.toString().trim() : ''; }
+                    let attStr = '';
+                    if(colMap.att > -1) { let cv = row.getCell(colMap.att).value; attStr = cv ? cv.toString().trim() : ''; }
+
+                    newOps.push({
+                        id: Date.now() + r,
+                        no: currentNo++,
+                        name: opNameStr,
+                        machine: macStr,
+                        smv: smvVal,
+                        target: targetVal,
+                        remarks: remStr,
+                        attach: attStr
+                    });
+                }
+
+                if (newOps.length > 0) {
+                    saveState();
+                    operationsData = operationsData.concat(newOps);
+                    renderTable();
+                    alert(`✅ Successfully imported ${newOps.length} operations from Excel!`);
+                } else {
+                    alert("No valid operations found in the file.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error reading Excel file. Make sure it's a valid .xlsx file.");
+            }
+            event.target.value = ""; // reset input
+        };
+        reader.readAsArrayBuffer(file);
     }
 
     // --- STANDARD FUNCTIONS ---
@@ -672,7 +795,11 @@
     }
 
     function deleteRow(id, bypassConfirm = false) {
-        if (!bypassConfirm && !confirm("Are you sure you want to delete this operation?")) return;
+        if (!bypassConfirm) {
+            const pass = prompt("Enter Admin Password to Delete (9999):");
+            if (pass !== "9999") return alert("Incorrect password.");
+            if (!confirm("Are you sure you want to delete this operation?")) return;
+        }
         saveState();
         operationsData = operationsData.filter(op => op.id !== id);
         reindexOperations(); 
@@ -695,7 +822,10 @@
     }
 
     function clearAllData() {
+        const pass = prompt("Enter Admin Password to Clear All (9999):");
+        if (pass !== "9999") return alert("Incorrect password.");
         if (!confirm("Are you sure you want to clear the current table and images? (Saved cloud databases will not be deleted)")) return;
+        
         saveState();
         operationsData = [];
         sampleImages = [];
