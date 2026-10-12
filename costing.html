@@ -146,16 +146,16 @@
             border-radius: 8px; 
             margin-top: 20px; 
             border: 1px solid #334155; 
-            /* STRICT SIZING TO PREVENT STRETCHING */
-            width: 300px !important;
-            max-width: 300px !important; 
-            align-self: flex-start !important; 
+            display: inline-block; 
+            min-width: 250px;
             transition: background-color 0.3s, border-color 0.3s;
         }
         .summary-panel h4 { margin: 0 0 10px 0; color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 8px; transition: color 0.3s, border-color 0.3s; font-size: 1.05em; }
         
-        .summary-table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+        /* Fixed summary table: Overrides the global table's 1250px min-width */
+        .summary-table { width: 100%; border-collapse: collapse; font-size: 0.95em; min-width: 0 !important; }
         .summary-table td { padding: 6px 0; border-bottom: 1px dashed #334155; transition: border-color 0.3s; }
+        .summary-table td:first-child { padding-right: 50px; } 
         .summary-table tr:last-child td { border-bottom: none; border-top: 2px solid #334155; padding-top: 8px; margin-top: 4px; font-weight: bold; }
         
         .p-name { color: #ef4444; font-weight: 900; }
