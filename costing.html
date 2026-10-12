@@ -1080,7 +1080,7 @@
         localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
     }
 
-    // --- ADVANCED EXCEL EXPORT (MANUAL COLUMNS TO FIX AUTO-HEADER BUG) ---
+    // --- ADVANCED EXCEL EXPORT ---
     async function exportToExcel() {
         if (operationsData.length === 0) return alert("Table is empty.");
         
@@ -1175,7 +1175,7 @@
                 ws.addRow([op.no, op.section || '', op.component || '', op.name, op.machine, Number(op.smv.toFixed(4)), op.target, op.remarks || '', op.attach || '']);
             });
 
-            // ADD TOTALS
+            // ADD MAIN TOTALS
             ws.addRow([]);
             const bottleneck = Math.max(...operationsData.map(o => o.smv));
             const totalRow = ws.addRow(["", "", "", "", "TOTAL SMV:", Number(totSmv.toFixed(4)), Math.round(60/bottleneck) + " (Line Target)", "", ""]);
@@ -1183,6 +1183,47 @@
             totalRow.getCell(5).alignment = { horizontal: 'right' };
             totalRow.getCell(6).alignment = { horizontal: 'center' };
             totalRow.font = { bold: true, color: { argb: 'FF10b981' } };
+
+            // ==========================================
+            // NEW: PART-WISE SMV SUMMARY
+            // ==========================================
+            ws.addRow([]);
+            ws.addRow([]);
+            let sumTitle = ws.addRow(["", "", "PART-WISE SMV SUMMARY"]);
+            sumTitle.getCell(3).font = { bold: true, underline: true, size: 12 };
+
+            let partSmvMap = {};
+            operationsData.forEach(op => {
+                let part = (op.component || "").trim().toUpperCase();
+                if (!part) part = "UNASSIGNED";
+                if (!partSmvMap[part]) partSmvMap[part] = 0;
+                partSmvMap[part] += op.smv;
+            });
+
+            // Sort alphabetically for clean presentation
+            let sortedParts = Object.keys(partSmvMap).sort();
+
+            for (const part of sortedParts) {
+                let pSmv = partSmvMap[part];
+                let r = ws.addRow([]);
+                r.getCell(3).value = part;
+                r.getCell(6).value = Number(pSmv.toFixed(4));
+                
+                r.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
+                r.getCell(3).font = { bold: true, color: { argb: 'FFef4444' } }; // Red text matching UI
+                r.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
+                r.getCell(6).font = { bold: true };
+                r.getCell(6).numFmt = '0.0000';
+            }
+
+            // Summary Total
+            let sumTotalRow = ws.addRow([]);
+            sumTotalRow.getCell(3).value = "SUMMARY TOTAL:";
+            sumTotalRow.getCell(6).value = Number(totSmv.toFixed(4));
+            sumTotalRow.getCell(3).alignment = { horizontal: 'right' };
+            sumTotalRow.getCell(6).alignment = { horizontal: 'right' };
+            sumTotalRow.font = { bold: true, color: { argb: 'FF10b981' } };
+            sumTotalRow.getCell(6).numFmt = '0.0000';
 
             const buffer = await wb.xlsx.writeBuffer();
             saveAs(new Blob([buffer], { type: "application/octet-stream" }), `DSI_Operation_Bulletin_${sampleName.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
