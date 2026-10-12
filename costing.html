@@ -72,7 +72,7 @@
             flex-wrap: wrap;
             transition: background-color 0.3s, border-color 0.3s;
         }
-        .table-panel { flex-direction: column; overflow: hidden; flex: 1; }
+        .table-panel { flex-direction: column; overflow: hidden; flex: 1; align-items: flex-start; } /* Added align-items to prevent child stretching */
 
         .meta-inputs { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 12px; }
         .input-group { display: flex; flex-direction: column; }
@@ -87,7 +87,7 @@
         .image-gallery { display: flex; gap: 10px; flex-wrap: wrap; min-height: 120px; background: #000; border-radius: 8px; padding: 10px; border: 1px solid #334155; transition: background-color 0.3s, border-color 0.3s;}
         .sample-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #475569; cursor: pointer; }
 
-        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; width: 100%; }
         .table-toolbar h3 { margin: 0; color: #f8fafc; transition: color 0.3s; }
         
         .bulk-wrapper { background: #1e293b; padding: 4px 10px; border-radius: 6px; border: 1px solid #475569; display: flex; gap: 8px; align-items: center; transition: background-color 0.3s, border-color 0.3s;}
@@ -95,7 +95,7 @@
 
         .search-box { background: #1e293b; border: 1px solid #475569; color: #fff; padding: 8px 12px; border-radius: 20px; width: 250px; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
         
-        .table-container { overflow-x: auto; flex: 1; }
+        .table-container { overflow-x: auto; width: 100%; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88em; min-width: 1250px; }
         th { background: #1e293b; color: #94a3b8; padding: 12px 8px; position: sticky; top: 0; font-weight: bold; border-bottom: 2px solid #334155; z-index: 5; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
         td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; transition: border-color 0.3s;}
@@ -141,15 +141,20 @@
 
         /* --- COMPACT COLUMN-BASED PART SUMMARY PANEL --- */
         .summary-panel { 
-            background: #1e293b; padding: 20px; border-radius: 8px; margin-top: 15px; border: 1px solid #334155; 
-            width: 320px; /* Locked width to prevent stretching */
-            align-self: flex-start; /* Keep to the left side */
+            background: #1e293b; 
+            padding: 15px 25px; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            border: 1px solid #334155; 
+            display: inline-block; /* Fixes the stretching issue */
+            min-width: 250px;
             transition: background-color 0.3s, border-color 0.3s;
         }
-        .summary-panel h4 { margin: 0 0 12px 0; color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 8px; transition: color 0.3s, border-color 0.3s; }
-        .summary-table { width: 100%; border-collapse: collapse; font-size: 0.95em; min-width: 100%; }
-        .summary-table td { padding: 6px 15px 6px 0; border-bottom: 1px dashed #334155; transition: border-color 0.3s; }
-        .summary-table tr:last-child td { border-bottom: none; border-top: 2px solid #334155; padding-top: 10px; margin-top: 4px; font-weight: bold; }
+        .summary-panel h4 { margin: 0 0 10px 0; color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 8px; transition: color 0.3s, border-color 0.3s; font-size: 1.05em; }
+        .summary-table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+        .summary-table td { padding: 6px 0; border-bottom: 1px dashed #334155; transition: border-color 0.3s; }
+        .summary-table td:first-child { padding-right: 40px; } /* Controls the exact gap between Part and SMV */
+        .summary-table tr:last-child td { border-bottom: none; border-top: 2px solid #334155; padding-top: 8px; margin-top: 4px; font-weight: bold; }
         .p-name { color: #ef4444; font-weight: 900; }
         .p-val { color: #10b981; font-weight: bold; font-family: monospace; font-size: 1.1em; text-align: right; display: block; }
         .sum-total { color: #f8fafc; transition: color 0.3s; }
@@ -189,7 +194,7 @@
         body.light-mode .bulk-wrapper { background: #f8fafc; border-color: #cbd5e1; }
         
         body.light-mode th { background: #e2e8f0; color: #334155; border-bottom-color: #cbd5e1; }
-        body.light-mode td { border-bottom-color: #e2e8f0; }
+        body.light-mode td { border-bottom-color: #cbd5e1; }
         body.light-mode tr:hover td { background: rgba(0,0,0,0.03); }
         body.light-mode .total-row td { background: #f1f5f9 !important; border-top-color: #cbd5e1; }
         
@@ -350,14 +355,14 @@
                         <tr class="total-row" id="totalRow">
                             <td colspan="6" style="text-align: right;">TOTAL:</td>
                             <td class="col-smv" id="totSmv">0.0000</td>
-                            <td id="totTarget" style="white-space: nowrap; font-size: 0.9em;"></td>
+                            <td id="totTarget"></td> <!-- Removed the green text target -->
                             <td colspan="3"></td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
 
-            <!-- COLUMN PART-WISE SMV SUMMARY PANEL -->
+            <!-- COMPACT COLUMN PART-WISE SMV SUMMARY PANEL -->
             <div class="summary-panel" id="summaryPanel">
                 <h4>Part-Wise SMV Summary</h4>
                 <div id="partSummaryContainer">
@@ -1112,7 +1117,7 @@
         }
 
         document.getElementById("totSmv").innerText = totalSmv.toFixed(4);
-        document.getElementById("totTarget").innerText = "";
+        document.getElementById("totTarget").innerText = ""; // Strictly empty
         
         // Render Summary Panel as a clean Column Table
         const summaryContainer = document.getElementById("partSummaryContainer");
