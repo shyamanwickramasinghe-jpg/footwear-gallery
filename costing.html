@@ -52,7 +52,7 @@
         /* --- MAIN DASHBOARD CONTAINER --- */
         .dashboard-container {
             padding: 20px;
-            max-width: 1500px;
+            max-width: 1600px;
             margin: 0 auto;
             width: 100%;
             display: flex;
@@ -91,7 +91,7 @@
         .table-toolbar h3 { margin: 0; color: #f8fafc; transition: color 0.3s; }
         
         .bulk-wrapper { background: #1e293b; padding: 4px 10px; border-radius: 6px; border: 1px solid #475569; display: flex; gap: 8px; align-items: center; transition: background-color 0.3s, border-color 0.3s;}
-        .bulk-input { background: #0b1120; border: 1px solid #334155; color: #fff; padding: 6px; border-radius: 4px; width: 160px; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
+        .bulk-input { background: #0b1120; border: 1px solid #334155; color: #fff; padding: 6px; border-radius: 4px; width: 180px; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
 
         .search-box { background: #1e293b; border: 1px solid #475569; color: #fff; padding: 8px 12px; border-radius: 20px; width: 250px; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
         
@@ -120,7 +120,7 @@
 
         .sec-badge { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid #f59e0b; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 6px; text-transform: uppercase; font-weight: 800; }
 
-        /* Dynamic Table Text Colors (Makes light mode switching easy) */
+        /* Dynamic Table Text Colors */
         .col-no { color: #38bdf8; font-weight: bold; }
         .col-sec { color: #c084fc; font-weight: bold; text-transform: uppercase; font-size: 0.85em; }
         .col-name { font-weight: bold; }
@@ -173,7 +173,6 @@
         body.light-mode .db-card { background: #f8fafc; border-color: #cbd5e1; }
         body.light-mode .db-card-info p { color: #475569; }
         
-        /* Light Mode Text Colors */
         body.light-mode .col-no { color: #0284c7; } 
         body.light-mode .col-sec { color: #9333ea; }
         body.light-mode .col-mac, body.light-mode .col-rem, body.light-mode .empty-msg { color: #475569; }
@@ -242,7 +241,7 @@
                     <h3>Operation Breakdown</h3>
                     <!-- BULK SECTION ASSIGNER -->
                     <div class="bulk-wrapper">
-                        <input type="text" id="bulkSectionInput" class="bulk-input" list="sectionList" placeholder="Section (e.g. Cutting)">
+                        <input type="text" id="bulkSectionInput" class="bulk-input" list="sectionList" placeholder="Work Center (e.g. Cutting)">
                         <datalist id="sectionList">
                             <option value="Cutting"></option>
                             <option value="Preparation"></option>
@@ -250,7 +249,7 @@
                             <option value="Assembly"></option>
                             <option value="Finishing"></option>
                         </datalist>
-                        <button class="btn-top" style="background:#0ea5e9; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkSection()">🏷️ Apply Section</button>
+                        <button class="btn-top" style="background:#0ea5e9; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkSection()">🏷️ Apply Work Center</button>
                     </div>
                 </div>
                 
@@ -267,7 +266,7 @@
                         <tr>
                             <th width="3%"><input type="checkbox" onclick="toggleAllChecks(this)" title="Select All"></th>
                             <th width="4%">No.</th>
-                            <th width="12%">Section</th>
+                            <th width="12%">Work Center</th>
                             <th width="20%">Operation Name</th>
                             <th width="14%">Machine Type</th>
                             <th width="8%">SMV</th>
@@ -284,11 +283,11 @@
                         <tr class="form-row" id="inputRow">
                             <td></td>
                             <td><input type="number" id="inNo" placeholder="Auto" title="Type a number here to insert between existing operations"></td>
-                            <td><input type="text" id="inSection" placeholder="Section" list="sectionList"></td>
+                            <td><input type="text" id="inSection" placeholder="Work Center" list="sectionList"></td>
                             <td><input type="text" id="inOpName" placeholder="e.g. Toe Lasting"></td>
                             <td>
                                 <div style="display:flex; align-items:center;">
-                                    <select id="inMachine" onchange="autoFillSMV()" style="flex:1;">
+                                    <select id="inMachine" style="flex:1;">
                                         <!-- Populated via JS -->
                                     </select>
                                     <button class="btn-add-machine" onclick="addNewMachineType()" title="Add custom machine">➕</button>
@@ -432,7 +431,7 @@
 
     function applyBulkSection() {
         const sectionVal = document.getElementById("bulkSectionInput").value.trim();
-        if (!sectionVal) return alert("Please type or select a section name first (e.g., Cutting).");
+        if (!sectionVal) return alert("Please type or select a work center name first (e.g., Cutting).");
         
         const checkboxes = document.querySelectorAll('.row-check:checked');
         if (checkboxes.length === 0) return alert("Please check the box next to at least one operation in the table.");
@@ -610,7 +609,7 @@
                 const ws = wb.worksheets[0]; 
                 
                 let headerRowIdx = -1;
-                let colMap = { op: -1, smv: -1, mac: -1, tgt: -1, rem: -1, att: -1, sec: -1 };
+                let colMap = { op: -1, smv: -1, mac: -1, tgt: -1, rem: -1, att: -1, wc: -1, secFallback: -1 };
                 
                 // Scan the first 20 rows to find headers intelligently
                 for (let r = 1; r <= Math.min(ws.rowCount, 20); r++) {
@@ -619,14 +618,15 @@
                     let foundSmv = false;
                     
                     row.eachCell((cell, colNumber) => {
-                        const val = String(cell.value || '').toLowerCase();
+                        const val = String(cell.value || '').toLowerCase().trim();
                         if (val.includes("operation") || val.includes("name")) { colMap.op = colNumber; foundOp = true; }
                         else if (val.includes("smv") || val.includes("minute")) { colMap.smv = colNumber; foundSmv = true; }
-                        else if (val.includes("machine")) { colMap.mac = colNumber; }
+                        else if (val.includes("machine") || val.includes("mc type") || val === "mc") { colMap.mac = colNumber; }
                         else if (val.includes("target")) { colMap.tgt = colNumber; }
                         else if (val.includes("remark") || val.includes("comment")) { colMap.rem = colNumber; }
                         else if (val.includes("attach")) { colMap.att = colNumber; }
-                        else if (val.includes("section") || val.includes("dept")) { colMap.sec = colNumber; }
+                        else if (val.includes("work center") || val.includes("workcenter") || val === "wc") { colMap.wc = colNumber; }
+                        else if (val.includes("section") || val.includes("dept")) { colMap.secFallback = colNumber; }
                     });
                     
                     if (foundOp && foundSmv) {
@@ -636,9 +636,12 @@
                 }
                 
                 if (headerRowIdx === -1 || colMap.op === -1 || colMap.smv === -1) {
-                    alert("Error: Could not automatically detect 'Operation' and 'SMV' columns in this Excel file.");
+                    alert("Error: Could not automatically detect 'Operation Name' and 'SMV' columns in this Excel file.");
                     return;
                 }
+
+                // Prioritize 'Work Center' column over 'Section' column if both exist
+                const finalWcCol = colMap.wc > -1 ? colMap.wc : colMap.secFallback;
 
                 let newOps = [];
                 let currentNo = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.no)) + 1 : 1;
@@ -666,13 +669,25 @@
                     }
                     
                     let macStr = '';
-                    if(colMap.mac > -1) { let cv = row.getCell(colMap.mac).value; macStr = cv ? cv.toString().trim() : ''; }
+                    if(colMap.mac > -1) { 
+                        let cv = row.getCell(colMap.mac).value; 
+                        macStr = cv ? cv.toString().trim() : ''; 
+                        
+                        if (macStr && !dsiMachines.some(m => m.name.toLowerCase() === macStr.toLowerCase())) {
+                            const newMachine = { name: macStr, ma: 0.0 };
+                            dsiMachines.push(newMachine);
+                            const savedCustoms = JSON.parse(localStorage.getItem("dsi_custom_machines") || "[]");
+                            savedCustoms.push(newMachine);
+                            localStorage.setItem("dsi_custom_machines", JSON.stringify(savedCustoms));
+                        }
+                    }
+
                     let remStr = '';
                     if(colMap.rem > -1) { let cv = row.getCell(colMap.rem).value; remStr = cv ? cv.toString().trim() : ''; }
                     let attStr = '';
                     if(colMap.att > -1) { let cv = row.getCell(colMap.att).value; attStr = cv ? cv.toString().trim() : ''; }
                     let secStr = '';
-                    if(colMap.sec > -1) { let cv = row.getCell(colMap.sec).value; secStr = cv ? cv.toString().trim() : ''; }
+                    if(finalWcCol > -1) { let cv = row.getCell(finalWcCol).value; secStr = cv ? cv.toString().trim() : ''; }
 
                     newOps.push({
                         id: Date.now() + r,
@@ -689,6 +704,7 @@
 
                 if (newOps.length > 0) {
                     saveState();
+                    populateMachineDropdown(); 
                     operationsData = operationsData.concat(newOps);
                     renderTable();
                     alert(`✅ Successfully imported ${newOps.length} operations from Excel!`);
@@ -708,25 +724,22 @@
     function populateMachineDropdown(selectValue = "") {
         const select = document.getElementById("inMachine");
         select.innerHTML = `<option value="">Select Machine...</option>` + 
-            dsiMachines.map(m => `<option value="${m.name} (${m.ma}% MA)">${m.name} (${m.ma}% MA)</option>`).join("");
+            dsiMachines.map(m => `<option value="${m.name}">${m.name}</option>`).join("");
         if (selectValue) select.value = selectValue;
     }
 
     function addNewMachineType() {
         const name = prompt("Enter new Machine Type name:");
         if (!name) return;
-        const ma = prompt(`Enter MA% for ${name} (e.g., 5.0):`);
-        if (ma === null || isNaN(parseFloat(ma))) return alert("Invalid MA%.");
 
-        const newMachine = { name: name.trim(), ma: parseFloat(ma) };
+        const newMachine = { name: name.trim(), ma: 0.0 };
         dsiMachines.push(newMachine);
         
         const savedCustoms = JSON.parse(localStorage.getItem("dsi_custom_machines") || "[]");
         savedCustoms.push(newMachine);
         localStorage.setItem("dsi_custom_machines", JSON.stringify(savedCustoms));
 
-        const optionValue = `${newMachine.name} (${newMachine.ma}% MA)`;
-        populateMachineDropdown(optionValue);
+        populateMachineDropdown(newMachine.name);
     }
 
     function saveMetaData() {
@@ -1002,7 +1015,7 @@
             // Define Columns
             ws.columns = [
                 { header: 'No', key: 'no', width: 8 },
-                { header: 'Section', key: 'section', width: 18 },
+                { header: 'Work Center', key: 'section', width: 18 },
                 { header: 'Operation Name', key: 'name', width: 35 },
                 { header: 'Machine Type', key: 'machine', width: 25 },
                 { header: 'SMV (Min)', key: 'smv', width: 12 },
@@ -1061,7 +1074,7 @@
                 currentDataRow++;
             }
 
-            const headerRow = ws.addRow(["Operation No", "Section", "Operation Name", "Machine Type", "SMV (Min)", "Hourly Target", "Remarks", "Special Attachment"]);
+            const headerRow = ws.addRow(["Operation No", "Work Center", "Operation Name", "Machine Type", "SMV (Min)", "Hourly Target", "Remarks", "Special Attachment"]);
             headerRow.eachCell(cell => {
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1e293b' } };
                 cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
