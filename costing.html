@@ -52,7 +52,7 @@
         /* --- MAIN DASHBOARD CONTAINER --- */
         .dashboard-container {
             padding: 20px;
-            max-width: 1600px;
+            max-width: 1700px;
             margin: 0 auto;
             width: 100%;
             display: flex;
@@ -91,12 +91,12 @@
         .table-toolbar h3 { margin: 0; color: #f8fafc; transition: color 0.3s; }
         
         .bulk-wrapper { background: #1e293b; padding: 4px 10px; border-radius: 6px; border: 1px solid #475569; display: flex; gap: 8px; align-items: center; transition: background-color 0.3s, border-color 0.3s;}
-        .bulk-input { background: #0b1120; border: 1px solid #334155; color: #fff; padding: 6px; border-radius: 4px; width: 180px; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
+        .bulk-input { background: #0b1120; border: 1px solid #334155; color: #fff; padding: 6px; border-radius: 4px; width: 150px; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
 
         .search-box { background: #1e293b; border: 1px solid #475569; color: #fff; padding: 8px 12px; border-radius: 20px; width: 250px; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
         
         .table-container { overflow-x: auto; flex: 1; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88em; min-width: 1150px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88em; min-width: 1250px; }
         th { background: #1e293b; color: #94a3b8; padding: 12px 8px; position: sticky; top: 0; font-weight: bold; border-bottom: 2px solid #334155; z-index: 5; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
         td { padding: 8px; border-bottom: 1px solid #1e293b; vertical-align: middle; transition: border-color 0.3s;}
         tr:hover td { background: rgba(255,255,255,0.04); }
@@ -118,14 +118,23 @@
 
         .total-row td { background: #1e293b; font-weight: bold; font-size: 1.1em; color: #10b981; border-top: 2px solid #334155; transition: background-color 0.3s, border-color 0.3s;}
 
-        .sec-badge { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid #f59e0b; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 6px; text-transform: uppercase; font-weight: 800; }
+        .sec-badge { 
+            padding: 3px 8px; 
+            border-radius: 6px; 
+            font-size: 0.8em; 
+            margin-right: 6px; 
+            text-transform: uppercase; 
+            font-weight: 800; 
+            border: 1px solid transparent; 
+        }
 
         /* Dynamic Table Text Colors */
         .col-no { color: #38bdf8; font-weight: bold; }
-        .col-sec { color: #c084fc; font-weight: bold; text-transform: uppercase; font-size: 0.85em; }
+        .col-sec { font-weight: bold; text-transform: uppercase; font-size: 0.85em; }
+        .col-comp { color: #ef4444; font-weight: 800; font-size: 0.9em; text-transform: uppercase; }
         .col-name { font-weight: bold; }
         .col-mac { color: #94a3b8; }
-        .col-smv { color: #10b981; font-weight: bold; }
+        .col-smv { color: #10b981; font-weight: bold; font-family: monospace; font-size: 1.05em; }
         .col-rem { color: #94a3b8; }
         .col-att { color: #cbd5e1; }
         .empty-msg { text-align: center; padding: 20px; color: #64748b; }
@@ -174,10 +183,10 @@
         body.light-mode .db-card-info p { color: #475569; }
         
         body.light-mode .col-no { color: #0284c7; } 
-        body.light-mode .col-sec { color: #9333ea; }
         body.light-mode .col-mac, body.light-mode .col-rem, body.light-mode .empty-msg { color: #475569; }
         body.light-mode .col-smv { color: #059669; } 
         body.light-mode .col-att { color: #334155; }
+        body.light-mode .col-comp { color: #dc2626; }
         body.light-mode .db-meta-text { color: #0284c7; }
 
         @media (max-width: 768px) {
@@ -237,7 +246,7 @@
 
         <div class="table-panel">
             <div class="table-toolbar">
-                <div style="display:flex; gap:15px; align-items:center;">
+                <div style="display:flex; gap:15px; align-items:center; flex-wrap: wrap;">
                     <h3>Operation Breakdown</h3>
                     <!-- BULK SECTION ASSIGNER -->
                     <div class="bulk-wrapper">
@@ -249,11 +258,26 @@
                             <option value="Assembly"></option>
                             <option value="Finishing"></option>
                         </datalist>
-                        <button class="btn-top" style="background:#0ea5e9; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkSection()">🏷️ Apply Work Center</button>
+                        <button class="btn-top" style="background:#0ea5e9; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkSection()">🏷️ Apply WC</button>
+                    </div>
+
+                    <!-- BULK COMPONENT ASSIGNER -->
+                    <div class="bulk-wrapper">
+                        <input type="text" id="bulkComponentInput" class="bulk-input" list="componentList" placeholder="Component (e.g. CU)" style="width: 140px;">
+                        <datalist id="componentList">
+                            <option value="CU"></option>
+                            <option value="CI"></option>
+                            <option value="CS"></option>
+                            <option value="II"></option>
+                            <option value="SS"></option>
+                            <option value="UU"></option>
+                            <option value="AA"></option>
+                        </datalist>
+                        <button class="btn-top" style="background:#ef4444; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkComponent()">🏷️ Apply Component</button>
                     </div>
                 </div>
                 
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 5px;">
                     <button class="btn-top" style="background:#8b5cf6;" onclick="document.getElementById('excelUpload').click()">📥 Import Excel</button>
                     <input type="file" id="excelUpload" accept=".xlsx, .xls" style="display:none;" onchange="handleExcelImport(event)">
                     <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search operations..." oninput="renderTable()">
@@ -267,13 +291,14 @@
                             <th width="3%"><input type="checkbox" onclick="toggleAllChecks(this)" title="Select All"></th>
                             <th width="4%">No.</th>
                             <th width="12%">Work Center</th>
-                            <th width="20%">Operation Name</th>
-                            <th width="14%">Machine Type</th>
+                            <th width="7%">Part</th>
+                            <th width="18%">Operation Name</th>
+                            <th width="12%">Machine Type</th>
                             <th width="8%">SMV</th>
-                            <th width="9%">Target/Hr</th>
+                            <th width="8%">Target/Hr</th>
                             <th width="10%">Remarks</th>
                             <th width="10%">Special Att.</th>
-                            <th width="10%">Actions</th>
+                            <th width="8%">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -284,24 +309,25 @@
                             <td></td>
                             <td><input type="number" id="inNo" placeholder="Auto" title="Type a number here to insert between existing operations"></td>
                             <td><input type="text" id="inSection" placeholder="Work Center" list="sectionList"></td>
+                            <td><input type="text" id="inComponent" placeholder="Part" list="componentList"></td>
                             <td><input type="text" id="inOpName" placeholder="e.g. Toe Lasting"></td>
                             <td>
                                 <div style="display:flex; align-items:center;">
                                     <select id="inMachine" style="flex:1;">
                                         <!-- Populated via JS -->
                                     </select>
-                                    <button class="btn-add-machine" onclick="addNewMachineType()" title="Add custom machine">➕</button>
+                                    <button class="btn-add-machine" onclick="addNewMachineType()" title="Add custom machine" style="margin-left: 2px;">➕</button>
                                 </div>
                             </td>
-                            <td><input type="number" id="inSmv" step="0.001" placeholder="0.000" oninput="calculateTargetFromSmv()"></td>
+                            <td><input type="number" id="inSmv" step="0.0001" placeholder="0.0000" oninput="calculateTargetFromSmv()"></td>
                             <td><input type="number" id="inTarget" step="1" placeholder="0" oninput="calculateSmvFromTarget()"></td>
                             <td><input type="text" id="inRemarks" placeholder="Notes..."></td>
                             <td><input type="text" id="inAttach" placeholder="e.g. Edge Guide"></td>
-                            <td><button class="btn-table btn-save-row" onclick="addOperationRow()">➕ Add Row</button></td>
+                            <td><button class="btn-table btn-save-row" onclick="addOperationRow()">➕ Add</button></td>
                         </tr>
                         <tr class="total-row" id="totalRow">
-                            <td colspan="5" style="text-align: right;">TOTAL:</td>
-                            <td class="col-smv" id="totSmv">0.000</td>
+                            <td colspan="6" style="text-align: right;">TOTAL:</td>
+                            <td class="col-smv" id="totSmv">0.0000</td>
                             <td id="totTarget">0</td>
                             <td colspan="3"></td>
                         </tr>
@@ -404,6 +430,26 @@
         renderTable();
     });
 
+    // --- COLOR MAPPING FOR BADGES ---
+    function getBadgeStyle(text) {
+        if(!text) return "";
+        const colors = [
+            {bg: 'rgba(16, 185, 129, 0.15)', fg: '#10b981'}, // Emerald
+            {bg: 'rgba(56, 189, 248, 0.15)', fg: '#38bdf8'}, // Sky Blue
+            {bg: 'rgba(168, 85, 247, 0.15)', fg: '#a855f7'}, // Purple
+            {bg: 'rgba(236, 72, 153, 0.15)', fg: '#ec4899'}, // Pink
+            {bg: 'rgba(245, 158, 11, 0.15)', fg: '#f59e0b'}, // Amber
+            {bg: 'rgba(239, 68, 68, 0.15)', fg: '#ef4444'},  // Red
+            {bg: 'rgba(132, 204, 22, 0.15)', fg: '#84cc16'}  // Lime
+        ];
+        let hash = 0;
+        for (let i = 0; i < text.length; i++) {
+            hash = text.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const color = colors[Math.abs(hash) % colors.length];
+        return `background: ${color.bg}; color: ${color.fg}; border-color: ${color.fg};`;
+    }
+
     // --- THEME TOGGLE ---
     function toggleTheme() {
         const body = document.body;
@@ -423,7 +469,7 @@
         }
     }
 
-    // --- BULK SECTION LOGIC ---
+    // --- BULK LOGIC ---
     function toggleAllChecks(source) {
         const checkboxes = document.querySelectorAll('.row-check');
         checkboxes.forEach(cb => cb.checked = source.checked);
@@ -452,7 +498,33 @@
         if (masterCheck) masterCheck.checked = false; 
 
         renderTable();
-        alert(`✅ Successfully assigned ${sectionVal} to ${count} operations!`);
+        alert(`✅ Successfully assigned Work Center ${sectionVal} to ${count} operations!`);
+    }
+
+    function applyBulkComponent() {
+        const compVal = document.getElementById("bulkComponentInput").value.trim().toUpperCase();
+        if (!compVal) return alert("Please type or select a component part first (e.g., CU).");
+        
+        const checkboxes = document.querySelectorAll('.row-check:checked');
+        if (checkboxes.length === 0) return alert("Please check the box next to at least one operation in the table.");
+
+        saveState();
+        let count = 0;
+        checkboxes.forEach(cb => {
+            const opId = parseInt(cb.value);
+            const op = operationsData.find(o => o.id === opId);
+            if (op) {
+                op.component = compVal; 
+                count++;
+            }
+        });
+        
+        document.getElementById("bulkComponentInput").value = ""; 
+        const masterCheck = document.querySelector('input[onclick="toggleAllChecks(this)"]');
+        if (masterCheck) masterCheck.checked = false; 
+
+        renderTable();
+        alert(`✅ Successfully assigned Component ${compVal} to ${count} operations!`);
     }
 
     // --- GOOGLE SHEETS CLOUD DATABASE FUNCTIONS ---
@@ -609,7 +681,7 @@
                 const ws = wb.worksheets[0]; 
                 
                 let headerRowIdx = -1;
-                let colMap = { op: -1, smv: -1, mac: -1, tgt: -1, rem: -1, att: -1, wc: -1, secFallback: -1 };
+                let colMap = { op: -1, smv: -1, mac: -1, tgt: -1, rem: -1, att: -1, wc: -1, secFallback: -1, comp: -1 };
                 
                 // Scan the first 20 rows to find headers intelligently
                 for (let r = 1; r <= Math.min(ws.rowCount, 20); r++) {
@@ -627,6 +699,7 @@
                         else if (val.includes("attach")) { colMap.att = colNumber; }
                         else if (val.includes("work center") || val.includes("workcenter") || val === "wc") { colMap.wc = colNumber; }
                         else if (val.includes("section") || val.includes("dept")) { colMap.secFallback = colNumber; }
+                        else if (val.includes("component part") || val === "part" || val.includes("pcode") || val === "component") { colMap.comp = colNumber; }
                     });
                     
                     if (foundOp && foundSmv) {
@@ -640,7 +713,6 @@
                     return;
                 }
 
-                // Prioritize 'Work Center' column over 'Section' column if both exist
                 const finalWcCol = colMap.wc > -1 ? colMap.wc : colMap.secFallback;
 
                 let newOps = [];
@@ -672,7 +744,6 @@
                     if(colMap.mac > -1) { 
                         let cv = row.getCell(colMap.mac).value; 
                         macStr = cv ? cv.toString().trim() : ''; 
-                        
                         if (macStr && !dsiMachines.some(m => m.name.toLowerCase() === macStr.toLowerCase())) {
                             const newMachine = { name: macStr, ma: 0.0 };
                             dsiMachines.push(newMachine);
@@ -688,12 +759,15 @@
                     if(colMap.att > -1) { let cv = row.getCell(colMap.att).value; attStr = cv ? cv.toString().trim() : ''; }
                     let secStr = '';
                     if(finalWcCol > -1) { let cv = row.getCell(finalWcCol).value; secStr = cv ? cv.toString().trim() : ''; }
+                    let compStr = '';
+                    if(colMap.comp > -1) { let cv = row.getCell(colMap.comp).value; compStr = cv ? cv.toString().trim().toUpperCase() : ''; }
 
                     newOps.push({
                         id: Date.now() + r,
                         no: currentNo++,
                         name: opNameStr,
                         section: secStr,
+                        component: compStr,
                         machine: macStr,
                         smv: smvVal,
                         target: targetVal,
@@ -797,7 +871,7 @@
     function calculateSmvFromTarget() {
         const target = parseFloat(document.getElementById("inTarget").value);
         if (target > 0) {
-            document.getElementById("inSmv").value = (60 / target).toFixed(3);
+            document.getElementById("inSmv").value = (60 / target).toFixed(4);
         } else {
             document.getElementById("inSmv").value = "";
         }
@@ -832,6 +906,7 @@
     function addOperationRow() {
         let no = parseInt(document.getElementById("inNo").value);
         const section = document.getElementById("inSection").value.trim();
+        const component = document.getElementById("inComponent").value.trim().toUpperCase();
         const name = document.getElementById("inOpName").value.trim();
         const machine = document.getElementById("inMachine").value;
         const remarks = document.getElementById("inRemarks").value.trim();
@@ -855,6 +930,7 @@
             id: Date.now(),
             no: no,
             section: section,
+            component: component,
             name, machine, smv, target, remarks, attach
         });
         
@@ -863,6 +939,7 @@
 
         document.getElementById("inNo").value = "";
         document.getElementById("inSection").value = "";
+        document.getElementById("inComponent").value = "";
         document.getElementById("inOpName").value = "";
         document.getElementById("inMachine").value = "";
         document.getElementById("inRemarks").value = "";
@@ -914,6 +991,7 @@
 
         document.getElementById("inNo").value = op.no;
         document.getElementById("inSection").value = op.section || '';
+        document.getElementById("inComponent").value = op.component || '';
         document.getElementById("inOpName").value = op.name;
         document.getElementById("inMachine").value = op.machine;
         document.getElementById("inRemarks").value = op.remarks || '';
@@ -956,19 +1034,24 @@
             op.no.toString().includes(query) ||
             (op.remarks || '').toLowerCase().includes(query) ||
             (op.attach || '').toLowerCase().includes(query) ||
-            (op.section || '').toLowerCase().includes(query)
+            (op.section || '').toLowerCase().includes(query) ||
+            (op.component || '').toLowerCase().includes(query)
         );
 
         tbody.innerHTML = filteredOps.map(op => {
             totalSmv += op.smv;
+            const sectionHtml = op.section ? `<span class="sec-badge" style="${getBadgeStyle(op.section)}">${op.section}</span>` : '-';
+            const compHtml = op.component ? `<span class="col-comp">${op.component}</span>` : '-';
+
             return `
                 <tr>
                     <td><input type="checkbox" class="row-check" value="${op.id}"></td>
                     <td class="col-no">${op.no}</td>
-                    <td class="col-sec">${op.section || '-'}</td>
+                    <td class="col-sec">${sectionHtml}</td>
+                    <td>${compHtml}</td>
                     <td class="col-name">${op.name}</td>
                     <td class="col-mac">${op.machine || '-'}</td>
-                    <td class="col-smv">${op.smv.toFixed(3)}</td>
+                    <td class="col-smv">${op.smv.toFixed(4)}</td>
                     <td>${op.target}</td>
                     <td class="col-rem">${op.remarks || '-'}</td>
                     <td class="col-att">${op.attach || '-'}</td>
@@ -985,19 +1068,19 @@
         }).join("");
 
         if (filteredOps.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="10" class="empty-msg">No operations found. Use the row below to add data or import from Excel.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="11" class="empty-msg">No operations found. Use the row below to add data or import from Excel.</td></tr>`;
         }
 
         const bottleneckSmv = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.smv)) : 0;
         const lineTarget = bottleneckSmv > 0 ? Math.round(60 / bottleneckSmv) : 0;
 
-        document.getElementById("totSmv").innerText = totalSmv.toFixed(3);
+        document.getElementById("totSmv").innerText = totalSmv.toFixed(4);
         document.getElementById("totTarget").innerText = lineTarget + " (Line Target based on bottleneck)";
         
         localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
     }
 
-    // --- ADVANCED EXCEL EXPORT ---
+    // --- ADVANCED EXCEL EXPORT (MANUAL COLUMNS TO FIX AUTO-HEADER BUG) ---
     async function exportToExcel() {
         if (operationsData.length === 0) return alert("Table is empty.");
         
@@ -1012,17 +1095,19 @@
             const wb = new ExcelJS.Workbook();
             const ws = wb.addWorksheet("Operations");
 
-            // Define Columns
-            ws.columns = [
-                { header: 'No', key: 'no', width: 8 },
-                { header: 'Work Center', key: 'section', width: 18 },
-                { header: 'Operation Name', key: 'name', width: 35 },
-                { header: 'Machine Type', key: 'machine', width: 25 },
-                { header: 'SMV (Min)', key: 'smv', width: 12 },
-                { header: 'Hourly Target', key: 'target', width: 15 },
-                { header: 'Remarks', key: 'remarks', width: 30 },
-                { header: 'Special Attachment', key: 'attach', width: 25 }
-            ];
+            // Define Manual Column Widths to Avoid Row 1 Auto-Header Bug
+            ws.getColumn(1).width = 8;   // No
+            ws.getColumn(2).width = 18;  // Work Center
+            ws.getColumn(3).width = 12;  // Component
+            ws.getColumn(4).width = 40;  // Operation Name
+            ws.getColumn(5).width = 25;  // Machine Type
+            ws.getColumn(6).width = 15;  // SMV
+            ws.getColumn(7).width = 15;  // Hourly Target
+            ws.getColumn(8).width = 30;  // Remarks
+            ws.getColumn(9).width = 25;  // Special Attachment
+
+            // Format SMV Column for 4 Decimals
+            ws.getColumn(6).numFmt = '0.0000';
 
             ws.addRow(["D. SAMSON INDUSTRIES (PVT) LTD - OPERATION BULLETIN"]);
             ws.getRow(1).font = { bold: true, size: 14 };
@@ -1074,7 +1159,8 @@
                 currentDataRow++;
             }
 
-            const headerRow = ws.addRow(["Operation No", "Work Center", "Operation Name", "Machine Type", "SMV (Min)", "Hourly Target", "Remarks", "Special Attachment"]);
+            // ADD ACTUAL HEADERS
+            const headerRow = ws.addRow(["Operation No", "Work Center", "Component Part", "Operation Name", "Machine Type", "SMV (Min)", "Hourly Target", "Remarks", "Special Attachment"]);
             headerRow.eachCell(cell => {
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1e293b' } };
                 cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1082,18 +1168,20 @@
                 cell.border = { bottom: { style: 'thin' } };
             });
 
+            // ADD DATA
             let totSmv = 0;
             operationsData.forEach(op => {
                 totSmv += op.smv;
-                ws.addRow([op.no, op.section || '', op.name, op.machine, op.smv, op.target, op.remarks || '', op.attach || '']);
+                ws.addRow([op.no, op.section || '', op.component || '', op.name, op.machine, Number(op.smv.toFixed(4)), op.target, op.remarks || '', op.attach || '']);
             });
 
+            // ADD TOTALS
             ws.addRow([]);
             const bottleneck = Math.max(...operationsData.map(o => o.smv));
-            const totalRow = ws.addRow(["", "", "", "TOTAL SMV:", totSmv.toFixed(3), Math.round(60/bottleneck) + " (Line Target)", "", ""]);
+            const totalRow = ws.addRow(["", "", "", "", "TOTAL SMV:", Number(totSmv.toFixed(4)), Math.round(60/bottleneck) + " (Line Target)", "", ""]);
             
-            totalRow.getCell(4).alignment = { horizontal: 'right' };
-            totalRow.getCell(5).alignment = { horizontal: 'center' };
+            totalRow.getCell(5).alignment = { horizontal: 'right' };
+            totalRow.getCell(6).alignment = { horizontal: 'center' };
             totalRow.font = { bold: true, color: { argb: 'FF10b981' } };
 
             const buffer = await wb.xlsx.writeBuffer();
