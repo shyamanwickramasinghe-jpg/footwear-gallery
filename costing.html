@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="dark">
+    <meta name="color-scheme" content="dark light">
     <title>DSI FOOTTECH — Operation Bulletin</title>
     <!-- ADVANCED EXCEL LIBRARIES (Supports Images and Reading) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
@@ -18,6 +18,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* --- TOP HEADER --- */
@@ -29,6 +30,7 @@
             border-bottom: 1px solid #1e293b;
             padding: 10px 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: background-color 0.3s, border-color 0.3s;
         }
         .brand { display: flex; align-items: center; gap: 12px; }
         .brand h2 { margin: 0; font-size: 1.2em; color: #10b981; text-transform: uppercase; letter-spacing: 1px; }
@@ -44,6 +46,7 @@
             border-bottom: 1px solid #334155;
             display: flex;
             justify-content: space-between;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* --- MAIN DASHBOARD CONTAINER --- */
@@ -58,8 +61,8 @@
             flex: 1;
         }
 
-        /* --- SAMPLE INFO & IMAGES (TOP SECTION) --- */
-        .info-panel {
+        /* --- PANELS --- */
+        .info-panel, .table-panel {
             background: #0f172a;
             border: 1px solid #334155;
             border-radius: 10px;
@@ -67,80 +70,41 @@
             display: flex;
             gap: 20px;
             flex-wrap: wrap;
+            transition: background-color 0.3s, border-color 0.3s;
         }
-        .meta-inputs {
-            flex: 1;
-            min-width: 300px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        .table-panel { flex-direction: column; overflow: hidden; flex: 1; }
+
+        .meta-inputs { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 12px; }
         .input-group { display: flex; flex-direction: column; }
-        .input-group label { font-size: 0.75em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: bold; }
+        .input-group label { font-size: 0.75em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: bold; transition: color 0.3s;}
         .input-group input, .input-group textarea { 
             background: #1e293b; border: 1px solid #475569; color: #fff; padding: 10px; border-radius: 6px; font-size: 0.95em; width: 100%;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
         .input-group textarea { resize: vertical; min-height: 60px; }
         
-        .image-gallery-container {
-            flex: 2;
-            min-width: 400px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            border-left: 1px dashed #334155;
-            padding-left: 20px;
-        }
-        .image-gallery {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            min-height: 120px;
-            background: #000;
-            border-radius: 8px;
-            padding: 10px;
-            border: 1px solid #334155;
-        }
-        .sample-thumb {
-            width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #475569; cursor: pointer;
-        }
+        .image-gallery-container { flex: 2; min-width: 400px; display: flex; flex-direction: column; gap: 10px; border-left: 1px dashed #334155; padding-left: 20px; transition: border-color 0.3s;}
+        .image-gallery { display: flex; gap: 10px; flex-wrap: wrap; min-height: 120px; background: #000; border-radius: 8px; padding: 10px; border: 1px solid #334155; transition: background-color 0.3s, border-color 0.3s;}
+        .sample-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #475569; cursor: pointer; }
 
-        /* --- OPERATIONS TABLE SECTION --- */
-        .table-panel {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 10px;
-            padding: 20px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .table-toolbar h3 { margin: 0; color: #f8fafc; transition: color 0.3s; }
         
-        .table-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .search-box {
-            background: #1e293b; border: 1px solid #475569; color: #fff; padding: 8px 12px; border-radius: 20px; width: 250px;
-        }
+        .bulk-wrapper { background: #1e293b; padding: 4px 10px; border-radius: 6px; border: 1px solid #475569; display: flex; gap: 8px; align-items: center; transition: background-color 0.3s, border-color 0.3s;}
+        .bulk-input { background: #0b1120; border: 1px solid #334155; color: #fff; padding: 6px; border-radius: 4px; width: 160px; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
+
+        .search-box { background: #1e293b; border: 1px solid #475569; color: #fff; padding: 8px 12px; border-radius: 20px; width: 250px; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
         
-        .table-container {
-            overflow-x: auto;
-            flex: 1;
-        }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88em; min-width: 1100px; }
-        th { background: #1e293b; color: #94a3b8; padding: 12px 8px; position: sticky; top: 0; font-weight: bold; border-bottom: 2px solid #334155; z-index: 5;}
-        td { padding: 8px; border-bottom: 1px solid #1e293b; vertical-align: middle; }
-        tr:hover { background: rgba(255,255,255,0.02); }
+        .table-container { overflow-x: auto; flex: 1; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88em; min-width: 1150px; }
+        th { background: #1e293b; color: #94a3b8; padding: 12px 8px; position: sticky; top: 0; font-weight: bold; border-bottom: 2px solid #334155; z-index: 5; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
+        td { padding: 8px; border-bottom: 1px solid #1e293b; vertical-align: middle; transition: border-color 0.3s;}
+        tr:hover td { background: rgba(255,255,255,0.04); }
         
         .form-row { background: rgba(16, 185, 129, 0.05); }
         .form-row td input, .form-row td select {
             background: #0b1120; border: 1px solid #475569; color: #fff; padding: 6px; border-radius: 4px; width: 100%; font-size: 0.9em;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
         .form-row td input:focus, .form-row td select:focus { border-color: #10b981; outline: none; }
 
@@ -150,35 +114,76 @@
         .btn-delete { background: #ef4444; color: #fff; padding: 4px 8px;}
         .btn-move { background: #475569; color: #fff; padding: 4px 8px; }
         .btn-move:hover { background: #64748b; }
-        
-        .btn-add-machine {
-            background: #f59e0b; color: #000; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8em; margin-left: 4px;
-        }
+        .btn-add-machine { background: #f59e0b; color: #000; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8em; margin-left: 4px; }
 
-        .total-row td { background: #1e293b; font-weight: bold; font-size: 1.1em; color: #10b981; border-top: 2px solid #334155; }
+        .total-row td { background: #1e293b; font-weight: bold; font-size: 1.1em; color: #10b981; border-top: 2px solid #334155; transition: background-color 0.3s, border-color 0.3s;}
+
+        .sec-badge { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid #f59e0b; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 6px; text-transform: uppercase; font-weight: 800; }
+
+        /* Dynamic Table Text Colors (Makes light mode switching easy) */
+        .col-no { color: #38bdf8; font-weight: bold; }
+        .col-sec { color: #c084fc; font-weight: bold; text-transform: uppercase; font-size: 0.85em; }
+        .col-name { font-weight: bold; }
+        .col-mac { color: #94a3b8; }
+        .col-smv { color: #10b981; font-weight: bold; }
+        .col-rem { color: #94a3b8; }
+        .col-att { color: #cbd5e1; }
+        .empty-msg { text-align: center; padding: 20px; color: #64748b; }
 
         /* --- DATABASE SEARCH MODAL --- */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background: #0f172a; border: 1px solid #38bdf8; border-radius: 12px; width: 90%; max-width: 750px; padding: 20px; display: flex; flex-direction: column; gap: 15px; max-height: 85vh;
-        }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; }
-        .modal-header h3 { margin: 0; color: #f8fafc; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #0f172a; border: 1px solid #38bdf8; border-radius: 12px; width: 90%; max-width: 750px; padding: 20px; display: flex; flex-direction: column; gap: 15px; max-height: 85vh; transition: background-color 0.3s, border-color 0.3s; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; transition: border-color 0.3s; }
+        .modal-header h3 { margin: 0; color: #f8fafc; transition: color 0.3s; }
         .btn-close { background: transparent; border: none; color: #ef4444; font-size: 1.5em; cursor: pointer; font-weight: bold; }
-        .db-search { background: #1e293b; border: 1px solid #38bdf8; color: #fff; padding: 12px; border-radius: 6px; font-size: 1.05em; width: 100%; }
+        .db-search { background: #1e293b; border: 1px solid #38bdf8; color: #fff; padding: 12px; border-radius: 6px; font-size: 1.05em; width: 100%; transition: background-color 0.3s, color 0.3s;}
         .db-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex: 1; padding-right: 5px; }
-        .db-card { background: #1e293b; border-left: 4px solid #38bdf8; padding: 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .db-card { background: #1e293b; border-left: 4px solid #38bdf8; padding: 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.3s;}
         .db-card-info h4 { margin: 0 0 5px 0; color: #10b981; font-size: 1.1em; }
-        .db-card-info p { margin: 0; font-size: 0.85em; color: #94a3b8; max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .db-card-info p { margin: 0; font-size: 0.85em; color: #94a3b8; max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 0.3s;}
+        .db-meta-text { font-size: 0.75em; color: #38bdf8; font-weight: bold; display: block; margin-top: 5px; }
         .db-actions { display: flex; gap: 8px; flex-direction: column; align-items: flex-end;}
         .db-images { display: flex; gap: 4px; margin-top: 6px; }
         .db-mini-thumb { width: 35px; height: 35px; object-fit: cover; border-radius: 4px; border: 1px solid #475569; }
 
+        /* =========================================
+           ☀️ LIGHT MODE OVERRIDES ☀️
+           ========================================= */
+        body.light-mode { background: #f1f5f9; color: #0f172a; }
+        body.light-mode .top-bar { background: #ffffff; border-bottom-color: #cbd5e1; }
+        body.light-mode .storage-path { background: #f8fafc; border-bottom-color: #cbd5e1; color: #475569; }
+        body.light-mode .info-panel, body.light-mode .table-panel, body.light-mode .modal-content { background: #ffffff; border-color: #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        
+        body.light-mode .input-group label { color: #475569; }
+        body.light-mode .input-group input, body.light-mode .input-group textarea, body.light-mode .search-box, body.light-mode .form-row td input, body.light-mode .form-row td select, body.light-mode .db-search, body.light-mode .bulk-input { 
+            background: #f8fafc; border-color: #cbd5e1; color: #0f172a; 
+        }
+        body.light-mode .image-gallery-container { border-left-color: #cbd5e1; }
+        body.light-mode .image-gallery { background: #f8fafc; border-color: #cbd5e1; }
+        
+        body.light-mode .table-toolbar h3, body.light-mode .modal-header h3 { color: #0f172a; }
+        body.light-mode .bulk-wrapper { background: #f8fafc; border-color: #cbd5e1; }
+        
+        body.light-mode th { background: #e2e8f0; color: #334155; border-bottom-color: #cbd5e1; }
+        body.light-mode td { border-bottom-color: #e2e8f0; }
+        body.light-mode tr:hover td { background: rgba(0,0,0,0.03); }
+        body.light-mode .total-row td { background: #f1f5f9; border-top-color: #cbd5e1; }
+        
+        body.light-mode .modal-header { border-bottom-color: #cbd5e1; }
+        body.light-mode .db-card { background: #f8fafc; border-color: #cbd5e1; }
+        body.light-mode .db-card-info p { color: #475569; }
+        
+        /* Light Mode Text Colors */
+        body.light-mode .col-no { color: #0284c7; } 
+        body.light-mode .col-sec { color: #9333ea; }
+        body.light-mode .col-mac, body.light-mode .col-rem, body.light-mode .empty-msg { color: #475569; }
+        body.light-mode .col-smv { color: #059669; } 
+        body.light-mode .col-att { color: #334155; }
+        body.light-mode .db-meta-text { color: #0284c7; }
+
         @media (max-width: 768px) {
             .info-panel { flex-direction: column; }
-            .image-gallery-container { border-left: none; padding-left: 0; border-top: 1px dashed #334155; padding-top: 15px; }
+            .image-gallery-container { border-left: none; padding-left: 0; border-top: 1px dashed #cbd5e1; padding-top: 15px; }
             .meta-inputs { min-width: 100%; }
             .db-card { flex-direction: column; align-items: flex-start; gap: 10px; }
             .db-actions { flex-direction: row; width: 100%; justify-content: space-between; }
@@ -193,10 +198,11 @@
             <h2>📊 Operation Bulletin</h2>
         </div>
         <div class="top-actions">
+            <button class="btn-top" id="btnTheme" onclick="toggleTheme()" style="background:#e2e8f0; color:#0f172a;">☀️ Light Mode</button>
             <button class="btn-top" onclick="undoLastAction()" id="btnUndo" disabled style="background:#f59e0b; color:#000;">🔙 Undo</button>
-            <button class="btn-top" id="btnSaveDB" onclick="saveBulletinToDB()" style="background:#0284c7; color:#fff;">💾 Save to Cloud DB</button>
-            <button class="btn-top" onclick="openLoadModal()" style="background:#3b82f6; color:#fff;">🔍 Load / Search DB</button>
-            <button class="btn-top" onclick="exportToExcel()" style="background:#10b981; color:#000;" id="btnExport">🟢 Export to Excel</button>
+            <button class="btn-top" id="btnSaveDB" onclick="saveBulletinToDB()" style="background:#0284c7; color:#fff;">💾 Save to Cloud</button>
+            <button class="btn-top" onclick="openLoadModal()" style="background:#3b82f6; color:#fff;">🔍 Load DB</button>
+            <button class="btn-top" onclick="exportToExcel()" style="background:#10b981; color:#000;" id="btnExport">🟢 Export Excel</button>
             <button class="btn-top" onclick="clearAllData()" style="background:#ef4444;">🧹 Clear All</button>
         </div>
     </div>
@@ -225,14 +231,29 @@
                     <input type="file" id="imgUpload" accept="image/*" multiple style="display:none;" onchange="handleImageUpload(event)">
                 </div>
                 <div class="image-gallery" id="imageGallery">
-                    <span style="color:#64748b; margin:auto; font-size:0.9em; text-align:center;">No images uploaded.<br>Click 'Upload Photo' to add sample pictures.</span>
+                    <span class="empty-msg" style="margin:auto; font-size:0.9em;">No images uploaded.<br>Click 'Upload Photo' to add sample pictures.</span>
                 </div>
             </div>
         </div>
 
         <div class="table-panel">
             <div class="table-toolbar">
-                <h3 style="margin: 0; color: #f8fafc;">Operation Breakdown</h3>
+                <div style="display:flex; gap:15px; align-items:center;">
+                    <h3>Operation Breakdown</h3>
+                    <!-- BULK SECTION ASSIGNER -->
+                    <div class="bulk-wrapper">
+                        <input type="text" id="bulkSectionInput" class="bulk-input" list="sectionList" placeholder="Section (e.g. Cutting)">
+                        <datalist id="sectionList">
+                            <option value="Cutting"></option>
+                            <option value="Preparation"></option>
+                            <option value="Sewing"></option>
+                            <option value="Assembly"></option>
+                            <option value="Finishing"></option>
+                        </datalist>
+                        <button class="btn-top" style="background:#0ea5e9; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkSection()">🏷️ Apply Section</button>
+                    </div>
+                </div>
+                
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <button class="btn-top" style="background:#8b5cf6;" onclick="document.getElementById('excelUpload').click()">📥 Import Excel</button>
                     <input type="file" id="excelUpload" accept=".xlsx, .xls" style="display:none;" onchange="handleExcelImport(event)">
@@ -244,14 +265,16 @@
                 <table id="opsTable">
                     <thead>
                         <tr>
-                            <th width="5%">No.</th>
+                            <th width="3%"><input type="checkbox" onclick="toggleAllChecks(this)" title="Select All"></th>
+                            <th width="4%">No.</th>
+                            <th width="12%">Section</th>
                             <th width="20%">Operation Name</th>
-                            <th width="15%">Machine Type</th>
-                            <th width="8%">SMV (Min)</th>
+                            <th width="14%">Machine Type</th>
+                            <th width="8%">SMV</th>
                             <th width="9%">Target/Hr</th>
-                            <th width="14%">Remarks</th>
-                            <th width="14%">Special Attachment</th>
-                            <th width="15%">Actions</th>
+                            <th width="10%">Remarks</th>
+                            <th width="10%">Special Att.</th>
+                            <th width="10%">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -259,7 +282,9 @@
                     </tbody>
                     <tfoot id="tableFooter">
                         <tr class="form-row" id="inputRow">
+                            <td></td>
                             <td><input type="number" id="inNo" placeholder="Auto" title="Type a number here to insert between existing operations"></td>
+                            <td><input type="text" id="inSection" placeholder="Section" list="sectionList"></td>
                             <td><input type="text" id="inOpName" placeholder="e.g. Toe Lasting"></td>
                             <td>
                                 <div style="display:flex; align-items:center;">
@@ -276,8 +301,8 @@
                             <td><button class="btn-table btn-save-row" onclick="addOperationRow()">➕ Add Row</button></td>
                         </tr>
                         <tr class="total-row" id="totalRow">
-                            <td colspan="3" style="text-align: right;">TOTAL:</td>
-                            <td id="totSmv">0.000</td>
+                            <td colspan="5" style="text-align: right;">TOTAL:</td>
+                            <td class="col-smv" id="totSmv">0.000</td>
                             <td id="totTarget">0</td>
                             <td colspan="3"></td>
                         </tr>
@@ -306,7 +331,7 @@
     let sampleImages = [];
     let historyStack = [];
 
-    // The Google Web App URL you just created!
+    // The Google Web App URL
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyKFcBI3wbWgpgIYrYeksBjtLmdGDy7-A1Hg3ZskznD73wPG3NJw4Peq0pwuOnyZw8X/exec";
 
     let dsiMachines = [
@@ -346,6 +371,15 @@
     ];
 
     document.addEventListener("DOMContentLoaded", () => {
+        // Theme initialization
+        if (localStorage.getItem("dsi_theme") === "light") {
+            document.body.classList.add("light-mode");
+            const btn = document.getElementById("btnTheme");
+            btn.innerHTML = "🌙 Dark Mode";
+            btn.style.background = "#1e293b";
+            btn.style.color = "#fff";
+        }
+
         const savedCustomMachines = localStorage.getItem("dsi_custom_machines");
         if (savedCustomMachines) {
             const customMachines = JSON.parse(savedCustomMachines);
@@ -370,6 +404,57 @@
         reindexOperations();
         renderTable();
     });
+
+    // --- THEME TOGGLE ---
+    function toggleTheme() {
+        const body = document.body;
+        const btn = document.getElementById("btnTheme");
+        body.classList.toggle("light-mode");
+        
+        if (body.classList.contains("light-mode")) {
+            localStorage.setItem("dsi_theme", "light");
+            btn.innerHTML = "🌙 Dark Mode";
+            btn.style.background = "#1e293b";
+            btn.style.color = "#fff";
+        } else {
+            localStorage.setItem("dsi_theme", "dark");
+            btn.innerHTML = "☀️ Light Mode";
+            btn.style.background = "#e2e8f0";
+            btn.style.color = "#0f172a";
+        }
+    }
+
+    // --- BULK SECTION LOGIC ---
+    function toggleAllChecks(source) {
+        const checkboxes = document.querySelectorAll('.row-check');
+        checkboxes.forEach(cb => cb.checked = source.checked);
+    }
+
+    function applyBulkSection() {
+        const sectionVal = document.getElementById("bulkSectionInput").value.trim();
+        if (!sectionVal) return alert("Please type or select a section name first (e.g., Cutting).");
+        
+        const checkboxes = document.querySelectorAll('.row-check:checked');
+        if (checkboxes.length === 0) return alert("Please check the box next to at least one operation in the table.");
+
+        saveState();
+        let count = 0;
+        checkboxes.forEach(cb => {
+            const opId = parseInt(cb.value);
+            const op = operationsData.find(o => o.id === opId);
+            if (op) {
+                op.section = sectionVal; 
+                count++;
+            }
+        });
+        
+        document.getElementById("bulkSectionInput").value = ""; 
+        const masterCheck = document.querySelector('input[onclick="toggleAllChecks(this)"]');
+        if (masterCheck) masterCheck.checked = false; 
+
+        renderTable();
+        alert(`✅ Successfully assigned ${sectionVal} to ${count} operations!`);
+    }
 
     // --- GOOGLE SHEETS CLOUD DATABASE FUNCTIONS ---
     async function saveBulletinToDB() {
@@ -417,7 +502,7 @@
     async function openLoadModal() {
         document.getElementById("dbModal").style.display = "flex";
         const container = document.getElementById("dbListContainer");
-        container.innerHTML = `<span style="color:#64748b; text-align:center; margin-top:20px; font-weight:bold;">⏳ Fetching Bulletins from Google Sheets...</span>`;
+        container.innerHTML = `<span class="empty-msg" style="font-weight:bold;">⏳ Fetching Bulletins from Google Sheets...</span>`;
         
         try {
             const response = await fetch(GOOGLE_SCRIPT_URL);
@@ -425,7 +510,7 @@
             document.getElementById("dbSearchInput").value = "";
             renderDatabaseList();
         } catch (e) {
-            container.innerHTML = `<span style="color:#ef4444; text-align:center; margin-top:20px; font-weight:bold;">Error fetching data. Check connection.</span>`;
+            container.innerHTML = `<span style="color:#ef4444; text-align:center; padding:20px; font-weight:bold;">Error fetching data. Check connection.</span>`;
             console.error(e);
         }
     }
@@ -444,7 +529,7 @@
         );
 
         if (filtered.length === 0) {
-            container.innerHTML = `<span style="color:#64748b; text-align:center; margin-top:20px; font-weight:bold;">No saved bulletins found matching your search.</span>`;
+            container.innerHTML = `<span class="empty-msg" style="font-weight:bold;">No saved bulletins found matching your search.</span>`;
             return;
         }
 
@@ -459,7 +544,7 @@
                     <h4>👟 ${entry.meta.name}</h4>
                     <p><b>Comments:</b> ${entry.meta.comments ? entry.meta.comments : 'N/A'}</p>
                     <div class="db-images">${imgHtml}</div>
-                    <span style="font-size:0.75em; color:#38bdf8; font-weight:bold; display:block; margin-top:5px;">Saved: ${entry.date} | Total Operations: ${entry.ops ? entry.ops.length : 0} | Images: ${entry.imgs ? entry.imgs.length : 0}</span>
+                    <span class="db-meta-text">Saved: ${entry.date} | Total Operations: ${entry.ops ? entry.ops.length : 0} | Images: ${entry.imgs ? entry.imgs.length : 0}</span>
                 </div>
                 <div class="db-actions">
                     <button class="btn-table btn-save-row" style="padding: 6px 12px; font-size:1em; margin-bottom:5px;" onclick="loadFromCloudDB('${entry.id}')">📂 Load</button>
@@ -490,7 +575,7 @@
     }
 
     async function deleteFromCloudDB(id) {
-        const pass = prompt("Enter Admin Password to Delete (9999):");
+        const pass = prompt("Enter Admin Password to Delete Cloud File (9999):");
         if (pass !== "9999") return alert("Incorrect password. Deletion blocked.");
 
         if (!confirm("Are you sure you want to permanently delete this saved bulletin from the Google Sheet?")) return;
@@ -525,7 +610,7 @@
                 const ws = wb.worksheets[0]; 
                 
                 let headerRowIdx = -1;
-                let colMap = { op: -1, smv: -1, mac: -1, tgt: -1, rem: -1, att: -1 };
+                let colMap = { op: -1, smv: -1, mac: -1, tgt: -1, rem: -1, att: -1, sec: -1 };
                 
                 // Scan the first 20 rows to find headers intelligently
                 for (let r = 1; r <= Math.min(ws.rowCount, 20); r++) {
@@ -541,6 +626,7 @@
                         else if (val.includes("target")) { colMap.tgt = colNumber; }
                         else if (val.includes("remark") || val.includes("comment")) { colMap.rem = colNumber; }
                         else if (val.includes("attach")) { colMap.att = colNumber; }
+                        else if (val.includes("section") || val.includes("dept")) { colMap.sec = colNumber; }
                     });
                     
                     if (foundOp && foundSmv) {
@@ -557,7 +643,6 @@
                 let newOps = [];
                 let currentNo = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.no)) + 1 : 1;
 
-                // Extract data below the header
                 for (let r = headerRowIdx + 1; r <= ws.rowCount; r++) {
                     const row = ws.getRow(r);
                     
@@ -565,10 +650,9 @@
                     let opNameStr = opNameCell ? (opNameCell.richText ? opNameCell.richText.map(t=>t.text).join('') : opNameCell.toString()).trim() : '';
                     
                     let smvCell = row.getCell(colMap.smv).value;
-                    if (smvCell && smvCell.result !== undefined) smvCell = smvCell.result; // handle formulas
+                    if (smvCell && smvCell.result !== undefined) smvCell = smvCell.result; 
                     let smvVal = parseFloat(smvCell);
                     
-                    // Skip empty rows or "Total" rows
                     if (!opNameStr || isNaN(smvVal) || opNameStr.toLowerCase().includes("total")) continue;
 
                     let targetVal = 0;
@@ -587,11 +671,14 @@
                     if(colMap.rem > -1) { let cv = row.getCell(colMap.rem).value; remStr = cv ? cv.toString().trim() : ''; }
                     let attStr = '';
                     if(colMap.att > -1) { let cv = row.getCell(colMap.att).value; attStr = cv ? cv.toString().trim() : ''; }
+                    let secStr = '';
+                    if(colMap.sec > -1) { let cv = row.getCell(colMap.sec).value; secStr = cv ? cv.toString().trim() : ''; }
 
                     newOps.push({
                         id: Date.now() + r,
                         no: currentNo++,
                         name: opNameStr,
+                        section: secStr,
                         machine: macStr,
                         smv: smvVal,
                         target: targetVal,
@@ -612,7 +699,7 @@
                 console.error(err);
                 alert("Error reading Excel file. Make sure it's a valid .xlsx file.");
             }
-            event.target.value = ""; // reset input
+            event.target.value = ""; 
         };
         reader.readAsArrayBuffer(file);
     }
@@ -668,7 +755,7 @@
     function renderGallery() {
         const gal = document.getElementById("imageGallery");
         if (sampleImages.length === 0) {
-            gal.innerHTML = `<span style="color:#64748b; margin:auto; font-size:0.9em; text-align:center;">No images uploaded.<br>Click 'Upload Photo' to add sample pictures.</span>`;
+            gal.innerHTML = `<span class="empty-msg" style="margin:auto; font-size:0.9em;">No images uploaded.<br>Click 'Upload Photo' to add sample pictures.</span>`;
             return;
         }
         gal.innerHTML = sampleImages.map((src, i) => `
@@ -731,6 +818,7 @@
 
     function addOperationRow() {
         let no = parseInt(document.getElementById("inNo").value);
+        const section = document.getElementById("inSection").value.trim();
         const name = document.getElementById("inOpName").value.trim();
         const machine = document.getElementById("inMachine").value;
         const remarks = document.getElementById("inRemarks").value.trim();
@@ -753,6 +841,7 @@
         operationsData.push({
             id: Date.now(),
             no: no,
+            section: section,
             name, machine, smv, target, remarks, attach
         });
         
@@ -760,6 +849,7 @@
         reindexOperations(); 
 
         document.getElementById("inNo").value = "";
+        document.getElementById("inSection").value = "";
         document.getElementById("inOpName").value = "";
         document.getElementById("inMachine").value = "";
         document.getElementById("inRemarks").value = "";
@@ -796,9 +886,8 @@
 
     function deleteRow(id, bypassConfirm = false) {
         if (!bypassConfirm) {
-            const pass = prompt("Enter Admin Password to Delete (9999):");
+            const pass = prompt("Enter Admin Password to Delete Row (9999):");
             if (pass !== "9999") return alert("Incorrect password.");
-            if (!confirm("Are you sure you want to delete this operation?")) return;
         }
         saveState();
         operationsData = operationsData.filter(op => op.id !== id);
@@ -811,6 +900,7 @@
         if (!op) return;
 
         document.getElementById("inNo").value = op.no;
+        document.getElementById("inSection").value = op.section || '';
         document.getElementById("inOpName").value = op.name;
         document.getElementById("inMachine").value = op.machine;
         document.getElementById("inRemarks").value = op.remarks || '';
@@ -818,7 +908,10 @@
         document.getElementById("inSmv").value = op.smv;
         document.getElementById("inTarget").value = op.target;
 
-        deleteRow(id, true); 
+        saveState();
+        operationsData = operationsData.filter(o => o.id !== id);
+        reindexOperations();
+        renderTable();
     }
 
     function clearAllData() {
@@ -849,20 +942,23 @@
             (op.machine || '').toLowerCase().includes(query) ||
             op.no.toString().includes(query) ||
             (op.remarks || '').toLowerCase().includes(query) ||
-            (op.attach || '').toLowerCase().includes(query)
+            (op.attach || '').toLowerCase().includes(query) ||
+            (op.section || '').toLowerCase().includes(query)
         );
 
         tbody.innerHTML = filteredOps.map(op => {
             totalSmv += op.smv;
             return `
                 <tr>
-                    <td style="color:#38bdf8; font-weight:bold;">${op.no}</td>
-                    <td style="font-weight:bold;">${op.name}</td>
-                    <td style="color:#94a3b8;">${op.machine || '-'}</td>
-                    <td style="color:#10b981; font-weight:bold;">${op.smv.toFixed(3)}</td>
+                    <td><input type="checkbox" class="row-check" value="${op.id}"></td>
+                    <td class="col-no">${op.no}</td>
+                    <td class="col-sec">${op.section || '-'}</td>
+                    <td class="col-name">${op.name}</td>
+                    <td class="col-mac">${op.machine || '-'}</td>
+                    <td class="col-smv">${op.smv.toFixed(3)}</td>
                     <td>${op.target}</td>
-                    <td style="color:#94a3b8;">${op.remarks || '-'}</td>
-                    <td style="color:#cbd5e1;">${op.attach || '-'}</td>
+                    <td class="col-rem">${op.remarks || '-'}</td>
+                    <td class="col-att">${op.attach || '-'}</td>
                     <td>
                         <div style="display:flex; gap:4px;">
                             <button class="btn-table btn-move" onclick="moveRowUp(${op.id})" title="Move Up">⬆️</button>
@@ -876,7 +972,7 @@
         }).join("");
 
         if (filteredOps.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:#64748b;">No operations found. Use the row below to add data.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" class="empty-msg">No operations found. Use the row below to add data or import from Excel.</td></tr>`;
         }
 
         const bottleneckSmv = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.smv)) : 0;
@@ -888,7 +984,7 @@
         localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
     }
 
-    // --- ADVANCED EXCEL EXPORT (WITH ALIGNED IMAGES & HEADERS) ---
+    // --- ADVANCED EXCEL EXPORT ---
     async function exportToExcel() {
         if (operationsData.length === 0) return alert("Table is empty.");
         
@@ -903,14 +999,17 @@
             const wb = new ExcelJS.Workbook();
             const ws = wb.addWorksheet("Operations");
 
-            // Fixed Column Widths (Sum = 163 units)
-            ws.getColumn(1).width = 10;  // No
-            ws.getColumn(2).width = 40;  // Name
-            ws.getColumn(3).width = 25;  // Machine
-            ws.getColumn(4).width = 15;  // SMV
-            ws.getColumn(5).width = 18;  // Target
-            ws.getColumn(6).width = 30;  // Remarks
-            ws.getColumn(7).width = 25;  // Attachment
+            // Define Columns
+            ws.columns = [
+                { header: 'No', key: 'no', width: 8 },
+                { header: 'Section', key: 'section', width: 18 },
+                { header: 'Operation Name', key: 'name', width: 35 },
+                { header: 'Machine Type', key: 'machine', width: 25 },
+                { header: 'SMV (Min)', key: 'smv', width: 12 },
+                { header: 'Hourly Target', key: 'target', width: 15 },
+                { header: 'Remarks', key: 'remarks', width: 30 },
+                { header: 'Special Attachment', key: 'attach', width: 25 }
+            ];
 
             ws.addRow(["D. SAMSON INDUSTRIES (PVT) LTD - OPERATION BULLETIN"]);
             ws.getRow(1).font = { bold: true, size: 14 };
@@ -922,7 +1021,7 @@
 
             let currentDataRow = 7;
 
-            // Image Grid Placement (3 columns: Col A (0), Col C (2), Col F (5))
+            // Image Grid Placement
             if (sampleImages.length > 0) {
                 ws.addRow(["Sample Photos:"]);
                 ws.getRow(currentDataRow).font = { bold: true };
@@ -962,7 +1061,7 @@
                 currentDataRow++;
             }
 
-            const headerRow = ws.addRow(["Operation No", "Operation Name", "Machine Type", "SMV (Min)", "Hourly Target", "Remarks", "Special Attachment"]);
+            const headerRow = ws.addRow(["Operation No", "Section", "Operation Name", "Machine Type", "SMV (Min)", "Hourly Target", "Remarks", "Special Attachment"]);
             headerRow.eachCell(cell => {
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1e293b' } };
                 cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -973,15 +1072,15 @@
             let totSmv = 0;
             operationsData.forEach(op => {
                 totSmv += op.smv;
-                ws.addRow([op.no, op.name, op.machine, op.smv, op.target, op.remarks || '', op.attach || '']);
+                ws.addRow([op.no, op.section || '', op.name, op.machine, op.smv, op.target, op.remarks || '', op.attach || '']);
             });
 
             ws.addRow([]);
             const bottleneck = Math.max(...operationsData.map(o => o.smv));
-            const totalRow = ws.addRow(["", "", "TOTAL SMV:", totSmv.toFixed(3), Math.round(60/bottleneck) + " (Line Target)", "", ""]);
+            const totalRow = ws.addRow(["", "", "", "TOTAL SMV:", totSmv.toFixed(3), Math.round(60/bottleneck) + " (Line Target)", "", ""]);
             
-            totalRow.getCell(3).alignment = { horizontal: 'right' };
-            totalRow.getCell(4).alignment = { horizontal: 'center' };
+            totalRow.getCell(4).alignment = { horizontal: 'right' };
+            totalRow.getCell(5).alignment = { horizontal: 'center' };
             totalRow.font = { bold: true, color: { argb: 'FF10b981' } };
 
             const buffer = await wb.xlsx.writeBuffer();
