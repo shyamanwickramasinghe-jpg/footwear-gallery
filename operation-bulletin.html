@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light">
-    <title>DSI FOOTTECH — SMV Database Builder</title>
+    <title>DSI FOOTTECH — Operation Bulletin</title>
+    <!-- ADVANCED EXCEL LIBRARIES -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
@@ -20,6 +21,7 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
+        /* --- TOP HEADER --- */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -28,13 +30,26 @@
             border-bottom: 1px solid #1e293b;
             padding: 10px 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: background-color 0.3s, border-color 0.3s;
         }
         .brand { display: flex; align-items: center; gap: 12px; }
-        .brand h2 { margin: 0; font-size: 1.2em; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px; }
+        .brand h2 { margin: 0; font-size: 1.2em; color: #10b981; text-transform: uppercase; letter-spacing: 1px; }
         .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .btn-top { background: #334155; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-top { background: #334155; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.15s; }
         .btn-top:hover { opacity: 0.9; }
 
+        .storage-path {
+            background: #1e293b;
+            color: #94a3b8;
+            font-size: 0.75em;
+            padding: 4px 20px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* --- MAIN DASHBOARD CONTAINER --- */
         .dashboard-container {
             padding: 20px;
             max-width: 1700px;
@@ -46,6 +61,7 @@
             flex: 1;
         }
 
+        /* --- PANELS --- */
         .info-panel, .table-panel {
             background: #0f172a;
             border: 1px solid #334155;
@@ -54,19 +70,27 @@
             display: flex;
             gap: 20px;
             flex-wrap: wrap;
+            transition: background-color 0.3s, border-color 0.3s;
         }
-        .table-panel { flex-direction: column; overflow: hidden; flex: 1; } 
+        .table-panel { flex-direction: column; overflow: hidden; flex: 1; align-items: flex-start; } 
 
+        .meta-inputs { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 12px; }
         .input-group { display: flex; flex-direction: column; }
-        .input-group label { font-size: 0.8em; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px; font-weight: bold;}
-        .input-group input[type="text"] { background: #1e293b; border: 1px solid #475569; color: #fff; padding: 10px; border-radius: 6px; width: 100%; }
+        .input-group label { font-size: 0.75em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: bold; transition: color 0.3s;}
+        .input-group input, .input-group textarea { 
+            background: #1e293b; border: 1px solid #475569; color: #fff; padding: 10px; border-radius: 6px; font-size: 0.95em; width: 100%;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+        .input-group textarea { resize: vertical; min-height: 60px; }
+        
+        .image-gallery-container { flex: 2; min-width: 400px; display: flex; flex-direction: column; gap: 4px; border-left: 1px dashed #334155; padding-left: 20px; transition: border-color 0.3s;}
+        .sample-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #475569; cursor: zoom-in; transition: transform 0.15s, border-color 0.15s; }
+        .sample-thumb:hover { transform: scale(1.04); border-color: #38bdf8; }
 
         /* Drag & Drop Styles */
         .drop-zone {
             position: relative;
-            border: 2px dashed #475569;
             border-radius: 8px;
-            background: #1e293b;
             text-align: center;
             cursor: pointer;
             transition: background-color 0.2s, border-color 0.2s;
@@ -75,17 +99,9 @@
             align-items: center;
             justify-content: center;
         }
-        .drop-zone.dragover, .drop-zone:hover {
-            background: #334155;
-            border-color: #38bdf8;
-        }
-        .drop-zone-text {
-            color: #94a3b8;
-            font-weight: bold;
-            font-size: 1.05em;
-            pointer-events: none;
-        }
-        .drop-zone-text span { color: #38bdf8; text-decoration: underline; }
+        .drop-zone.dragover, .drop-zone:hover { border-color: #38bdf8 !important; }
+        .drop-zone-text { font-weight: bold; pointer-events: none; }
+        .drop-zone-text span { text-decoration: underline; }
         .drop-zone-input {
             position: absolute;
             top: 0;
@@ -96,51 +112,277 @@
             cursor: pointer;
         }
 
-        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; width: 100%; border-bottom: 2px solid #334155; padding-bottom: 15px;}
-        .table-toolbar h3 { margin: 0; color: #f8fafc; }
-        .empty-msg { text-align: center; padding: 20px; color: #64748b; display: block; font-weight: bold; width: 100%; }
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; width: 100%; }
+        .table-toolbar h3 { margin: 0; color: #f8fafc; transition: color 0.3s; }
+        
+        .bulk-wrapper { background: #1e293b; padding: 4px 10px; border-radius: 6px; border: 1px solid #475569; display: flex; gap: 8px; align-items: center; transition: background-color 0.3s, border-color 0.3s;}
+        .bulk-input { background: #0b1120; border: 1px solid #334155; color: #fff; padding: 6px; border-radius: 4px; width: 150px; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
 
-        /* Unified Monolithic Table Preview Styles */
-        .excel-preview-container { 
-            overflow-x: auto; 
-            padding-bottom: 10px; 
-            width: 100%;
-            background: #e2e8f0; 
+        .search-box { background: #1e293b; border: 1px solid #475569; color: #fff; padding: 8px 12px; border-radius: 20px; width: 250px; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
+        
+        .table-container { overflow-x: auto; width: 100%; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88em; min-width: 1250px; }
+        th { background: #1e293b; color: #94a3b8; padding: 12px 8px; position: sticky; top: 0; font-weight: bold; border-bottom: 2px solid #334155; z-index: 5; transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
+        td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; transition: border-color 0.3s;}
+        tr:hover td { background: rgba(255,255,255,0.05); }
+        
+        .form-row { background: rgba(16, 185, 129, 0.05) !important; }
+        .form-row td input, .form-row td select {
+            background: #0b1120; border: 1px solid #475569; color: #fff; padding: 6px; border-radius: 4px; width: 100%; font-size: 0.9em;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+        .form-row td input:focus, .form-row td select:focus { border-color: #10b981; outline: none; }
+
+        .btn-table { padding: 6px 10px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; font-size: 0.85em; }
+        .btn-save-row { background: #10b981; color: #000; width: 100%;}
+        .btn-edit { background: #38bdf8; color: #000; padding: 4px 8px;}
+        .btn-delete { background: #ef4444; color: #fff; padding: 4px 8px;}
+        .btn-move { background: #475569; color: #fff; padding: 4px 8px; }
+        .btn-move:hover { background: #64748b; }
+        .btn-add-machine { background: #f59e0b; color: #000; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8em; margin-left: 4px; }
+
+        .total-row td { background: #1e293b !important; font-weight: bold; font-size: 1.1em; color: #10b981; border-top: 2px solid #334155; transition: background-color 0.3s, border-color 0.3s;}
+
+        .sec-badge { 
+            padding: 3px 8px; 
+            border-radius: 6px; 
+            font-size: 0.75em; 
+            margin-right: 0; 
+            text-transform: uppercase; 
+            font-weight: 700; 
+            border: 1px solid transparent;
+            max-width: 260px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* Dynamic Table Text Colors */
+        .col-no { color: #38bdf8; font-weight: bold; }
+        .col-sec { font-weight: bold; text-transform: uppercase; font-size: 0.85em; }
+        .col-comp { color: #ef4444; font-weight: 900; font-size: 0.95em; text-transform: uppercase; }
+        .col-name { font-weight: bold; }
+        .col-mac { color: #94a3b8; }
+        .col-smv { color: #10b981; font-weight: bold; font-family: monospace; font-size: 1.05em; }
+        .col-rem { color: #94a3b8; }
+        .col-att { color: #cbd5e1; }
+        .empty-msg { text-align: center; padding: 20px; color: #64748b; }
+
+        /* --- COMPACT COLUMN-BASED PART SUMMARY PANEL --- */
+        .summary-panel { 
+            background: #1e293b; 
+            padding: 15px 25px; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            border: 1px solid #334155; 
+            width: 300px !important;
+            max-width: 300px !important; 
+            align-self: flex-start !important; 
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .summary-panel h4 { margin: 0 0 10px 0; color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 8px; transition: color 0.3s, border-color 0.3s; font-size: 1.05em; }
+        
+        .summary-table { width: 100%; border-collapse: collapse; font-size: 0.95em; min-width: 0 !important; }
+        .summary-table td { padding: 6px 0; border-bottom: 1px dashed #334155; transition: border-color 0.3s; }
+        .summary-table td:first-child { padding-right: 50px; } 
+        .summary-table tr:last-child td { border-bottom: none; border-top: 2px solid #334155; padding-top: 8px; margin-top: 4px; font-weight: bold; }
+        
+        .p-name { color: #ef4444; font-weight: 900; }
+        .p-val { color: #10b981; font-weight: bold; font-family: monospace; font-size: 1.1em; text-align: right; display: block; }
+        .sum-total { color: #f8fafc; transition: color 0.3s; }
+
+        /* --- DATABASE SEARCH MODAL (ULTRA-WIDE SINGLE LINE) --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; justify-content: center; align-items: center; }
+        
+        .modal-content { 
+            background: #0f172a; 
+            border: 1px solid #38bdf8; 
+            border-radius: 12px; 
+            width: 96%; 
+            max-width: 1350px; 
             padding: 20px; 
-            border-radius: 8px;
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            height: 90vh; 
+            max-height: 90vh; 
+            transition: background-color 0.3s, border-color 0.3s; 
         }
-        .excel-table-wrapper {
-            background: #fff; 
-            color: #000; 
-            padding: 10px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-            border: 1px solid #cbd5e1; 
-            width: max-content;
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; transition: border-color 0.3s; }
+        .modal-header h3 { margin: 0; color: #f8fafc; transition: color 0.3s; }
+        .btn-close { background: transparent; border: none; color: #ef4444; font-size: 1.5em; cursor: pointer; font-weight: bold; line-height: 1; }
+        
+        .search-row { display: flex; gap: 10px; width: 100%; }
+        .db-search { background: #1e293b; border: 1px solid #38bdf8; color: #fff; padding: 12px; border-radius: 6px; font-size: 1.05em; flex: 1; transition: background-color 0.3s, color 0.3s;}
+        
+        .db-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; padding-right: 5px; }
+        
+        .db-card { 
+            background: #1e293b; 
+            border-left: 4px solid #38bdf8; 
+            padding: 8px 14px; 
+            border-radius: 6px; 
+            display: flex; 
+            flex-direction: row; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 15px; 
+            transition: background-color 0.3s;
         }
-        .excel-table { border-collapse: collapse; font-size: 13px; font-family: Calibri, sans-serif; white-space: nowrap; }
-        .excel-table td { padding: 4px 6px; border: 1px solid #000; }
-        .excel-header { background: #e7e6e6; font-weight: bold; }
-        .red-text { color: red; }
-        .red-text-bold { color: red; font-weight: bold; }
-        
-        .desc-col { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .wc-col { width: 90px; text-align: left; }
-        .part-col { width: 70px; text-align: center; }
-        .smv-col { width: 80px; text-align: right; }
-        
-        .green-divider-cell { background-color: #00b050; width: 16px; min-width: 16px; border: none !important; padding: 0 !important; }
+        .db-card-content { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+        .db-card-name { 
+            margin: 0; 
+            color: #10b981; 
+            font-size: 1.05em; 
+            font-weight: bold; 
+            white-space: nowrap; 
+            width: 195px; 
+            flex-shrink: 0; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+        .db-badges { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; overflow: hidden; }
+        .db-meta-text { font-size: 0.8em; color: #38bdf8; font-weight: bold; margin-left: auto; white-space: nowrap; display: flex; align-items: center; flex-shrink: 0; }
+        .db-images { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+        .db-mini-thumb { width: 30px; height: 30px; object-fit: cover; border-radius: 4px; border: 1px solid #475569; cursor: zoom-in; transition: transform 0.15s, border-color 0.15s; }
+        .db-mini-thumb:hover { transform: scale(1.15); border-color: #38bdf8; }
+        .db-actions { display: flex; gap: 8px; flex-direction: row; align-items: center; flex-shrink: 0; }
 
-        /* Light Mode */
+        /* --- MEDIUM-SIZED IMAGE POPUP CARD (NOT FULL SCREEN) --- */
+        .img-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 2500;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .img-popup-card {
+            background: #0f172a;
+            border: 2px solid #38bdf8;
+            border-radius: 12px;
+            padding: 15px;
+            width: 90%;
+            max-width: 580px; /* Medium size - big enough to identify well, not full screen */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            animation: popIn 0.15s ease-out;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.92); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .img-popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 8px;
+        }
+        .img-popup-header h4 { margin: 0; color: #38bdf8; font-size: 1em; }
+        .img-popup-body {
+            background: #000;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #1e293b;
+        }
+        .img-popup-content {
+            max-width: 100%;
+            max-height: 440px;
+            border-radius: 6px;
+            object-fit: contain;
+        }
+
+        /* --- USER GUIDE MODAL STYLES --- */
+        .guide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 15px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .guide-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-left: 4px solid #10b981;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .guide-card h4 { margin: 0 0 8px 0; color: #38bdf8; font-size: 1.05em; display: flex; align-items: center; gap: 8px; }
+        .guide-card ul { margin: 0; padding-left: 18px; color: #cbd5e1; font-size: 0.9em; line-height: 1.6; }
+        .guide-card li { margin-bottom: 4px; }
+        .guide-card code { background: #0f172a; padding: 2px 6px; border-radius: 4px; color: #f59e0b; font-weight: bold; }
+
+        /* =========================================
+           ☀️ LIGHT MODE OVERRIDES ☀️
+           ========================================= */
         body.light-mode { background: #f1f5f9; color: #0f172a; }
         body.light-mode .top-bar { background: #ffffff; border-bottom-color: #cbd5e1; }
-        body.light-mode .info-panel, body.light-mode .table-panel { background: #ffffff; border-color: #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        body.light-mode .input-group label { color: #475569; }
-        body.light-mode .input-group input[type="text"] { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
-        body.light-mode .table-toolbar h3 { color: #0f172a; }
+        body.light-mode .storage-path { background: #f8fafc; border-bottom-color: #cbd5e1; color: #475569; }
+        body.light-mode .info-panel, body.light-mode .table-panel, body.light-mode .modal-content, body.light-mode .img-popup-card { background: #ffffff; border-color: #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         
-        body.light-mode .drop-zone { background: #f8fafc; border-color: #cbd5e1; }
-        body.light-mode .drop-zone.dragover, body.light-mode .drop-zone:hover { background: #e2e8f0; border-color: #38bdf8; }
-        body.light-mode .drop-zone-text { color: #475569; }
+        body.light-mode .input-group label { color: #475569; }
+        body.light-mode .input-group input, body.light-mode .input-group textarea, body.light-mode .search-box, body.light-mode .form-row td input, body.light-mode .form-row td select, body.light-mode .db-search, body.light-mode .bulk-input { 
+            background: #f8fafc; border-color: #cbd5e1; color: #0f172a; 
+        }
+        body.light-mode .image-gallery-container { border-left-color: #cbd5e1; }
+        body.light-mode .table-toolbar h3, body.light-mode .modal-header h3 { color: #0f172a; }
+        body.light-mode .bulk-wrapper { background: #f8fafc; border-color: #cbd5e1; }
+        
+        body.light-mode th { background: #e2e8f0; color: #334155; border-bottom-color: #cbd5e1; }
+        body.light-mode td { border-bottom-color: #cbd5e1; }
+        body.light-mode tr:hover td { background: rgba(0,0,0,0.03); }
+        body.light-mode .total-row td { background: #f1f5f9 !important; border-top-color: #cbd5e1; }
+        
+        body.light-mode .summary-panel { background: #f8fafc; border-color: #cbd5e1; }
+        body.light-mode .summary-panel h4 { color: #0f172a; border-bottom-color: #cbd5e1; }
+        body.light-mode .summary-table td { border-bottom-color: #cbd5e1; }
+        body.light-mode .summary-table tr:last-child td { border-top-color: #cbd5e1; }
+        body.light-mode .sum-total { color: #0f172a; }
+
+        body.light-mode .modal-header, body.light-mode .img-popup-header { border-bottom-color: #cbd5e1; }
+        body.light-mode .img-popup-body { background: #f8fafc; border-color: #cbd5e1; }
+        body.light-mode .db-card, body.light-mode .guide-card { background: #f8fafc; border-color: #cbd5e1; }
+        body.light-mode .guide-card ul { color: #334155; }
+        body.light-mode .guide-card code { background: #e2e8f0; color: #d97706; }
+        
+        body.light-mode .col-no { color: #0284c7; } 
+        body.light-mode .col-mac, body.light-mode .col-rem, body.light-mode .empty-msg { color: #475569; }
+        body.light-mode .col-smv { color: #059669; } 
+        body.light-mode .col-att { color: #334155; }
+        body.light-mode .col-comp { color: #dc2626; }
+        body.light-mode .db-meta-text { color: #0284c7; }
+
+        /* Light Mode Drop Zones */
+        body.light-mode #imgDropZone { background: #f8fafc; border-color: #cbd5e1; }
+        body.light-mode #imgDropZone.dragover, body.light-mode #imgDropZone:hover { background: #e2e8f0; }
+        body.light-mode #excelDropZone { background: #f8fafc; border-color: #cbd5e1; }
+        body.light-mode #excelDropZone.dragover, body.light-mode #excelDropZone:hover { background: #e2e8f0; border-color: #8b5cf6 !important; }
+
+        @media (max-width: 900px) {
+            .info-panel { flex-direction: column; }
+            .image-gallery-container { border-left: none; padding-left: 0; border-top: 1px dashed #cbd5e1; padding-top: 15px; }
+            .meta-inputs { min-width: 100%; }
+            .db-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .db-card-content { flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; }
+            .db-card-name { width: auto; }
+            .db-badges { flex-wrap: wrap; }
+            .db-meta-text { margin-left: 0; }
+            .db-actions { flex-direction: row; width: 100%; justify-content: flex-end; }
+            .search-row { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
@@ -148,84 +390,420 @@
     <div class="top-bar">
         <div class="brand">
             <button class="btn-top" onclick="window.location.href='index.html'">⬅ Home Hub</button>
-            <h2>📚 SMV Database Builder (Multi-Item)</h2>
+            <h2>📊 Operation Bulletin</h2>
         </div>
         <div class="top-actions">
+            <button class="btn-top" onclick="openGuideModal()" style="background:#8b5cf6; color:#fff;">📖 User Guide</button>
             <button class="btn-top" id="btnTheme" onclick="toggleTheme()" style="background:#e2e8f0; color:#0f172a;">☀️ Light Mode</button>
+            <button class="btn-top" onclick="undoLastAction()" id="btnUndo" disabled style="background:#f59e0b; color:#000;">🔙 Undo</button>
+            <button class="btn-top" id="btnSaveDB" onclick="saveBulletinToDB()" style="background:#0284c7; color:#fff;">💾 Save to Cloud</button>
+            <button class="btn-top" onclick="openLoadModal()" style="background:#3b82f6; color:#fff;">🔍 Load DB</button>
+            <button class="btn-top" onclick="exportToExcel()" style="background:#10b981; color:#000;" id="btnExport">🟢 Export Excel</button>
+            <button class="btn-top" onclick="clearAllData()" style="background:#ef4444;">🧹 Clear All</button>
         </div>
+    </div>
+    <div class="storage-path">
+        <span><b>Cloud Database Linked:</b> Connected to DSI Google Sheets Secure Network</span>
     </div>
 
     <div class="dashboard-container">
         
-        <div class="info-panel" style="display: flex; gap: 30px;">
-            <div style="flex: 1; min-width: 250px;">
-                <h3 style="margin-top: 0; color: #38bdf8;">1. Database Settings</h3>
+        <div class="info-panel">
+            <div class="meta-inputs">
                 <div class="input-group">
-                    <label>Category / Database Name</label>
-                    <input type="text" id="categoryName" placeholder="e.g. Cat 4 Sandales" value="Database">
+                    <label>Item Type / Sample Number <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="sampleName" placeholder="e.g., Kelsey / PF0339" oninput="saveMetaData()">
                 </div>
-                <div class="input-group" style="margin-top: 15px;">
-                    <label>Load Existing Database Excel (Optional)</label>
-                    <div class="drop-zone" id="dbDropZone" style="padding: 20px;">
-                        <span class="drop-zone-text">📂 Drag & Drop or <span>Browse</span></span>
-                        <input type="file" id="existingDbUpload" accept=".xlsx, .xlsm, .xls" class="drop-zone-input">
+                
+                <div style="display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap;">
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label>Cutting Process Name</label>
+                        <input type="text" id="cuttingProcess" placeholder="Optional (e.g. Laser Cutting)" oninput="saveMetaData()">
                     </div>
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label>Assembly Process Name</label>
+                        <input type="text" id="assemblyProcess" placeholder="Optional (e.g. Cold Process)" oninput="saveMetaData()">
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-top: 10px;">
+                    <label>General Comments / Bulletin Notes</label>
+                    <textarea id="sampleComments" placeholder="Enter specific instructions or notes..." oninput="saveMetaData()"></textarea>
                 </div>
             </div>
             
-            <div style="flex: 2; min-width: 500px; border-left: 1px dashed #475569; padding-left: 30px;">
-                <h3 style="margin-top: 0; color: #10b981;">2. Upload Labour File</h3>
-                <div class="input-group">
-                    <label>Upload 'IFS Labour' Excel File <span style="color:#ef4444">*</span></label>
-                    <div class="drop-zone" id="ifsDropZone" style="padding: 40px 20px;">
-                        <span class="drop-zone-text" id="ifsDropText">📥 Drag & Drop your IFS file here, or <span>Click to Browse</span></span>
-                        <input type="file" id="ifsUpload" accept=".xlsx, .xlsm" class="drop-zone-input">
+            <div class="image-gallery-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="font-size: 0.75em; text-transform: uppercase; color: #94a3b8; font-weight: bold;">Sample Photos (Upload, Drop, or Ctrl+V Paste — Max 6)</label>
+                    <button class="btn-top" onclick="document.getElementById('imgUpload').click()" style="padding: 4px 10px; font-size: 0.75em; background: #38bdf8; color: #000;">➕ Upload Photo</button>
+                </div>
+                
+                <!-- DRAG, DROP & PASTE IMAGE GALLERY -->
+                <div class="drop-zone" id="imgDropZone" style="flex: 1; min-height: 120px; background: #000; border: 2px dashed #475569; padding: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center;">
+                    <input type="file" id="imgUpload" accept="image/*" multiple class="drop-zone-input" onchange="handleImageUpload(event)" style="z-index: 5;">
+                    <div id="imageGallery" style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%; position: relative; z-index: 10; pointer-events: none; justify-content: center;">
+                        <span class="empty-msg" style="margin:auto; font-size:0.9em; pointer-events: none; color: #94a3b8;">📸 Drag & Drop photos, press <span style="color:#10b981;">Ctrl+V</span> to paste, or <span style="color:#38bdf8;">Browse</span></span>
                     </div>
-                    <small style="color:#94a3b8; margin-top:10px; line-height: 1.4;">Extracts unlimited items seamlessly. Empty ghost columns will be automatically filtered out.</small>
                 </div>
             </div>
         </div>
 
         <div class="table-panel">
             <div class="table-toolbar">
-                <h3>3. Database Output Preview</h3>
-                <button class="btn-top" onclick="exportToDatabase()" id="btnExport" style="background:#10b981; color:#000; font-size: 1.1em; padding: 10px 20px;">💾 Append to Database & Download</button>
+                <div style="display:flex; gap:15px; align-items:center; flex-wrap: wrap;">
+                    <h3>Operation Breakdown</h3>
+                    <!-- BULK SECTION ASSIGNER -->
+                    <div class="bulk-wrapper">
+                        <input type="text" id="bulkSectionInput" class="bulk-input" list="sectionList" placeholder="Work Center (e.g. Cutting)">
+                        <datalist id="sectionList">
+                            <option value="Cutting"></option>
+                            <option value="Preparation"></option>
+                            <option value="Sewing"></option>
+                            <option value="Assembly"></option>
+                            <option value="Finishing"></option>
+                        </datalist>
+                        <button class="btn-top" style="background:#0ea5e9; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkSection()">🏷️ Apply WC</button>
+                    </div>
+
+                    <!-- BULK COMPONENT ASSIGNER -->
+                    <div class="bulk-wrapper">
+                        <input type="text" id="bulkComponentInput" class="bulk-input" list="componentList" placeholder="Component (e.g. CU)" style="width: 140px;">
+                        <datalist id="componentList">
+                            <option value="CU"></option>
+                            <option value="CI"></option>
+                            <option value="CS"></option>
+                            <option value="II"></option>
+                            <option value="SS"></option>
+                            <option value="UU"></option>
+                            <option value="AA"></option>
+                        </datalist>
+                        <button class="btn-top" style="background:#ef4444; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkComponent()">🏷️ Apply Component</button>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 5px;">
+                    <!-- DRAG AND DROP EXCEL IMPORT -->
+                    <div class="drop-zone" id="excelDropZone" style="padding: 8px 15px; border-radius: 20px; border: 1px dashed #8b5cf6; background: rgba(139, 92, 246, 0.1); width: 250px;">
+                        <span class="drop-zone-text" id="excelDropText" style="font-size: 0.85em; color: #c4b5fd;">📥 Drag & Drop Excel or <span style="color:#a78bfa;">Browse</span></span>
+                        <input type="file" id="excelUpload" accept=".xlsx, .xls" class="drop-zone-input" onchange="handleExcelImport(event)">
+                    </div>
+                    <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search operations..." oninput="renderTable()">
+                </div>
             </div>
-            <div id="previewContainer" class="excel-preview-container">
-                <span class="empty-msg">Upload an IFS Labour file to see the exact continuous Excel layout preview here.</span>
+            
+            <div class="table-container">
+                <table id="opsTable">
+                    <thead>
+                        <tr>
+                            <th width="3%"><input type="checkbox" onclick="toggleAllChecks(this)" title="Select All"></th>
+                            <th width="4%">No.</th>
+                            <th width="12%">Work Center</th>
+                            <th width="7%">Part</th>
+                            <th width="18%">Operation Name</th>
+                            <th width="12%">Machine Type</th>
+                            <th width="8%">SMV</th>
+                            <th width="8%">Target/Hr</th>
+                            <th width="10%">Remarks</th>
+                            <th width="10%">Special Att.</th>
+                            <th width="8%">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Dynamic Rows -->
+                    </tbody>
+                    <tfoot id="tableFooter">
+                        <tr class="form-row" id="inputRow">
+                            <td></td>
+                            <td><input type="number" id="inNo" placeholder="Auto" title="Type a number here to insert between existing operations"></td>
+                            <td><input type="text" id="inSection" placeholder="Work Center" list="sectionList"></td>
+                            <td><input type="text" id="inComponent" placeholder="Part" list="componentList"></td>
+                            <td><input type="text" id="inOpName" placeholder="e.g. Toe Lasting"></td>
+                            <td>
+                                <div style="display:flex; align-items:center;">
+                                    <select id="inMachine" style="flex:1;">
+                                        <!-- Populated via JS -->
+                                    </select>
+                                    <button class="btn-add-machine" onclick="addNewMachineType()" title="Add custom machine" style="margin-left: 2px;">➕</button>
+                                </div>
+                            </td>
+                            <td><input type="number" id="inSmv" step="0.0001" placeholder="0.0000" oninput="calculateTargetFromSmv()"></td>
+                            <td><input type="number" id="inTarget" step="1" placeholder="0" oninput="calculateSmvFromTarget()"></td>
+                            <td><input type="text" id="inRemarks" placeholder="Notes..."></td>
+                            <td><input type="text" id="inAttach" placeholder="e.g. Edge Guide"></td>
+                            <td><button class="btn-table btn-save-row" onclick="addOperationRow()">➕ Add</button></td>
+                        </tr>
+                        <tr class="total-row" id="totalRow">
+                            <td colspan="6" style="text-align: right;">TOTAL:</td>
+                            <td class="col-smv" id="totSmv">0.0000</td>
+                            <td id="totTarget"></td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- COMPACT COLUMN PART-WISE SMV SUMMARY PANEL -->
+            <div class="summary-panel" id="summaryPanel">
+                <h4>Part-Wise SMV Summary</h4>
+                <div id="partSummaryContainer">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- DATABASE SEARCH MODAL -->
+    <div class="modal-overlay" id="dbModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📂 Load Saved Cloud Bulletin Database</h3>
+                <button class="btn-close" onclick="closeLoadModal()">✖</button>
+            </div>
+            
+            <!-- TWO-WAY SEARCH BAR -->
+            <div class="search-row">
+                <input type="text" id="dbSearchInput" class="db-search" placeholder="🔍 Search by Item Number, Cutting/Assembly Process, or Comments..." oninput="renderDatabaseList()">
+                <input type="text" id="dbSearchOpInput" class="db-search" placeholder="⚙️ Search by Operation Name (e.g. Checking, Upper Numbering)..." oninput="renderDatabaseList()">
+            </div>
+            
+            <div class="db-list" id="dbListContainer">
+                <!-- Populated by JS -->
             </div>
         </div>
+    </div>
 
+    <!-- USER GUIDE MODAL -->
+    <div class="modal-overlay" id="guideModal">
+        <div class="modal-content" style="max-width: 900px; height: auto; max-height: 85vh;">
+            <div class="modal-header">
+                <h3>📖 Operation Bulletin — User Guide</h3>
+                <button class="btn-close" onclick="closeGuideModal()">✖</button>
+            </div>
+            <div class="guide-grid">
+                <div class="guide-card">
+                    <h4>📸 1. Adding & Viewing Sample Photos</h4>
+                    <ul>
+                        <li><b>Drag & Drop:</b> Drag up to 6 image files directly into the photo box.</li>
+                        <li><b>Clipboard Paste:</b> Copy any image or screenshot and press <code>Ctrl + V</code> anywhere on the page.</li>
+                        <li><b>Preview Picture:</b> Click any thumbnail in the gallery or inside the Cloud DB list to open a clear, medium-sized preview card.</li>
+                    </ul>
+                </div>
+                <div class="guide-card">
+                    <h4>📥 2. Excel Import & Export</h4>
+                    <ul>
+                        <li><b>Smart Import:</b> Drag & drop any standard Excel sheet into the purple import zone. It automatically detects <i>Operation Name</i>, <i>SMV</i>, <i>Work Center</i>, and <i>Part</i> columns.</li>
+                        <li><b>Export Bulletin:</b> Click <code>🟢 Export Excel</code> to generate a formatted DSI Operation Bulletin complete with embedded photos and part-wise SMV summaries.</li>
+                    </ul>
+                </div>
+                <div class="guide-card">
+                    <h4>🏷️ 3. Bulk Work Center & Part Tagging</h4>
+                    <ul>
+                        <li>Select multiple operations using the checkboxes on the left of the table.</li>
+                        <li>Type or choose a Work Center (e.g., <i>Cutting</i>, <i>Sewing</i>) or Component Part (e.g., <i>CU</i>, <i>AA</i>) in the toolbar and click <b>Apply</b>.</li>
+                        <li>The Part-Wise SMV Summary table below updates automatically.</li>
+                    </ul>
+                </div>
+                <div class="guide-card">
+                    <h4>☁️ 4. Cloud Database & Two-Way Search</h4>
+                    <ul>
+                        <li><b>Save to Cloud:</b> Enter an Item/Sample Number and click <code>💾 Save to Cloud</code> to store it in the DSI Google Sheet.</li>
+                        <li><b>Two-Way Search:</b> Inside <code>🔍 Load DB</code>, use the left bar to filter by style/process/notes, and the right bar to find bulletins containing specific operations.</li>
+                        <li><b>Admin Password:</b> Deleting rows, clearing data, or removing cloud records requires password <code>9999</code>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MEDIUM-SIZED IMAGE POPUP MODAL (NOT FULL SCREEN) -->
+    <div class="img-popup-overlay" id="imgPopupModal" onclick="closeImagePopup()">
+        <div class="img-popup-card" onclick="event.stopPropagation()">
+            <div class="img-popup-header">
+                <h4>👟 Sample Picture Preview</h4>
+                <button class="btn-close" onclick="closeImagePopup()" title="Close (Esc)">✖</button>
+            </div>
+            <div class="img-popup-body">
+                <img id="imgPopupTarget" class="img-popup-content" src="" alt="Sample Preview">
+            </div>
+        </div>
     </div>
 
 <script>
-    let existingDbBuffer = null;
-    let extractedItems = [];
-    let imagesBase64 = [];
+    let operationsData = [];
+    let sampleImages = [];
+    let historyStack = [];
 
-    // Setup Drag & Drop Visuals
-    function setupDropZone(inputId, zoneId) {
-        const input = document.getElementById(inputId);
-        const zone = document.getElementById(zoneId);
+    // The Google Web App URL
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyKFcBI3wbWgpgIYrYeksBjtLmdGDy7-A1Hg3ZskznD73wPG3NJw4Peq0pwuOnyZw8X/exec";
+
+    let dsiMachines = [
+        {"name": "Travelling head Die cutter", "ma": 4.0},
+        {"name": "Hydraulic Die cutter", "ma": 4.0},
+        {"name": "Clicker cutter Die cutter", "ma": 3.0},
+        {"name": "Programe cutter Cutter", "ma": 8.0},
+        {"name": "Strap Cutter Cutter", "ma": 2.0},
+        {"name": "Strap Folding Folding", "ma": 2.0},
+        {"name": "Combine Combining", "ma": 7.0},
+        {"name": "Skiving", "ma": 2.5},
+        {"name": "Toe Gum", "ma": 3.0},
+        {"name": "Welding", "ma": 9.0},
+        {"name": "SNLS FB", "ma": 5.0},
+        {"name": "DNLS FB", "ma": 7.0},
+        {"name": "SNLS PB", "ma": 5.0},
+        {"name": "DNLS PB", "ma": 7.0},
+        {"name": "SNLS BINDING", "ma": 5.5},
+        {"name": "DNCS", "ma": 7.0},
+        {"name": "ZZ FB", "ma": 5.0},
+        {"name": "SEAM OPENER", "ma": 3.0},
+        {"name": "PUNCHING", "ma": 3.0},
+        {"name": "EYELET", "ma": 4.0},
+        {"name": "Pattern Sewer", "ma": 5.0},
+        {"name": "Hammering", "ma": 2.0},
+        {"name": "Stroble", "ma": 4.0},
+        {"name": "EDGE CUT", "ma": 2.0},
+        {"name": "Strap Auto", "ma": 4.0},
+        {"name": "Strap Manual", "ma": 2.0},
+        {"name": "BTK", "ma": 5.0},
+        {"name": "Folding", "ma": 2.0},
+        {"name": "Lacing 2 thread", "ma": 5.5},
+        {"name": "Heat Sealing", "ma": 2.5},
+        {"name": "Thread trimmer", "ma": 2.0},
+        {"name": "Toe Foaming", "ma": 2.0},
+        {"name": "Manual Table / Bench Work", "ma": 0.0}
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
         
-        input.addEventListener('dragover', () => zone.classList.add('dragover'));
-        input.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-        input.addEventListener('drop', () => zone.classList.remove('dragover'));
-    }
-    setupDropZone('existingDbUpload', 'dbDropZone');
-    setupDropZone('ifsUpload', 'ifsDropZone');
+        // --- DRAG AND DROP SETUP ---
+        function setupDropZone(inputId, zoneId) {
+            const input = document.getElementById(inputId);
+            const zone = document.getElementById(zoneId);
+            if(input && zone) {
+                input.addEventListener('dragover', () => zone.classList.add('dragover'));
+                input.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+                input.addEventListener('drop', () => zone.classList.remove('dragover'));
+            }
+        }
+        setupDropZone('imgUpload', 'imgDropZone');
+        setupDropZone('excelUpload', 'excelDropZone');
 
-    if (localStorage.getItem("dsi_theme") === "light") {
-        document.body.classList.add("light-mode");
-        document.getElementById("btnTheme").innerHTML = "🌙 Dark Mode";
-        document.getElementById("btnTheme").style.background = "#1e293b";
-        document.getElementById("btnTheme").style.color = "#fff";
+        // --- PASTE FROM CLIPBOARD SETUP ---
+        document.addEventListener('paste', function (e) {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        if(sampleImages.length < 6) {
+                            sampleImages.push(event.target.result);
+                            localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
+                            renderGallery();
+                        } else {
+                            alert("Maximum 6 images allowed.");
+                        }
+                    };
+                    reader.readAsDataURL(blob);
+                }
+            }
+        });
+
+        // --- ESCAPE KEY TO CLOSE MODALS ---
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeImagePopup();
+                closeGuideModal();
+                closeLoadModal();
+            }
+        });
+
+        // Theme initialization
+        if (localStorage.getItem("dsi_theme") === "light") {
+            document.body.classList.add("light-mode");
+            const btn = document.getElementById("btnTheme");
+            btn.innerHTML = "🌙 Dark Mode";
+            btn.style.background = "#1e293b";
+            btn.style.color = "#fff";
+        }
+
+        const savedCustomMachines = localStorage.getItem("dsi_custom_machines");
+        if (savedCustomMachines) {
+            const customMachines = JSON.parse(savedCustomMachines);
+            dsiMachines = dsiMachines.concat(customMachines);
+        }
+        populateMachineDropdown();
+
+        const savedOps = localStorage.getItem("dsi_costing_ops");
+        const savedMeta = localStorage.getItem("dsi_costing_meta");
+        const savedImgs = localStorage.getItem("dsi_costing_imgs");
+
+        if (savedOps) operationsData = JSON.parse(savedOps);
+        if (savedMeta) {
+            const m = JSON.parse(savedMeta);
+            document.getElementById("sampleName").value = m.name || "";
+            document.getElementById("cuttingProcess").value = m.cutting || "";
+            document.getElementById("assemblyProcess").value = m.assembly || "";
+            document.getElementById("sampleComments").value = m.comments || "";
+        }
+        if (savedImgs) {
+            sampleImages = JSON.parse(savedImgs);
+            renderGallery();
+        }
+        reindexOperations();
+        renderTable();
+    });
+
+    // --- IMAGE POPUP & USER GUIDE FUNCTIONS ---
+    function openImagePopup(src) {
+        const modal = document.getElementById("imgPopupModal");
+        const target = document.getElementById("imgPopupTarget");
+        target.src = src;
+        modal.style.display = "flex";
     }
 
+    function closeImagePopup() {
+        const modal = document.getElementById("imgPopupModal");
+        modal.style.display = "none";
+        document.getElementById("imgPopupTarget").src = "";
+    }
+
+    function openGuideModal() {
+        document.getElementById("guideModal").style.display = "flex";
+    }
+
+    function closeGuideModal() {
+        document.getElementById("guideModal").style.display = "none";
+    }
+
+    // --- FULL ROW COLOR MAPPING FOR WORK CENTERS ---
+    function getRowStyle(text) {
+        if(!text) return "";
+        const colors = [
+            'rgba(16, 185, 129, 0.1)',  // Emerald
+            'rgba(56, 189, 248, 0.1)',  // Sky Blue
+            'rgba(168, 85, 247, 0.1)',  // Purple
+            'rgba(236, 72, 153, 0.1)',  // Pink
+            'rgba(245, 158, 11, 0.1)',  // Amber
+            'rgba(239, 68, 68, 0.1)',   // Red
+            'rgba(132, 204, 22, 0.1)'   // Lime
+        ];
+        let hash = 0;
+        for (let i = 0; i < text.length; i++) {
+            hash = text.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const color = colors[Math.abs(hash) % colors.length];
+        return `background-color: ${color};`;
+    }
+
+    // --- THEME TOGGLE ---
     function toggleTheme() {
-        document.body.classList.toggle("light-mode");
+        const body = document.body;
         const btn = document.getElementById("btnTheme");
-        if (document.body.classList.contains("light-mode")) {
+        body.classList.toggle("light-mode");
+        
+        if (body.classList.contains("light-mode")) {
             localStorage.setItem("dsi_theme", "light");
             btn.innerHTML = "🌙 Dark Mode";
             btn.style.background = "#1e293b";
@@ -238,480 +816,848 @@
         }
     }
 
-    document.getElementById('existingDbUpload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if(!file) return;
-        document.querySelector('#dbDropZone .drop-zone-text').innerHTML = `✅ Loaded: <span style="color:#10b981">${file.name}</span>`;
-        const reader = new FileReader();
-        reader.onload = (ev) => { existingDbBuffer = ev.target.result; };
-        reader.readAsArrayBuffer(file);
-    });
+    // --- BULK LOGIC ---
+    function toggleAllChecks(source) {
+        const checkboxes = document.querySelectorAll('.row-check');
+        checkboxes.forEach(cb => cb.checked = source.checked);
+    }
 
-    document.getElementById('ifsUpload').addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        if(!file) return;
+    function applyBulkSection() {
+        const sectionVal = document.getElementById("bulkSectionInput").value.trim();
+        if (!sectionVal) return alert("Please type or select a work center name first (e.g., Cutting).");
+        
+        const checkboxes = document.querySelectorAll('.row-check:checked');
+        if (checkboxes.length === 0) return alert("Please check the box next to at least one operation in the table.");
 
-        document.getElementById('ifsDropText').innerHTML = `⏳ Extracting from: <span style="color:#f59e0b">${file.name}</span>`;
+        saveState();
+        let count = 0;
+        checkboxes.forEach(cb => {
+            const opId = parseInt(cb.value);
+            const op = operationsData.find(o => o.id === opId);
+            if (op) {
+                op.section = sectionVal; 
+                count++;
+            }
+        });
+        
+        document.getElementById("bulkSectionInput").value = ""; 
+        const masterCheck = document.querySelector('input[onclick="toggleAllChecks(this)"]');
+        if (masterCheck) masterCheck.checked = false; 
 
-        if (file.name.toLowerCase().endsWith('.xls')) {
-            alert("⚠️ Please convert this file to .xlsx or .xlsm first! \n\nThe automatic image extractor requires modern Excel formats. \n\nPlease open the file in Excel, click 'File -> Save As', choose 'Excel Workbook (*.xlsx)', and upload that new file.");
-            e.target.value = "";
-            document.getElementById('ifsDropText').innerHTML = `📥 Drag & Drop your IFS file here, or <span>Click to Browse</span>`;
+        renderTable();
+        alert(`✅ Successfully assigned Work Center ${sectionVal} to ${count} operations!`);
+    }
+
+    function applyBulkComponent() {
+        const compVal = document.getElementById("bulkComponentInput").value.trim().toUpperCase();
+        if (!compVal) return alert("Please type or select a component part first (e.g., CU).");
+        
+        const checkboxes = document.querySelectorAll('.row-check:checked');
+        if (checkboxes.length === 0) return alert("Please check the box next to at least one operation in the table.");
+
+        saveState();
+        let count = 0;
+        checkboxes.forEach(cb => {
+            const opId = parseInt(cb.value);
+            const op = operationsData.find(o => o.id === opId);
+            if (op) {
+                op.component = compVal; 
+                count++;
+            }
+        });
+        
+        document.getElementById("bulkComponentInput").value = ""; 
+        const masterCheck = document.querySelector('input[onclick="toggleAllChecks(this)"]');
+        if (masterCheck) masterCheck.checked = false; 
+
+        renderTable();
+        alert(`✅ Successfully assigned Component ${compVal} to ${count} operations!`);
+    }
+
+    // --- GOOGLE SHEETS CLOUD DATABASE FUNCTIONS ---
+    async function saveBulletinToDB() {
+        const sampleName = document.getElementById("sampleName").value.trim();
+        const cuttingProcess = document.getElementById("cuttingProcess").value.trim();
+        const assemblyProcess = document.getElementById("assemblyProcess").value.trim();
+        const comments = document.getElementById("sampleComments").value.trim();
+        
+        if (!sampleName) {
+            alert("Please enter an 'Item Type / Sample Number' at the top before saving to the cloud.");
             return;
         }
 
+        const btn = document.getElementById("btnSaveDB");
+        const originalText = btn.innerText;
+        btn.innerText = "⏳ Saving to Cloud...";
+        btn.disabled = true;
+
+        const payload = {
+            id: sampleName.toLowerCase().replace(/\s+/g, '_'),
+            date: new Date().toLocaleDateString(),
+            meta: { 
+                name: sampleName, 
+                cutting: cuttingProcess,
+                assembly: assemblyProcess,
+                comments: comments 
+            },
+            ops: operationsData,
+            imgs: sampleImages
+        };
+
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "save", payload: payload })
+            });
+            const result = await response.json();
+            if (result.status === "success") {
+                alert(`✅ Operation Bulletin for "${sampleName}" saved to Google Sheets securely!`);
+            }
+        } catch (e) {
+            alert("Error saving to cloud. Please check your connection.");
+            console.error(e);
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    let loadedCloudDB = [];
+
+    async function openLoadModal() {
+        document.getElementById("dbModal").style.display = "flex";
+        const container = document.getElementById("dbListContainer");
+        container.innerHTML = `<span class="empty-msg" style="font-weight:bold;">⏳ Fetching Bulletins from Google Sheets...</span>`;
+        
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL);
+            loadedCloudDB = await response.json();
+            document.getElementById("dbSearchInput").value = "";
+            document.getElementById("dbSearchOpInput").value = "";
+            renderDatabaseList();
+        } catch (e) {
+            container.innerHTML = `<span style="color:#ef4444; text-align:center; padding:20px; font-weight:bold;">Error fetching data. Check connection.</span>`;
+            console.error(e);
+        }
+    }
+
+    function closeLoadModal() {
+        document.getElementById("dbModal").style.display = "none";
+    }
+
+    function renderDatabaseList() {
+        const query1 = document.getElementById("dbSearchInput").value.toLowerCase();
+        const query2 = document.getElementById("dbSearchOpInput").value.toLowerCase();
+        const container = document.getElementById("dbListContainer");
+
+        // TWO-WAY SEARCH FILTERING
+        const filtered = loadedCloudDB.filter(entry => {
+            const match1 = (entry.meta.name || "").toLowerCase().includes(query1) ||
+                           (entry.meta.cutting || "").toLowerCase().includes(query1) ||
+                           (entry.meta.assembly || "").toLowerCase().includes(query1) ||
+                           (entry.meta.comments || "").toLowerCase().includes(query1);
+            
+            let match2 = true;
+            if (query2) {
+                match2 = entry.ops && entry.ops.some(op => (op.name || "").toLowerCase().includes(query2));
+            }
+            
+            return match1 && match2;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<span class="empty-msg" style="font-weight:bold;">No saved bulletins found matching your search.</span>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map(entry => {
+            const imgHtml = (entry.imgs || []).slice(0, 4).map(img => 
+                `<img src="${img}" class="db-mini-thumb" onclick="openImagePopup(this.src)" title="Click to preview image">`
+            ).join("");
+            
+            // COLORFUL BADGES WITH FULL TOOLTIPS
+            const cutText = entry.meta.cutting || 'N/A';
+            const assyText = entry.meta.assembly || 'N/A';
+            const noteText = entry.meta.comments ? entry.meta.comments : 'N/A';
+
+            const cutBadge = `<span class="sec-badge" title="Cut: ${cutText}" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444;">✂️ Cut: ${cutText}</span>`;
+            const assyBadge = `<span class="sec-badge" title="Assy: ${assyText}" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;">🔨 Assy: ${assyText}</span>`;
+            const noteBadge = `<span class="sec-badge" title="Note: ${noteText}" style="background: rgba(148, 163, 184, 0.1); color: #94a3b8; border: 1px solid #94a3b8;">💬 Note: ${entry.meta.comments ? 'Yes' : 'N/A'}</span>`;
+
+            let cleanDate = entry.date || "";
+            if (cleanDate.includes("T")) cleanDate = cleanDate.split("T")[0];
+
+            return `
+            <div class="db-card">
+                <div class="db-card-content">
+                    <span class="db-card-name" title="${entry.meta.name}">👟 ${entry.meta.name}</span>
+                    <div class="db-badges">${cutBadge} ${assyBadge} ${noteBadge}</div>
+                    <span class="db-meta-text">📅 ${cleanDate} &nbsp;|&nbsp; ⚙️ ${entry.ops ? entry.ops.length : 0} Ops</span>
+                    <div class="db-images">${imgHtml}</div>
+                </div>
+                <div class="db-actions">
+                    <button class="btn-table btn-save-row" style="padding: 6px 12px; font-size:0.9em; width: auto;" onclick="loadFromCloudDB('${entry.id}')">📂 Load</button>
+                    <button class="btn-table btn-delete" style="padding: 6px 12px; font-size:0.9em;" onclick="deleteFromCloudDB('${entry.id}')">✖ Delete</button>
+                </div>
+            </div>
+            `;
+        }).join("");
+    }
+
+    function loadFromCloudDB(id) {
+        if (!confirm("This will overwrite your current active table and images on screen. Do you want to proceed?")) return;
+        const entry = loadedCloudDB.find(e => String(e.id) === String(id));
+        if (!entry) return;
+
+        operationsData = entry.ops || [];
+        sampleImages = entry.imgs || [];
+        
+        document.getElementById("sampleName").value = entry.meta.name || "";
+        document.getElementById("cuttingProcess").value = entry.meta.cutting || "";
+        document.getElementById("assemblyProcess").value = entry.meta.assembly || "";
+        document.getElementById("sampleComments").value = entry.meta.comments || "";
+        
+        saveMetaData();
+        localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
+        localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
+
+        renderGallery();
+        renderTable();
+        closeLoadModal();
+    }
+
+    async function deleteFromCloudDB(id) {
+        const pass = prompt("Enter Admin Password to Delete Cloud File (9999):");
+        if (pass !== "9999") return alert("Incorrect password. Deletion blocked.");
+
+        if (!confirm("Are you sure you want to permanently delete this saved bulletin from the Google Sheet?")) return;
+        
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "delete", payload: { id: id } })
+            });
+            const result = await response.json();
+            if (result.status === "deleted") {
+                loadedCloudDB = loadedCloudDB.filter(e => String(e.id) !== String(id));
+                renderDatabaseList();
+            }
+        } catch (e) {
+            alert("Error deleting from cloud.");
+            console.error(e);
+        }
+    }
+
+    // --- IMPORT EXCEL MAGIC SCANNER ---
+    async function handleExcelImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const dropText = document.getElementById('excelDropText');
+        dropText.innerHTML = `⏳ Importing from Excel...`;
+
         const reader = new FileReader();
-        reader.onload = async function(ev) {
+        reader.onload = async function(e) {
             try {
-                const buffer = ev.target.result;
+                const buffer = e.target.result;
                 const wb = new ExcelJS.Workbook();
                 await wb.xlsx.load(buffer);
                 const ws = wb.worksheets[0]; 
                 
-                function getVal(r, c) {
-                    let cell = ws.getRow(r).getCell(c);
-                    if(!cell || cell.value == null) return "";
-                    if(typeof cell.value === 'object') {
-                        if(cell.value.richText) return cell.value.richText.map(rt=>rt.text).join('');
-                        if(cell.value.result !== undefined) return cell.value.result;
+                let headerRowIdx = -1;
+                let colMap = { op: -1, smv: -1, mac: -1, tgt: -1, rem: -1, att: -1, wc: -1, secFallback: -1, comp: -1 };
+                
+                // Scan the first 20 rows to find headers intelligently
+                for (let r = 1; r <= Math.min(ws.rowCount, 20); r++) {
+                    const row = ws.getRow(r);
+                    let foundOp = false;
+                    let foundSmv = false;
+                    
+                    row.eachCell((cell, colNumber) => {
+                        const val = String(cell.value || '').toLowerCase().trim();
+                        if (val.includes("operation") || val.includes("name")) { colMap.op = colNumber; foundOp = true; }
+                        else if (val.includes("smv") || val.includes("minute")) { colMap.smv = colNumber; foundSmv = true; }
+                        else if (val.includes("machine") || val.includes("mc type") || val === "mc") { colMap.mac = colNumber; }
+                        else if (val.includes("target")) { colMap.tgt = colNumber; }
+                        else if (val.includes("remark") || val.includes("comment")) { colMap.rem = colNumber; }
+                        else if (val.includes("attach")) { colMap.att = colNumber; }
+                        else if (val.includes("work center") || val.includes("workcenter") || val === "wc") { colMap.wc = colNumber; }
+                        else if (val.includes("section") || val.includes("dept")) { colMap.secFallback = colNumber; }
+                        else if (val.includes("component part") || val === "part" || val.includes("pcode") || val === "component") { colMap.comp = colNumber; }
+                    });
+                    
+                    if (foundOp && foundSmv) {
+                        headerRowIdx = r;
+                        break;
                     }
-                    return cell.value.toString().trim();
                 }
+                
+                if (headerRowIdx === -1 || colMap.op === -1 || colMap.smv === -1) {
+                    dropText.innerHTML = `❌ Error! Headers missing.`;
+                    alert("Error: Could not automatically detect 'Operation Name' and 'SMV' columns in this Excel file.");
+                } else {
 
-                function findValueInRange(row, startCol, endCol) {
-                    for(let c = startCol; c <= endCol; c++) {
-                        let val = getVal(row, c);
-                        if(val) {
-                            let strVal = val.toString().trim();
-                            if(strVal !== "" && strVal.toUpperCase() !== "DESCRIPTION" && strVal.toUpperCase() !== "PLANT" && strVal.toUpperCase() !== "ORIGINAL ITEM CODE") {
-                                return strVal;
+                    const finalWcCol = colMap.wc > -1 ? colMap.wc : colMap.secFallback;
+
+                    let newOps = [];
+                    let currentNo = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.no)) + 1 : 1;
+
+                    for (let r = headerRowIdx + 1; r <= ws.rowCount; r++) {
+                        const row = ws.getRow(r);
+                        
+                        let opNameCell = row.getCell(colMap.op).value;
+                        let opNameStr = opNameCell ? (opNameCell.richText ? opNameCell.richText.map(t=>t.text).join('') : opNameCell.toString()).trim() : '';
+                        
+                        let smvCell = row.getCell(colMap.smv).value;
+                        if (smvCell && smvCell.result !== undefined) smvCell = smvCell.result; 
+                        let smvVal = parseFloat(smvCell);
+                        
+                        if (!opNameStr || isNaN(smvVal) || opNameStr.toLowerCase().includes("total")) continue;
+
+                        let targetVal = 0;
+                        if (colMap.tgt > -1) {
+                            let tVal = row.getCell(colMap.tgt).value;
+                            if (tVal && tVal.result !== undefined) tVal = tVal.result;
+                            targetVal = parseInt(tVal) || 0;
+                        }
+                        if (targetVal === 0 && smvVal > 0) {
+                            targetVal = Math.round(60 / smvVal);
+                        }
+                        
+                        let macStr = '';
+                        if(colMap.mac > -1) { 
+                            let cv = row.getCell(colMap.mac).value; 
+                            macStr = cv ? cv.toString().trim() : ''; 
+                            if (macStr && !dsiMachines.some(m => m.name.toLowerCase() === macStr.toLowerCase())) {
+                                const newMachine = { name: macStr, ma: 0.0 };
+                                dsiMachines.push(newMachine);
+                                const savedCustoms = JSON.parse(localStorage.getItem("dsi_custom_machines") || "[]");
+                                savedCustoms.push(newMachine);
+                                localStorage.setItem("dsi_custom_machines", JSON.stringify(savedCustoms));
                             }
                         }
-                    }
-                    return "";
-                }
-                
-                extractedItems = [];
-                let rawImages = [];
 
-                try {
-                    const images = ws.getImages();
-                    for (const image of images) {
-                        const img = wb.getImage(image.imageId);
-                        let binary = '';
-                        const bytes = new Uint8Array(img.buffer);
-                        for (let i = 0; i < bytes.byteLength; i++) {
-                            binary += String.fromCharCode(bytes[i]);
-                        }
-                        const base64 = window.btoa(binary);
-                        const src = `data:image/${img.extension};base64,${base64}`;
-                        const col = image.range.tl.nativeCol !== undefined ? image.range.tl.nativeCol : Math.floor(image.range.tl.col);
-                        rawImages.push({ col: col, src: src });
-                    }
-                } catch(imgErr) { console.warn("Could not extract images:", imgErr); }
+                        let remStr = '';
+                        if(colMap.rem > -1) { let cv = row.getCell(colMap.rem).value; remStr = cv ? cv.toString().trim() : ''; }
+                        let attStr = '';
+                        if(colMap.att > -1) { let cv = row.getCell(colMap.att).value; attStr = cv ? cv.toString().trim() : ''; }
+                        let secStr = '';
+                        if(finalWcCol > -1) { let cv = row.getCell(finalWcCol).value; secStr = cv ? cv.toString().trim() : ''; }
+                        let compStr = '';
+                        if(colMap.comp > -1) { let cv = row.getCell(colMap.comp).value; compStr = cv ? cv.toString().trim().toUpperCase() : ''; }
 
-                let consecutiveEmpty = 0;
-                
-                for(let i=0; i<50; i++) { 
-                    let pCol = 4 + (i * 3);
-                    let sCol = 5 + (i * 3);
-                    
-                    let sNo = findValueInRange(8, pCol - 1, sCol + 2);
-                    let desc = findValueInRange(9, pCol - 1, sCol + 2);
-                    
-                    let item = {
-                        partCol: pCol,
-                        sampleNo: sNo || `Item ${i+1}`,
-                        desc: desc || "",
-                        ops: [],
-                        pMap: { 'CU':0, 'CI':0, 'CS':0, 'II':0, 'SS':0, 'UU':0, 'AA':0 },
-                        tot: 0
-                    };
-                    
-                    for(let r=10; r<=ws.rowCount; r++) {
-                        let opName = getVal(r, 2); 
-                        let wc = getVal(r, 3);     
-                        let part = getVal(r, pCol).toUpperCase();
-                        let smvRaw = getVal(r, sCol);
-                        let smv = parseFloat(smvRaw);
-                        
-                        if (opName && opName.toUpperCase() !== 'DESCRIPTION' && !isNaN(smv) && smv > 0) {
-                            part = part || "UNASSIGNED";
-                            item.ops.push({ opName: opName, wc: wc, part: part, smv: smv });
-                            
-                            if(item.pMap[part] !== undefined) item.pMap[part] += smv;
-                            else item.pMap[part] = smv;
-                            item.tot += smv;
-                        }
+                        newOps.push({
+                            id: Date.now() + r,
+                            no: currentNo++,
+                            name: opNameStr,
+                            section: secStr,
+                            component: compStr,
+                            machine: macStr,
+                            smv: smvVal,
+                            target: targetVal,
+                            remarks: remStr,
+                            attach: attStr
+                        });
                     }
 
-                    // STRICT GHOST FILTER
-                    if (item.ops.length > 0) {
-                        extractedItems.push(item);
-                        consecutiveEmpty = 0;
+                    if (newOps.length > 0) {
+                        saveState();
+                        populateMachineDropdown(); 
+                        operationsData = operationsData.concat(newOps);
+                        renderTable();
+                        dropText.innerHTML = `✅ Added ${newOps.length} ops!`;
                     } else {
-                        consecutiveEmpty++;
-                        if (consecutiveEmpty > 2) break;
+                        dropText.innerHTML = `⚠️ No valid ops found.`;
+                        alert("No valid operations found in the file.");
                     }
                 }
-
-                imagesBase64 = [];
-                extractedItems.forEach((item) => {
-                    let closestImg = null;
-                    let minDiff = 9999;
-                    rawImages.forEach(img => {
-                        let diff = Math.abs(img.col - item.partCol);
-                        if (diff < minDiff && diff <= 5) { 
-                            minDiff = diff;
-                            closestImg = img.src;
-                        }
-                    });
-                    imagesBase64.push(closestImg);
-                });
-
-                document.getElementById('ifsDropText').innerHTML = `✅ Successfully Extracted: <span style="color:#10b981">${file.name}</span>`;
-                renderPreview();
             } catch (err) {
                 console.error(err);
-                alert("Error parsing the IFS file. Ensure it matches the standard Labour template.");
-                document.getElementById('ifsDropText').innerHTML = `📥 Drag & Drop your IFS file here, or <span>Click to Browse</span>`;
+                dropText.innerHTML = `❌ Excel read error.`;
+                alert("Error reading Excel file. Make sure it's a valid .xlsx file.");
             }
-            e.target.value = ""; 
+            
+            setTimeout(() => {
+                dropText.innerHTML = `📥 Drag & Drop Excel or <span style="color:#a78bfa;">Browse</span>`;
+            }, 3000);
+            
+            event.target.value = ""; 
         };
         reader.readAsArrayBuffer(file);
-    });
+    }
 
-    function renderPreview() {
-        const container = document.getElementById('previewContainer');
-        if (extractedItems.length === 0) {
-            container.innerHTML = `<span class="empty-msg">No items extracted. Please upload a valid IFS Labour file.</span>`;
+    // --- STANDARD FUNCTIONS ---
+    function populateMachineDropdown(selectValue = "") {
+        const select = document.getElementById("inMachine");
+        select.innerHTML = `<option value="">Select Machine...</option>` + 
+            dsiMachines.map(m => `<option value="${m.name}">${m.name}</option>`).join("");
+        if (selectValue) select.value = selectValue;
+    }
+
+    function addNewMachineType() {
+        const name = prompt("Enter new Machine Type name:");
+        if (!name) return;
+
+        const newMachine = { name: name.trim(), ma: 0.0 };
+        dsiMachines.push(newMachine);
+        
+        const savedCustoms = JSON.parse(localStorage.getItem("dsi_custom_machines") || "[]");
+        savedCustoms.push(newMachine);
+        localStorage.setItem("dsi_custom_machines", JSON.stringify(savedCustoms));
+
+        populateMachineDropdown(newMachine.name);
+    }
+
+    function saveMetaData() {
+        const meta = {
+            name: document.getElementById("sampleName").value,
+            cutting: document.getElementById("cuttingProcess").value,
+            assembly: document.getElementById("assemblyProcess").value,
+            comments: document.getElementById("sampleComments").value
+        };
+        localStorage.setItem("dsi_costing_meta", JSON.stringify(meta));
+    }
+
+    function handleImageUpload(event) {
+        const files = Array.from(event.target.files).slice(0, 6); 
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if(sampleImages.length < 6) {
+                    sampleImages.push(e.target.result);
+                    localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
+                    renderGallery();
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+        event.target.value = "";
+    }
+
+    function renderGallery() {
+        const gal = document.getElementById("imageGallery");
+        if (sampleImages.length === 0) {
+            gal.innerHTML = `<span class="empty-msg" style="margin:auto; font-size:0.9em; pointer-events: none; color: #94a3b8;">📸 Drag & Drop photos, press <span style="color:#10b981;">Ctrl+V</span> to paste, or <span style="color:#38bdf8;">Browse</span></span>`;
             return;
         }
+        gal.innerHTML = sampleImages.map((src, i) => `
+            <div style="position:relative; pointer-events: auto;">
+                <img src="${src}" class="sample-thumb" onclick="openImagePopup(this.src)" title="Click to preview picture">
+                <button onclick="removeImage(${i})" style="position:absolute; top:-5px; right:-5px; background:#ef4444; color:#fff; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:10px; font-weight:bold; z-index: 20;">X</button>
+            </div>
+        `).join("");
+    }
 
-        let html = '<div class="excel-table-wrapper"><table class="excel-table">';
-        
-        html += '<tr>';
-        extractedItems.forEach((item, idx) => {
-            let img = imagesBase64[idx] 
-                ? `<img src="${imagesBase64[idx]}" style="width: 100%; height: auto; max-height: 150px; object-fit: contain; display: block; margin: auto;">` 
-                : `<div style="height:150px; display:flex; align-items:center; justify-content:center; color:#94a3b8; background: #f1f5f9;">No Photo</div>`;
-            html += `<td colspan="4" style="padding: 5px; border: 1px solid #000; vertical-align: middle; background: #fff;">${img}</td>`;
-            if (idx < extractedItems.length - 1) html += `<td class="green-divider-cell"></td>`;
-        });
-        html += '</tr>';
+    function removeImage(idx) {
+        sampleImages.splice(idx, 1);
+        localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
+        renderGallery();
+    }
 
-        html += '<tr>';
-        extractedItems.forEach((item, idx) => {
-            html += `<td class="excel-header desc-col bordered-cell">DESCRIPTION</td>`;
-            html += `<td class="excel-header wc-col bordered-cell">Work Center</td>`;
-            html += `<td colspan="2" class="excel-header part-col bordered-cell" style="text-align:center;">${item.sampleNo}</td>`;
-            if (idx < extractedItems.length - 1) html += `<td class="green-divider-cell"></td>`;
-        });
-        html += '</tr>';
+    function calculateTargetFromSmv() {
+        const smv = parseFloat(document.getElementById("inSmv").value);
+        if (smv > 0) {
+            document.getElementById("inTarget").value = Math.round(60 / smv);
+        } else {
+            document.getElementById("inTarget").value = "";
+        }
+    }
 
-        html += '<tr>';
-        extractedItems.forEach((item, idx) => {
-            html += `<td class="bordered-cell" style="background:#fff;"></td>`;
-            html += `<td class="bordered-cell" style="background:#fff;"></td>`;
-            html += `<td colspan="2" class="excel-header part-col bordered-cell" style="text-align:center;">${item.desc}</td>`;
-            if (idx < extractedItems.length - 1) html += `<td class="green-divider-cell"></td>`;
-        });
-        html += '</tr>';
+    function calculateSmvFromTarget() {
+        const target = parseFloat(document.getElementById("inTarget").value);
+        if (target > 0) {
+            document.getElementById("inSmv").value = (60 / target).toFixed(4);
+        } else {
+            document.getElementById("inSmv").value = "";
+        }
+    }
 
-        let maxOps = Math.max(...extractedItems.map(i => i.ops.length));
-        for(let r=0; r<maxOps; r++) {
-            html += '<tr>';
-            extractedItems.forEach((item, idx) => {
-                let op = item.ops[r];
-                if (op) {
-                    html += `<td class="desc-col bordered-cell">${op.opName}</td>`;
-                    html += `<td class="wc-col bordered-cell">${op.wc}</td>`;
-                    html += `<td class="part-col bordered-cell">${op.part}</td>`;
-                    html += `<td class="smv-col bordered-cell">${op.smv.toFixed(2)}</td>`;
-                } else {
-                    html += `<td class="desc-col faded-border"></td><td class="wc-col faded-border"></td><td class="part-col faded-border"></td><td class="smv-col faded-border"></td>`;
-                }
-                if (idx < extractedItems.length - 1) html += `<td class="green-divider-cell"></td>`;
+    function autoFillSMV() {
+        const inNo = document.getElementById("inNo");
+        if (!inNo.value) {
+            inNo.value = operationsData.length > 0 ? operationsData.length + 1 : 1;
+        }
+    }
+
+    function saveState() {
+        historyStack.push(JSON.parse(JSON.stringify(operationsData)));
+        document.getElementById("btnUndo").disabled = false;
+        localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
+    }
+
+    function undoLastAction() {
+        if (historyStack.length === 0) return;
+        operationsData = historyStack.pop();
+        if (historyStack.length === 0) document.getElementById("btnUndo").disabled = true;
+        reindexOperations();
+        renderTable();
+    }
+
+    function reindexOperations() {
+        operationsData.forEach((op, i) => op.no = i + 1);
+        localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
+    }
+
+    function addOperationRow() {
+        let no = parseInt(document.getElementById("inNo").value);
+        const section = document.getElementById("inSection").value.trim();
+        const component = document.getElementById("inComponent").value.trim().toUpperCase();
+        const name = document.getElementById("inOpName").value.trim();
+        const machine = document.getElementById("inMachine").value;
+        const remarks = document.getElementById("inRemarks").value.trim();
+        const attach = document.getElementById("inAttach").value.trim();
+        const smv = parseFloat(document.getElementById("inSmv").value) || 0;
+        const target = parseInt(document.getElementById("inTarget").value) || 0;
+
+        if (!name || smv <= 0) return alert("Operation Name and SMV are required.");
+
+        saveState();
+
+        if (!no) {
+            no = operationsData.length > 0 ? operationsData.length + 1 : 1;
+        } else {
+            operationsData.forEach(op => {
+                if (op.no >= no) op.no += 1;
             });
-            html += '</tr>';
         }
 
-        html += '<tr>';
-        extractedItems.forEach((item, idx) => {
-            html += `<td class="faded-border" style="border-right:none;"></td>`;
-            html += `<td class="faded-border" style="border-left:none;"></td>`;
-            html += `<td class="bordered-cell"></td>`;
-            html += `<td class="bordered-cell" style="text-align:right; font-weight:bold;">${item.tot.toFixed(3)}</td>`;
-            if (idx < extractedItems.length - 1) html += `<td class="green-divider-cell"></td>`;
+        operationsData.push({
+            id: Date.now(),
+            no: no,
+            section: section,
+            component: component,
+            name, machine, smv, target, remarks, attach
         });
-        html += '</tr>';
+        
+        operationsData.sort((a, b) => a.no - b.no);
+        reindexOperations(); 
 
-        const partsOrder = ['CU', 'CI', 'CS', 'II', 'SS', 'UU', 'AA'];
-        partsOrder.forEach(p => {
-            html += '<tr>';
-            extractedItems.forEach((item, idx) => {
-                let val = item.pMap[p] || 0;
-                html += `<td class="faded-border" style="border-right:none;"></td>`;
-                html += `<td class="faded-border" style="border-left:none;"></td>`;
-                html += `<td class="bordered-cell red-text-bold part-col">${p}</td>`;
-                html += `<td class="bordered-cell red-text smv-col">${val.toFixed(3)}</td>`;
-                if (idx < extractedItems.length - 1) html += `<td class="green-divider-cell"></td>`;
+        document.getElementById("inNo").value = "";
+        document.getElementById("inSection").value = "";
+        document.getElementById("inComponent").value = "";
+        document.getElementById("inOpName").value = "";
+        document.getElementById("inMachine").value = "";
+        document.getElementById("inRemarks").value = "";
+        document.getElementById("inAttach").value = "";
+        document.getElementById("inSmv").value = "";
+        document.getElementById("inTarget").value = "";
+
+        renderTable();
+    }
+
+    function moveRowUp(id) {
+        const index = operationsData.findIndex(o => o.id === id);
+        if (index > 0) {
+            saveState();
+            const temp = operationsData[index - 1];
+            operationsData[index - 1] = operationsData[index];
+            operationsData[index] = temp;
+            reindexOperations();
+            renderTable();
+        }
+    }
+
+    function moveRowDown(id) {
+        const index = operationsData.findIndex(o => o.id === id);
+        if (index !== -1 && index < operationsData.length - 1) {
+            saveState();
+            const temp = operationsData[index + 1];
+            operationsData[index + 1] = operationsData[index];
+            operationsData[index] = temp;
+            reindexOperations();
+            renderTable();
+        }
+    }
+
+    function deleteRow(id, bypassConfirm = false) {
+        if (!bypassConfirm) {
+            const pass = prompt("Enter Admin Password to Delete Row (9999):");
+            if (pass !== "9999") return alert("Incorrect password.");
+        }
+        saveState();
+        operationsData = operationsData.filter(op => op.id !== id);
+        reindexOperations(); 
+        renderTable();
+    }
+
+    function editRow(id) {
+        const op = operationsData.find(o => o.id === id);
+        if (!op) return;
+
+        document.getElementById("inNo").value = op.no;
+        document.getElementById("inSection").value = op.section || '';
+        document.getElementById("inComponent").value = op.component || '';
+        document.getElementById("inOpName").value = op.name;
+        document.getElementById("inMachine").value = op.machine;
+        document.getElementById("inRemarks").value = op.remarks || '';
+        document.getElementById("inAttach").value = op.attach || '';
+        document.getElementById("inSmv").value = op.smv;
+        document.getElementById("inTarget").value = op.target;
+
+        saveState();
+        operationsData = operationsData.filter(o => o.id !== id);
+        reindexOperations();
+        renderTable();
+    }
+
+    function clearAllData() {
+        const pass = prompt("Enter Admin Password to Clear All (9999):");
+        if (pass !== "9999") return alert("Incorrect password.");
+        if (!confirm("Are you sure you want to clear the current table and images? (Saved cloud databases will not be deleted)")) return;
+        
+        saveState();
+        operationsData = [];
+        sampleImages = [];
+        
+        document.getElementById("sampleName").value = "";
+        document.getElementById("cuttingProcess").value = "";
+        document.getElementById("assemblyProcess").value = "";
+        document.getElementById("sampleComments").value = "";
+        
+        localStorage.removeItem("dsi_costing_ops");
+        localStorage.removeItem("dsi_costing_meta");
+        localStorage.removeItem("dsi_costing_imgs");
+        renderGallery();
+        renderTable();
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById("tableBody");
+        const query = document.getElementById("searchInput").value.toLowerCase();
+        
+        let totalSmv = 0;
+        let partSmvMap = {};
+        
+        const filteredOps = operationsData.filter(op => 
+            op.name.toLowerCase().includes(query) || 
+            (op.machine || '').toLowerCase().includes(query) ||
+            op.no.toString().includes(query) ||
+            (op.remarks || '').toLowerCase().includes(query) ||
+            (op.attach || '').toLowerCase().includes(query) ||
+            (op.section || '').toLowerCase().includes(query) ||
+            (op.component || '').toLowerCase().includes(query)
+        );
+
+        tbody.innerHTML = filteredOps.map(op => {
+            totalSmv += op.smv;
+            
+            // Collect Part Summary Data
+            let partName = (op.component || "").trim().toUpperCase();
+            if (partName) {
+                if (!partSmvMap[partName]) partSmvMap[partName] = 0;
+                partSmvMap[partName] += op.smv;
+            }
+
+            const rowStyle = op.section ? getRowStyle(op.section) : '';
+            const compHtml = op.component ? `<span class="col-comp">${op.component}</span>` : '-';
+
+            return `
+                <tr style="${rowStyle}">
+                    <td><input type="checkbox" class="row-check" value="${op.id}"></td>
+                    <td class="col-no">${op.no}</td>
+                    <td class="col-sec">${op.section || '-'}</td>
+                    <td>${compHtml}</td>
+                    <td class="col-name">${op.name}</td>
+                    <td class="col-mac">${op.machine || '-'}</td>
+                    <td class="col-smv">${op.smv.toFixed(4)}</td>
+                    <td>${op.target}</td>
+                    <td class="col-rem">${op.remarks || '-'}</td>
+                    <td class="col-att">${op.attach || '-'}</td>
+                    <td>
+                        <div style="display:flex; gap:4px;">
+                            <button class="btn-table btn-move" onclick="moveRowUp(${op.id})" title="Move Up">⬆️</button>
+                            <button class="btn-table btn-move" onclick="moveRowDown(${op.id})" title="Move Down">⬇️</button>
+                            <button class="btn-table btn-edit" onclick="editRow(${op.id})" title="Edit">✏️</button>
+                            <button class="btn-table btn-delete" onclick="deleteRow(${op.id})" title="Delete">✖</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+
+        if (filteredOps.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="11" class="empty-msg">No operations found. Use the row below to add data or import from Excel.</td></tr>`;
+        }
+
+        document.getElementById("totSmv").innerText = totalSmv.toFixed(4);
+        document.getElementById("totTarget").innerText = ""; // Strictly empty
+        
+        // Render Summary Panel as a clean Column Table
+        const summaryContainer = document.getElementById("partSummaryContainer");
+        const sortedParts = Object.keys(partSmvMap).sort();
+        if (sortedParts.length > 0) {
+            let tableHtml = '<table class="summary-table">';
+            let gTotal = 0;
+            sortedParts.forEach(p => {
+                gTotal += partSmvMap[p];
+                tableHtml += `<tr><td class="p-name">${p}</td><td><span class="p-val">${partSmvMap[p].toFixed(4)}</span></td></tr>`;
             });
-            html += '</tr>';
-        });
+            tableHtml += `<tr><td class="sum-total">TOTAL</td><td><span class="p-val" style="text-decoration:underline;">${gTotal.toFixed(4)}</span></td></tr>`;
+            tableHtml += '</table>';
+            summaryContainer.innerHTML = tableHtml;
+        } else {
+            summaryContainer.innerHTML = `<span class="empty-msg" style="padding:0; text-align:left;">No parts assigned yet.</span>`;
+        }
 
-        html += '<tr>';
-        extractedItems.forEach((item, idx) => {
-            html += `<td class="faded-border" style="border-right:none;"></td>`;
-            html += `<td class="faded-border" style="border-left:none;"></td>`;
-            html += `<td class="bordered-cell"></td>`;
-            html += `<td class="bordered-cell" style="text-align:right; font-weight:bold;">${item.tot.toFixed(2)}</td>`;
-            if (idx < extractedItems.length - 1) html += `<td class="green-divider-cell"></td>`;
-        });
-        html += '</tr>';
-
-        html += '</table></div>';
-        container.innerHTML = html;
+        localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
     }
 
-    function getImageDimensions(base64) {
-        return new Promise(resolve => {
-            let img = new Image();
-            img.onload = () => resolve({ w: img.width, h: img.height });
-            img.onerror = () => resolve({ w: 400, h: 200 }); 
-            img.src = base64;
-        });
-    }
-
-    async function exportToDatabase() {
-        if (extractedItems.length === 0) return alert("Please extract data from an IFS Labour file first.");
+    // --- ADVANCED EXCEL EXPORT (MANUAL COLUMNS TO FIX AUTO-HEADER BUG) ---
+    async function exportToExcel() {
+        if (operationsData.length === 0) return alert("Table is empty.");
         
         const btn = document.getElementById("btnExport");
-        btn.innerText = "⏳ Appending to Database...";
+        btn.innerText = "⏳ Generating Excel...";
         btn.disabled = true;
 
         try {
-            let catName = document.getElementById('categoryName').value || "Database";
-            let wb = new ExcelJS.Workbook();
-            let ws;
+            const sampleName = document.getElementById("sampleName").value || "Unknown Sample";
+            const cuttingProcess = document.getElementById("cuttingProcess").value || "N/A";
+            const assemblyProcess = document.getElementById("assemblyProcess").value || "N/A";
+            const comments = document.getElementById("sampleComments").value || "None";
             
-            if (existingDbBuffer) {
-                await wb.xlsx.load(existingDbBuffer);
-                // FORCE APPEND TO FIRST SHEET TO PREVENT SPLITTING
-                ws = wb.worksheets[0]; 
-                catName = ws.name; 
+            const wb = new ExcelJS.Workbook();
+            const ws = wb.addWorksheet("Operations");
 
-                // --- AUTO REPAIR TOOL ---
-                try {
-                    const existingImages = ws.getImages();
-                    for (const img of existingImages) {
-                        if (img.range) {
-                            if (!img.range.ext || (img.range.ext && img.range.ext.width < 200)) {
-                                img.range.ext = { width: 435, height: 210 };
-                            }
-                        }
-                    }
-                } catch (e) { console.warn("Repair skipped", e); }
+            // Define Manual Column Widths to Avoid Row 1 Auto-Header Bug
+            ws.getColumn(1).width = 8;   // No
+            ws.getColumn(2).width = 18;  // Work Center
+            ws.getColumn(3).width = 12;  // Component
+            ws.getColumn(4).width = 40;  // Operation Name
+            ws.getColumn(5).width = 25;  // Machine Type
+            ws.getColumn(6).width = 15;  // SMV
+            ws.getColumn(7).width = 15;  // Hourly Target
+            ws.getColumn(8).width = 30;  // Remarks
+            ws.getColumn(9).width = 25;  // Special Attachment
 
-            } else {
-                ws = wb.addWorksheet(catName);
-            }
-            
-            let maxC = 0;
-            ws.eachRow((row) => {
-                if (row.values && row.values.length > maxC) {
-                    maxC = row.values.length - 1; 
-                }
-            });
-            
-            let startCol = maxC > 0 ? maxC + 2 : 1;
-            const partsOrder = ['CU', 'CI', 'CS', 'II', 'SS', 'UU', 'AA'];
+            // Format SMV Column for 4 Decimals
+            ws.getColumn(6).numFmt = '0.0000';
 
-            function getColLetter(colIdx) {
-                let temp, letter = '';
-                while (colIdx > 0) {
-                    temp = (colIdx - 1) % 26;
-                    letter = String.fromCharCode(temp + 65) + letter;
-                    colIdx = (colIdx - temp - 1) / 26;
-                }
-                return letter;
-            }
+            ws.addRow(["D. SAMSON INDUSTRIES (PVT) LTD - OPERATION BULLETIN"]);
+            ws.getRow(1).font = { bold: true, size: 14 };
+            ws.addRow([]);
+            ws.addRow(["Sample / Style:", sampleName]);
+            ws.addRow(["Cutting Process:", cuttingProcess]);
+            ws.addRow(["Assembly Process:", assemblyProcess]);
+            ws.addRow(["Comments:", comments]);
+            ws.addRow(["Export Date:", new Date().toLocaleDateString()]);
+            ws.addRow([]);
 
-            // TARGET PIXEL WIDTH for 4 Columns (28 + 12 + 12 + 10 = 435 pixels)
-            let targetW_px = 435; 
-            let maxTargetH_px = 10; 
-            let imgDims = [];
+            let currentDataRow = 9;
 
-            for (let b64 of imagesBase64) {
-                if (b64) {
-                    let dim = await getImageDimensions(b64);
-                    let targetH = targetW_px / (dim.w / dim.h); 
-                    imgDims.push({ w: targetW_px, h: targetH });
-                    if (targetH > maxTargetH_px) {
-                        maxTargetH_px = targetH;
-                    }
-                } else {
-                    imgDims.push(null);
-                }
-            }
+            // Image Grid Placement
+            if (sampleImages.length > 0) {
+                ws.addRow(["Sample Photos:"]);
+                ws.getRow(currentDataRow).font = { bold: true };
+                currentDataRow++;
 
-            // Convert max height in pixels to total row height in points (with padding)
-            let totalContainerHeightPx = maxTargetH_px + 20; 
-            let rowHeightPts = (totalContainerHeightPx * 0.75) / 6; 
-            
-            for (let r = 1; r <= 6; r++) {
-                ws.getRow(r).height = rowHeightPts;
-            }
-            ws.getRow(7).height = 12; // Empty buffer row
+                const colPos = [0, 2, 5]; 
 
-            extractedItems.forEach((item, index) => {
-                let C = startCol + (index * 5); 
-                let maxRowNeeded = 10 + item.ops.length + 10;
-                
-                // Draw Green Divider
-                if (C > 1) {
-                    let gapCol = C - 1;
-                    ws.getColumn(gapCol).width = 2.5;
-                    for(let r=1; r <= maxRowNeeded; r++) {
-                        let gCell = ws.getCell(r, gapCol);
-                        gCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00B050' } };
-                        gCell.border = undefined;
-                    }
-                }
-                
-                ws.getColumn(C).width = 28;   // Description 
-                ws.getColumn(C+1).width = 12; // Work Center
-                ws.getColumn(C+2).width = 12; // Part
-                ws.getColumn(C+3).width = 10; // SMV
-                
-                // BULLETPROOF IMAGE ANCHORING
-                if (imagesBase64[index] && imgDims[index]) {
+                sampleImages.forEach((imgBase64, idx) => {
                     try {
-                        const base64Data = imagesBase64[index].split(',')[1];
-                        const ext = imagesBase64[index].substring(imagesBase64[index].indexOf('/') + 1, imagesBase64[index].indexOf(';'));
+                        const base64Data = imgBase64.split(',')[1];
+                        const ext = imgBase64.substring(imgBase64.indexOf('/') + 1, imgBase64.indexOf(';'));
+                        
                         const imageId = wb.addImage({
                             base64: base64Data,
                             extension: ext === 'jpeg' ? 'jpeg' : 'png',
                         });
-                        
-                        let hPx = imgDims[index].h;
-                        let leftoverPx = totalContainerHeightPx - hPx;
-                        let topOffsetRows = (leftoverPx / 2) / (rowHeightPts / 0.75);
-                        
-                        ws.addImage(imageId, {
-                            tl: { col: C - 1 + 0.05, row: topOffsetRows }, 
-                            ext: { width: targetW_px, height: Math.round(hPx) },
-                            editAs: 'oneCell'
-                        });
-                    } catch(e) { console.error("Image add error", e); }
-                }
-                
-                // Row 8
-                let r8 = ws.getRow(8);
-                r8.getCell(C).value = "DESCRIPTION";
-                r8.getCell(C+1).value = "Work Center";
-                r8.getCell(C+2).value = item.sampleNo;
-                ws.mergeCells(8, C+2, 8, C+3);
-                
-                [C, C+1, C+2, C+3].forEach(colIdx => {
-                    let cell = r8.getCell(colIdx);
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE7E6E6' } };
-                    cell.font = { bold: true };
-                    cell.border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                });
-                r8.getCell(C+2).alignment = { horizontal: 'center' };
-                
-                // Row 9 
-                let r9 = ws.getRow(9);
-                r9.getCell(C+2).value = item.desc;
-                ws.mergeCells(9, C+2, 9, C+3);
-                
-                [C+2, C+3].forEach(colIdx => {
-                    let cell = r9.getCell(colIdx);
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE7E6E6' } };
-                    cell.border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                });
-                r9.getCell(C+2).font = { bold: true };
-                r9.getCell(C+2).alignment = { horizontal: 'center' };
-                
-                r9.getCell(C).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                r9.getCell(C+1).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                
-                // Operations
-                let cr = 10;
-                item.ops.forEach(op => {
-                    let row = ws.getRow(cr);
-                    row.getCell(C).value = op.opName;
-                    row.getCell(C+1).value = op.wc;
-                    row.getCell(C+2).value = op.part;
-                    row.getCell(C+3).value = op.smv;
-                    
-                    [C, C+1, C+2, C+3].forEach(colIdx => {
-                        row.getCell(colIdx).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                    });
-                    row.getCell(C+2).alignment = { horizontal: 'center' };
-                    row.getCell(C+3).numFmt = '0.00';
-                    cr++;
-                });
-                
-                let formulaStartRow = 10;
-                let formulaEndRow = cr - 1;
-                let partColLetter = getColLetter(C+2);
-                let smvColLetter = getColLetter(C+3);
 
-                // First Total
-                let rowTot1 = ws.getRow(cr);
-                rowTot1.getCell(C+3).value = { formula: `SUM(${smvColLetter}${formulaStartRow}:${smvColLetter}${formulaEndRow})` };
-                rowTot1.getCell(C+3).font = { bold: true };
-                rowTot1.getCell(C+3).numFmt = '0.000';
-                rowTot1.getCell(C+2).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                rowTot1.getCell(C+3).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                let grandTotalRowIdx = cr;
-                cr++;
-                
-                // Parts (Live SUMIF Formulas)
-                partsOrder.forEach(p => {
-                    let row = ws.getRow(cr);
-                    row.getCell(C+2).value = p;
-                    row.getCell(C+3).value = { 
-                        formula: `SUMIF(${partColLetter}${formulaStartRow}:${partColLetter}${formulaEndRow}, "${p}", ${smvColLetter}${formulaStartRow}:${smvColLetter}${formulaEndRow})` 
-                    };
-                    
-                    row.getCell(C+2).font = { bold: true, color: { argb: 'FFFF0000' } };
-                    row.getCell(C+3).font = { color: { argb: 'FFFF0000' } };
-                    row.getCell(C+2).alignment = { horizontal: 'center' };
-                    row.getCell(C+3).numFmt = '0.000';
-                    
-                    row.getCell(C+2).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                    row.getCell(C+3).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                    cr++;
-                });
-                
-                // Final Total
-                let rowTot2 = ws.getRow(cr);
-                rowTot2.getCell(C+3).value = { formula: `${smvColLetter}${grandTotalRowIdx}` };
-                rowTot2.getCell(C+3).font = { bold: true };
-                rowTot2.getCell(C+3).numFmt = '0.00'; 
-                rowTot2.getCell(C+2).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                rowTot2.getCell(C+3).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                
-                if (C > 1 && cr > maxRowNeeded) {
-                    let gapCol = C - 1;
-                    for(let r = maxRowNeeded + 1; r <= cr; r++) {
-                        let gCell = ws.getCell(r, gapCol);
-                        gCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00B050' } };
+                        const c = colPos[idx % 3];
+                        const r = currentDataRow - 1 + Math.floor(idx / 3) * 8; 
+
+                        ws.addImage(imageId, {
+                            tl: { col: c + 0.1, row: r + 0.2 },
+                            ext: { width: 140, height: 140 }
+                        });
+                        
+                    } catch (e) {
+                        console.error("Error adding image to Excel:", e);
                     }
+                });
+
+                const numRowsNeeded = Math.ceil(sampleImages.length / 3) * 8;
+                for (let i = 0; i < numRowsNeeded; i++) {
+                    ws.addRow([]);
+                    currentDataRow++;
                 }
+                ws.addRow([]); 
+                currentDataRow++;
+            }
+
+            // ADD ACTUAL HEADERS
+            const headerRow = ws.addRow(["Operation No", "Work Center", "Component Part", "Operation Name", "Machine Type", "SMV (Min)", "Hourly Target", "Remarks", "Special Attachment"]);
+            headerRow.eachCell(cell => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1e293b' } };
+                cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+                cell.border = { bottom: { style: 'thin' } };
             });
+
+            // ADD DATA
+            let totSmv = 0;
+            operationsData.forEach(op => {
+                totSmv += op.smv;
+                ws.addRow([op.no, op.section || '', op.component || '', op.name, op.machine, Number(op.smv.toFixed(4)), op.target, op.remarks || '', op.attach || '']);
+            });
+
+            // ADD MAIN TOTALS
+            ws.addRow([]);
+            const totalRow = ws.addRow(["", "", "", "", "TOTAL SMV:", Number(totSmv.toFixed(4)), "", "", ""]);
             
-            const outBuffer = await wb.xlsx.writeBuffer();
-            saveAs(new Blob([outBuffer], { type: "application/octet-stream" }), `${catName}_Database.xlsx`);
+            totalRow.getCell(5).alignment = { horizontal: 'right' };
+            totalRow.getCell(6).alignment = { horizontal: 'center' };
+            totalRow.font = { bold: true, color: { argb: 'FF10b981' } };
+
+            // ==========================================
+            // PART-WISE SMV SUMMARY
+            // ==========================================
+            ws.addRow([]);
+            ws.addRow([]);
+            let sumTitle = ws.addRow(["", "", "PART-WISE SMV SUMMARY"]);
+            sumTitle.getCell(3).font = { bold: true, underline: true, size: 12 };
+
+            let partSmvMap = {};
+            operationsData.forEach(op => {
+                let part = (op.component || "").trim().toUpperCase();
+                if (!part) part = "UNASSIGNED";
+                if (!partSmvMap[part]) partSmvMap[part] = 0;
+                partSmvMap[part] += op.smv;
+            });
+
+            // Sort alphabetically for clean presentation
+            let sortedParts = Object.keys(partSmvMap).sort();
+
+            for (const part of sortedParts) {
+                let pSmv = partSmvMap[part];
+                let r = ws.addRow([]);
+                r.getCell(3).value = part;
+                r.getCell(6).value = Number(pSmv.toFixed(4));
+                
+                r.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
+                r.getCell(3).font = { bold: true, color: { argb: 'FFef4444' } }; 
+                r.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
+                r.getCell(6).font = { bold: true };
+                r.getCell(6).numFmt = '0.0000';
+            }
+
+            // Summary Total
+            let sumTotalRow = ws.addRow([]);
+            sumTotalRow.getCell(3).value = "SUMMARY TOTAL:";
+            sumTotalRow.getCell(6).value = Number(totSmv.toFixed(4));
+            sumTotalRow.getCell(3).alignment = { horizontal: 'right' };
+            sumTotalRow.getCell(6).alignment = { horizontal: 'right' };
+            sumTotalRow.font = { bold: true, color: { argb: 'FF10b981' } };
+            sumTotalRow.getCell(6).numFmt = '0.0000';
+
+            const buffer = await wb.xlsx.writeBuffer();
+            saveAs(new Blob([buffer], { type: "application/octet-stream" }), `DSI_Operation_Bulletin_${sampleName.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
 
         } catch (error) {
             console.error(error);
-            alert("Error exporting database. Please check the console.");
+            alert("Error exporting to Excel. Please check console for details.");
         } finally {
-            btn.innerText = "💾 Append to Database & Download";
+            btn.innerText = "🟢 Export to Excel";
             btn.disabled = false;
         }
     }
