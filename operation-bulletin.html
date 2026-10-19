@@ -216,7 +216,7 @@
         .p-val { color: #10b981; font-weight: bold; font-family: monospace; font-size: 1.1em; text-align: right; display: block; }
         .sum-total { color: #f8fafc; transition: color 0.3s; }
 
-        /* --- DATABASE SEARCH MODAL (ULTRA-WIDE SINGLE LINE FIX) --- */
+        /* --- DATABASE SEARCH MODAL --- */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; justify-content: center; align-items: center; }
         
         .modal-content { 
@@ -265,6 +265,8 @@
             flex-shrink: 0; 
             overflow: hidden; 
             text-overflow: ellipsis; 
+            cursor: help; 
+            border-bottom: 1px dotted #10b981; /* Dotted line indicates hoverability */
         }
         .db-badges { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; overflow: hidden; }
         .db-meta-text { font-size: 0.8em; color: #38bdf8; font-weight: bold; margin-left: auto; white-space: nowrap; display: flex; align-items: center; flex-shrink: 0; }
@@ -273,17 +275,17 @@
         .db-mini-thumb:hover { transform: scale(1.15); border-color: #38bdf8; }
         .db-actions { display: flex; gap: 8px; flex-direction: row; align-items: center; flex-shrink: 0; }
 
-        /* --- 🖱️ MOUSE-TRACKING HOVER POPUP (SMALLER) --- */
+        /* --- 🖱️ MOUSE-TRACKING HOVER POPUPS --- */
         .hover-popup {
             display: none;
             position: fixed;
-            z-index: 9999;
+            z-index: 10001; 
             background: #0f172a;
             border: 2px solid #38bdf8;
             border-radius: 8px;
             padding: 6px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-            pointer-events: none; 
+            pointer-events: none; /* Crucial: Allows mouse to keep moving freely for images */
             width: auto;
             max-width: 320px; 
         }
@@ -295,6 +297,45 @@
             object-fit: contain;
             background: #000;
         }
+
+        /* --- INTERACTIVE SCROLLABLE OPS POPUP --- */
+        .ops-popup {
+            pointer-events: auto; /* ALLOWS INTERACTION & SCROLLING */
+            max-width: 450px; 
+            width: auto;
+            padding: 12px;
+            padding-top: 0; /* Let sticky header touch top */
+            border: 2px solid #10b981; 
+            color: #f8fafc;
+            font-size: 0.85em;
+            max-height: 50vh; /* Prevents going off screen */
+            overflow-y: auto;
+        }
+        /* Custom Scrollbar for Ops Popup */
+        .ops-popup::-webkit-scrollbar { width: 8px; }
+        .ops-popup::-webkit-scrollbar-track { background: #0f172a; border-radius: 0 8px 8px 0; }
+        .ops-popup::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .ops-popup::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .ops-popup table { 
+            width: 100%; 
+            min-width: 0 !important; 
+            border-collapse: collapse; 
+        }
+        .ops-thead {
+            position: sticky; 
+            top: 0; 
+            background: #0f172a; 
+            box-shadow: 0 4px 6px -4px #10b981; 
+            z-index: 5;
+        }
+        .ops-popup th, .ops-popup td { 
+            padding: 6px; 
+            border-bottom: 1px dashed #334155; 
+            text-align: left; 
+        }
+        .ops-popup th { color: #10b981; padding-top: 12px;}
+        .ops-popup td.smv { text-align: right; color: #38bdf8; font-weight: bold; }
 
         /* --- USER GUIDE MODAL STYLES --- */
         .guide-grid {
@@ -351,6 +392,16 @@
 
         body.light-mode .modal-header { border-bottom-color: #cbd5e1; }
         body.light-mode .hover-popup { background: #ffffff; border-color: #cbd5e1; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        
+        body.light-mode .ops-popup { border-color: #059669; color: #0f172a; }
+        body.light-mode .ops-thead { background: #ffffff; } /* Sticky header light background */
+        body.light-mode .ops-popup::-webkit-scrollbar-track { background: #ffffff; }
+        body.light-mode .ops-popup::-webkit-scrollbar-thumb { background: #cbd5e1; }
+        body.light-mode .ops-popup::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body.light-mode .ops-popup th, body.light-mode .ops-popup td { border-bottom-color: #cbd5e1; }
+        body.light-mode .ops-popup th { color: #059669; }
+        body.light-mode .ops-popup td.smv { color: #0284c7; }
+
         body.light-mode .db-card, body.light-mode .guide-card { background: #f8fafc; border-color: #cbd5e1; }
         body.light-mode .guide-card ul { color: #334155; }
         body.light-mode .guide-card code { background: #e2e8f0; color: #d97706; }
@@ -429,7 +480,7 @@
                             <div class="custom-dropdown-container" onmouseleave="hideDropdown('cutDropdown')">
                                 <input type="text" id="cuttingProcess" autocomplete="off" placeholder="Optional (e.g. Laser Cutting)" 
                                     onmouseenter="showDropdown('cutDropdown')" onfocus="showDropdown('cutDropdown')" 
-                                    oninput="saveMetaData()" onchange="saveCustomProcesses()">
+                                    oninput="saveMetaData()" onchange="saveCustomProcesses()" onclick="try { this.showPicker(); } catch(e) {}">
                                 <div class="custom-dropdown-list" id="cutDropdown"></div>
                             </div>
                             <button class="btn-top" onclick="clearCustomList('cut')" title="Clear saved history" style="background: #ef4444; padding: 10px; margin: 0; font-size: 0.8em;">✖</button>
@@ -443,7 +494,7 @@
                             <div class="custom-dropdown-container" onmouseleave="hideDropdown('assyDropdown')">
                                 <input type="text" id="assemblyProcess" autocomplete="off" placeholder="Optional (e.g. Cold Process)" 
                                     onmouseenter="showDropdown('assyDropdown')" onfocus="showDropdown('assyDropdown')" 
-                                    oninput="saveMetaData()" onchange="saveCustomProcesses()">
+                                    oninput="saveMetaData()" onchange="saveCustomProcesses()" onclick="try { this.showPicker(); } catch(e) {}">
                                 <div class="custom-dropdown-list" id="assyDropdown"></div>
                             </div>
                             <button class="btn-top" onclick="clearCustomList('assy')" title="Clear saved history" style="background: #ef4444; padding: 10px; margin: 0; font-size: 0.8em;">✖</button>
@@ -662,21 +713,30 @@
                     <ul>
                         <li><b>Save to Cloud:</b> Enter an Item Number and click <code>💾 Save to Cloud</code> to store it in the Google Sheet.</li>
                         <li><b>Two-Way Search:</b> Inside <code>🔍 Load DB</code>, use the left bar to filter by style/process/notes, and the right bar to find specific operations.</li>
+                        <li><b>Quick Preview:</b> Hover over any blue Item Name in the database to instantly see its operation list. Move your mouse into the list to scroll!</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 🖱️ MOUSE-TRACKING HOVER POPUP (SMALLER) -->
+    <!-- 🖱️ MOUSE-TRACKING HOVER POPUP FOR IMAGES -->
     <div id="hoverPopup" class="hover-popup">
         <img id="hoverPopupImg" src="" alt="Preview">
+    </div>
+
+    <!-- 🖱️ INTERACTIVE SCROLLABLE POPUP FOR OPERATIONS LIST -->
+    <div id="hoverOpsPopup" class="hover-popup ops-popup" 
+         onmouseenter="clearTimeout(opsPopupTimeout)" 
+         onmouseleave="closeOpsPopupDelay()">
+        <div id="hoverOpsContent"></div>
     </div>
 
 <script>
     let operationsData = [];
     let sampleImages = [];
     let historyStack = [];
+    let opsPopupTimeout; // Used for interactive scrollable hover
 
     // The Google Web App URL
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyKFcBI3wbWgpgIYrYeksBjtLmdGDy7-A1Hg3ZskznD73wPG3NJw4Peq0pwuOnyZw8X/exec";
@@ -741,13 +801,10 @@
                 if (item.kind === 'file' && item.type.startsWith('image/')) {
                     const file = item.getAsFile();
                     
-                    // Check if AI Scanner tab is currently open
                     const aiTab = document.getElementById('tabAIContent');
                     if (aiTab && aiTab.classList.contains('active')) {
-                        // Run AI OCR Scanner
                         processOcrFile(file);
                     } else {
-                        // Regular Sample Photo Upload
                         const reader = new FileReader();
                         reader.onload = function (event) {
                             if(sampleImages.length < 6) {
@@ -768,6 +825,7 @@
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 if(typeof closeImagePopup === 'function') closeImagePopup();
+                if(typeof closeOpsPopup === 'function') closeOpsPopup();
                 if(typeof closeGuideModal === 'function') closeGuideModal();
                 if(typeof closeLoadModal === 'function') closeLoadModal();
             }
@@ -788,6 +846,7 @@
             dsiMachines = dsiMachines.concat(customMachines);
         }
         populateMachineDropdown();
+        loadCustomProcesses();
 
         const savedOps = localStorage.getItem("dsi_costing_ops");
         const savedMeta = localStorage.getItem("dsi_costing_meta");
@@ -831,17 +890,16 @@
         const target = document.getElementById("hoverPopupImg");
         target.src = src;
         popup.style.display = "block";
-        moveImagePopup(e); // Initialize position instantly
+        moveImagePopup(e); 
     }
 
     function moveImagePopup(e) {
         const popup = document.getElementById("hoverPopup");
         if (popup.style.display === "none") return;
         
-        let x = e.clientX + 15; // Offset slightly so it doesn't block cursor
+        let x = e.clientX + 15; 
         let y = e.clientY + 15;
         
-        // Prevent going off-screen right/bottom
         const rect = popup.getBoundingClientRect();
         if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 15;
         if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 15;
@@ -854,6 +912,57 @@
         const popup = document.getElementById("hoverPopup");
         popup.style.display = "none";
         document.getElementById("hoverPopupImg").src = "";
+    }
+
+    // --- 🖱️ INTERACTIVE SCROLLABLE OPERATIONS LIST POPUP ---
+    function openOpsPopup(e, entryId) {
+        clearTimeout(opsPopupTimeout); // Don't close if hovering back in
+        
+        const entry = loadedCloudDB.find(x => String(x.id) === String(entryId));
+        if (!entry || !entry.ops || entry.ops.length === 0) return;
+
+        const popup = document.getElementById("hoverOpsPopup");
+        const content = document.getElementById("hoverOpsContent");
+        
+        let html = '<table><thead class="ops-thead"><tr><th>Operation Name</th><th style="text-align:right">SMV</th></tr></thead><tbody>';
+        
+        // Render ALL operations (no slicing)
+        entry.ops.forEach(op => {
+            html += `<tr><td>${op.name}</td><td class="smv">${Number(op.smv).toFixed(4)}</td></tr>`;
+        });
+        
+        html += '</tbody></table>';
+        content.innerHTML = html;
+        popup.style.display = "block";
+        moveOpsPopup(e);
+    }
+
+    function moveOpsPopup(e) {
+        const popup = document.getElementById("hoverOpsPopup");
+        // If popup is hidden OR user is actively hovering the popup itself, freeze it!
+        if (popup.style.display === "none" || popup.matches(':hover')) return;
+        
+        let x = e.clientX + 15;
+        let y = e.clientY + 15;
+        
+        const rect = popup.getBoundingClientRect();
+        if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 15;
+        if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 15;
+
+        popup.style.left = x + "px";
+        popup.style.top = y + "px";
+    }
+
+    function closeOpsPopupDelay() {
+        // Gives the user 250ms to move their mouse from the text into the popup
+        opsPopupTimeout = setTimeout(() => {
+            document.getElementById("hoverOpsPopup").style.display = "none";
+            document.getElementById("hoverOpsContent").innerHTML = "";
+        }, 250); 
+    }
+    
+    function closeOpsPopup() {
+        document.getElementById("hoverOpsPopup").style.display = "none";
     }
 
     // --- GUIDE MODAL ---
@@ -890,8 +999,8 @@
         if (cutVal) {
             let cutList = JSON.parse(localStorage.getItem("dsi_custom_cut") || "[]");
             if (!cutList.includes(cutVal)) { 
-                cutList.unshift(cutVal); // Add to top
-                localStorage.setItem("dsi_custom_cut", JSON.stringify(cutList.slice(0, 10))); // Keep last 10
+                cutList.unshift(cutVal); 
+                localStorage.setItem("dsi_custom_cut", JSON.stringify(cutList.slice(0, 10))); 
             }
         }
         if (assyVal) {
@@ -1116,7 +1225,11 @@
             return `
             <div class="db-card">
                 <div class="db-card-content">
-                    <span class="db-card-name" title="${entry.meta.name}">👟 ${entry.meta.name}</span>
+                    <!-- SCROLLABLE INTERACTIVE PREVIEW TRIGGER -->
+                    <span class="db-card-name" style="cursor: help; border-bottom: 1px dotted #10b981;"
+                          onmouseenter="openOpsPopup(event, '${entry.id}')" 
+                          onmousemove="moveOpsPopup(event)" 
+                          onmouseleave="closeOpsPopupDelay()">👟 ${entry.meta.name}</span>
                     <div class="db-badges">${cutBadge} ${assyBadge} ${noteBadge}</div>
                     <span class="db-meta-text">📅 ${cleanDate} &nbsp;|&nbsp; ⚙️ ${entry.ops ? entry.ops.length : 0} Ops</span>
                     <div class="db-images">${imgHtml}</div>
@@ -1480,7 +1593,6 @@
             gal.innerHTML = `<span class="empty-msg" style="margin:auto; font-size:0.9em; pointer-events: none; color: #94a3b8;">📸 Drag & Drop photos, press <span style="color:#10b981;">Ctrl+V</span> to paste, or <span style="color:#38bdf8;">Browse</span></span>`;
             return;
         }
-        // AUTOMATIC HOVER TRACKING EVENTS INJECTED HERE
         gal.innerHTML = sampleImages.map((src, i) => `
             <div style="position:relative; pointer-events: auto;">
                 <img src="${src}" class="sample-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()">
