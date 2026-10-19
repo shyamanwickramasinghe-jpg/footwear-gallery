@@ -83,6 +83,19 @@
             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
         .input-group textarea { resize: vertical; min-height: 60px; }
+
+        /* --- CUSTOM SMART DROPDOWN --- */
+        .custom-dropdown-container { position: relative; width: 100%; }
+        .custom-dropdown-list {
+            display: none; position: absolute; top: 100%; left: 0; width: 100%;
+            background: #1e293b; border: 1px solid #38bdf8; border-radius: 6px;
+            z-index: 100; max-height: 200px; overflow-y: auto; box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            margin-top: 4px;
+        }
+        .custom-dropdown-list.show { display: block; }
+        .custom-dropdown-item { padding: 10px 12px; cursor: pointer; color: #f8fafc; border-bottom: 1px solid #334155; font-size: 0.9em; transition: background 0.15s;}
+        .custom-dropdown-item:hover { background: #38bdf8; color: #000; font-weight: bold;}
+        .custom-dropdown-item:last-child { border-bottom: none; }
         
         .image-gallery-container { flex: 2; min-width: 400px; display: flex; flex-direction: column; gap: 4px; border-left: 1px dashed #334155; padding-left: 20px; transition: border-color 0.3s;}
         .sample-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #475569; cursor: crosshair; transition: transform 0.15s, border-color 0.15s; }
@@ -270,7 +283,7 @@
             border-radius: 8px;
             padding: 6px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-            pointer-events: none; /* Crucial: Allows mouse to keep moving freely */
+            pointer-events: none; 
             width: auto;
             max-width: 320px; 
         }
@@ -315,6 +328,12 @@
         body.light-mode .input-group input, body.light-mode .input-group textarea, body.light-mode .search-box, body.light-mode .form-row td input, body.light-mode .form-row td select, body.light-mode .db-search, body.light-mode .bulk-input { 
             background: #f8fafc; border-color: #cbd5e1; color: #0f172a; 
         }
+        
+        /* Light Mode Custom Dropdown */
+        body.light-mode .custom-dropdown-list { background: #f8fafc; border-color: #cbd5e1; }
+        body.light-mode .custom-dropdown-item { color: #0f172a; border-bottom-color: #e2e8f0; }
+        body.light-mode .custom-dropdown-item:hover { background: #e2e8f0; color: #0ea5e9;}
+
         body.light-mode .image-gallery-container { border-left-color: #cbd5e1; }
         body.light-mode .table-toolbar h3, body.light-mode .modal-header h3 { color: #0f172a; }
         body.light-mode .bulk-wrapper { background: #f8fafc; border-color: #cbd5e1; }
@@ -402,14 +421,35 @@
                 </div>
                 
                 <div style="display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap;">
+                    
                     <div class="input-group" style="flex: 1; min-width: 150px;">
                         <label>Cutting Process Name</label>
-                        <input type="text" id="cuttingProcess" placeholder="Optional (e.g. Laser Cutting)" oninput="saveMetaData()">
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <!-- CUSTOM SMART HOVER DROPDOWN -->
+                            <div class="custom-dropdown-container" onmouseleave="hideDropdown('cutDropdown')">
+                                <input type="text" id="cuttingProcess" autocomplete="off" placeholder="Optional (e.g. Laser Cutting)" 
+                                    onmouseenter="showDropdown('cutDropdown')" onfocus="showDropdown('cutDropdown')" 
+                                    oninput="saveMetaData()" onchange="saveCustomProcesses()">
+                                <div class="custom-dropdown-list" id="cutDropdown"></div>
+                            </div>
+                            <button class="btn-top" onclick="clearCustomList('cut')" title="Clear saved history" style="background: #ef4444; padding: 10px; margin: 0; font-size: 0.8em;">✖</button>
+                        </div>
                     </div>
+                    
                     <div class="input-group" style="flex: 1; min-width: 150px;">
                         <label>Assembly Process Name</label>
-                        <input type="text" id="assemblyProcess" placeholder="Optional (e.g. Cold Process)" oninput="saveMetaData()">
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <!-- CUSTOM SMART HOVER DROPDOWN -->
+                            <div class="custom-dropdown-container" onmouseleave="hideDropdown('assyDropdown')">
+                                <input type="text" id="assemblyProcess" autocomplete="off" placeholder="Optional (e.g. Cold Process)" 
+                                    onmouseenter="showDropdown('assyDropdown')" onfocus="showDropdown('assyDropdown')" 
+                                    oninput="saveMetaData()" onchange="saveCustomProcesses()">
+                                <div class="custom-dropdown-list" id="assyDropdown"></div>
+                            </div>
+                            <button class="btn-top" onclick="clearCustomList('assy')" title="Clear saved history" style="background: #ef4444; padding: 10px; margin: 0; font-size: 0.8em;">✖</button>
+                        </div>
                     </div>
+
                 </div>
 
                 <div class="input-group" style="margin-top: 10px;">
@@ -727,9 +767,9 @@
         // --- ESCAPE KEY TO CLOSE MODALS ---
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
-                closeImagePopup();
-                closeGuideModal();
-                closeLoadModal();
+                if(typeof closeImagePopup === 'function') closeImagePopup();
+                if(typeof closeGuideModal === 'function') closeGuideModal();
+                if(typeof closeLoadModal === 'function') closeLoadModal();
             }
         });
 
@@ -819,6 +859,61 @@
     // --- GUIDE MODAL ---
     function openGuideModal() { document.getElementById("guideModal").style.display = "flex"; }
     function closeGuideModal() { document.getElementById("guideModal").style.display = "none"; }
+
+    // --- CUSTOM SMART DROPDOWN LOGIC ---
+    function showDropdown(id) {
+        const dropdown = document.getElementById(id);
+        if (id === 'cutDropdown') {
+            const list = JSON.parse(localStorage.getItem("dsi_custom_cut") || "[]");
+            dropdown.innerHTML = list.length ? list.map(v => `<div class="custom-dropdown-item" onclick="selectProcess('cuttingProcess', '${v.replace(/'/g, "\\'")}')">${v}</div>`).join('') : '<div style="padding:10px; color:#94a3b8; font-size:0.85em;">No saved history</div>';
+        } else if (id === 'assyDropdown') {
+            const list = JSON.parse(localStorage.getItem("dsi_custom_assy") || "[]");
+            dropdown.innerHTML = list.length ? list.map(v => `<div class="custom-dropdown-item" onclick="selectProcess('assemblyProcess', '${v.replace(/'/g, "\\'")}')">${v}</div>`).join('') : '<div style="padding:10px; color:#94a3b8; font-size:0.85em;">No saved history</div>';
+        }
+        dropdown.classList.add('show');
+    }
+
+    function hideDropdown(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+
+    function selectProcess(inputId, val) {
+        document.getElementById(inputId).value = val;
+        saveMetaData();
+        hideDropdown(inputId === 'cuttingProcess' ? 'cutDropdown' : 'assyDropdown');
+    }
+
+    function saveCustomProcesses() {
+        const cutVal = document.getElementById("cuttingProcess").value.trim();
+        const assyVal = document.getElementById("assemblyProcess").value.trim();
+
+        if (cutVal) {
+            let cutList = JSON.parse(localStorage.getItem("dsi_custom_cut") || "[]");
+            if (!cutList.includes(cutVal)) { 
+                cutList.unshift(cutVal); // Add to top
+                localStorage.setItem("dsi_custom_cut", JSON.stringify(cutList.slice(0, 10))); // Keep last 10
+            }
+        }
+        if (assyVal) {
+            let assyList = JSON.parse(localStorage.getItem("dsi_custom_assy") || "[]");
+            if (!assyList.includes(assyVal)) { 
+                assyList.unshift(assyVal); 
+                localStorage.setItem("dsi_custom_assy", JSON.stringify(assyList.slice(0, 10))); 
+            }
+        }
+    }
+
+    function clearCustomList(type) {
+        if (type === 'cut') {
+            localStorage.removeItem("dsi_custom_cut");
+            document.getElementById("cuttingProcess").value = "";
+            showDropdown('cutDropdown');
+        } else if (type === 'assy') {
+            localStorage.removeItem("dsi_custom_assy");
+            document.getElementById("assemblyProcess").value = "";
+            showDropdown('assyDropdown');
+        }
+    }
 
     // --- FULL ROW COLOR MAPPING FOR WORK CENTERS ---
     function getRowStyle(text) {
@@ -1003,7 +1098,6 @@
         }
 
         container.innerHTML = filtered.map(entry => {
-            // AUTOMATIC HOVER TRACKING EVENTS INJECTED HERE
             const imgHtml = (entry.imgs || []).slice(0, 4).map(img => 
                 `<img src="${img}" class="db-mini-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()">`
             ).join("");
@@ -1230,13 +1324,11 @@
         dropText.innerHTML = `⏳ Enhancing Image...`;
 
         try {
-            // --- IMAGE PREPROCESSING (Fixes Yellow Highlights) ---
             const img = new Image();
             img.src = URL.createObjectURL(file);
             await new Promise((resolve) => { img.onload = resolve; });
 
             const canvas = document.createElement('canvas');
-            // UPSCALE BY 3x TO PREVENT "0.30" TURNING INTO "0.20"
             const scale = 3;
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
@@ -1249,11 +1341,9 @@
             const data = imageData.data;
             for (let i = 0; i < data.length; i += 4) {
                 let r = data[i], g = data[i+1], b = data[i+2];
-                // DETECT HIGHLIGHTER YELLOW AND MAKE WHITE
                 if (r > 150 && g > 150 && b < 100) {
                     data[i] = 255; data[i+1] = 255; data[i+2] = 255;
                 } else {
-                    // GRAYSCALE HIGH CONTRAST
                     let gray = (r * 0.299) + (g * 0.587) + (b * 0.114);
                     let finalColor = gray < 160 ? 0 : 255;
                     data[i] = data[i+1] = data[i+2] = finalColor;
@@ -1264,7 +1354,6 @@
 
             dropText.innerHTML = `⏳ Analyzing Image...`;
 
-            // --- RUN OCR ON ENHANCED IMAGE ---
             const result = await Tesseract.recognize(processedImage, 'eng');
             const lines = result.data.text.split('\n');
 
@@ -1275,7 +1364,6 @@
                 let lineStr = line.trim();
                 if (!lineStr) return;
 
-                // Fix common OCR issues (broken decimals, Os read as 0s)
                 lineStr = lineStr.replace(/(?:\b| )[Oo]\s*([.,]\s*\d+)\s*$/, ' 0$1');
                 lineStr = lineStr.replace(/\b0\s+[.,]?\s*(\d+)\s*$/, '0.$1');
                 lineStr = lineStr.replace(/(\d)[.,]\s+(\d+)\s*$/, '$1.$2');
@@ -1323,7 +1411,6 @@
                 operationsData = operationsData.concat(newOps);
                 renderTable();
                 dropText.innerHTML = `✅ Added ${newOps.length} ops!`;
-                // alert(`Successfully extracted ${newOps.length} operations!`);
             } else {
                 dropText.innerHTML = `⚠️ No ops found.`;
                 alert("Could not extract operations and SMVs. Please ensure the image is clear.");
