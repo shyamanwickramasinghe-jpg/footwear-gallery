@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light">
     <title>DSI FOOTTECH — Operation Bulletin</title>
-    <!-- ADVANCED EXCEL LIBRARIES -->
+    <!-- ADVANCED EXCEL & AI OCR LIBRARIES -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -84,7 +85,7 @@
         .input-group textarea { resize: vertical; min-height: 60px; }
         
         .image-gallery-container { flex: 2; min-width: 400px; display: flex; flex-direction: column; gap: 4px; border-left: 1px dashed #334155; padding-left: 20px; transition: border-color 0.3s;}
-        .sample-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #475569; cursor: zoom-in; transition: transform 0.15s, border-color 0.15s; }
+        .sample-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #475569; cursor: crosshair; transition: transform 0.15s, border-color 0.15s; }
         .sample-thumb:hover { transform: scale(1.04); border-color: #38bdf8; }
 
         /* Drag & Drop Styles */
@@ -112,7 +113,16 @@
             cursor: pointer;
         }
 
-        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; width: 100%; }
+        /* --- TABS SYSTEM --- */
+        .tab-bar { display: flex; width: 100%; border-bottom: 2px solid #334155; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 12px; background: transparent; color: #94a3b8; border: none; font-weight: bold; cursor: pointer; font-size: 1em; transition: 0.3s; border-radius: 8px 8px 0 0; }
+        .tab-btn.active { background: #1e293b; color: #38bdf8; border-bottom: 3px solid #38bdf8; }
+        .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: #fff; }
+        
+        .tab-content { display: none; width: 100%; flex-direction: column; gap: 15px; }
+        .tab-content.active { display: flex; }
+
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 10px;}
         .table-toolbar h3 { margin: 0; color: #f8fafc; transition: color 0.3s; }
         
         .bulk-wrapper { background: #1e293b; padding: 4px 10px; border-radius: 6px; border: 1px solid #475569; display: flex; gap: 8px; align-items: center; transition: background-color 0.3s, border-color 0.3s;}
@@ -193,7 +203,7 @@
         .p-val { color: #10b981; font-weight: bold; font-family: monospace; font-size: 1.1em; text-align: right; display: block; }
         .sum-total { color: #f8fafc; transition: color 0.3s; }
 
-        /* --- DATABASE SEARCH MODAL (ULTRA-WIDE SINGLE LINE) --- */
+        /* --- DATABASE SEARCH MODAL (ULTRA-WIDE SINGLE LINE FIX) --- */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; justify-content: center; align-items: center; }
         
         .modal-content { 
@@ -201,7 +211,7 @@
             border: 1px solid #38bdf8; 
             border-radius: 12px; 
             width: 96%; 
-            max-width: 1350px; 
+            max-width: 1450px; 
             padding: 20px; 
             display: flex; 
             flex-direction: column; 
@@ -238,7 +248,7 @@
             font-size: 1.05em; 
             font-weight: bold; 
             white-space: nowrap; 
-            width: 195px; 
+            width: 250px; 
             flex-shrink: 0; 
             overflow: hidden; 
             text-overflow: ellipsis; 
@@ -246,63 +256,31 @@
         .db-badges { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; overflow: hidden; }
         .db-meta-text { font-size: 0.8em; color: #38bdf8; font-weight: bold; margin-left: auto; white-space: nowrap; display: flex; align-items: center; flex-shrink: 0; }
         .db-images { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
-        .db-mini-thumb { width: 30px; height: 30px; object-fit: cover; border-radius: 4px; border: 1px solid #475569; cursor: zoom-in; transition: transform 0.15s, border-color 0.15s; }
+        .db-mini-thumb { width: 30px; height: 30px; object-fit: cover; border-radius: 4px; border: 1px solid #475569; cursor: crosshair; transition: transform 0.15s, border-color 0.15s; }
         .db-mini-thumb:hover { transform: scale(1.15); border-color: #38bdf8; }
         .db-actions { display: flex; gap: 8px; flex-direction: row; align-items: center; flex-shrink: 0; }
 
-        /* --- MEDIUM-SIZED IMAGE POPUP CARD (NOT FULL SCREEN) --- */
-        .img-popup-overlay {
+        /* --- 🖱️ MOUSE-TRACKING HOVER POPUP (SMALLER) --- */
+        .hover-popup {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.65);
-            z-index: 2500;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        .img-popup-card {
+            z-index: 9999;
             background: #0f172a;
             border: 2px solid #38bdf8;
-            border-radius: 12px;
-            padding: 15px;
-            width: 90%;
-            max-width: 580px; /* Medium size - big enough to identify well, not full screen */
-            box-shadow: 0 15px 35px rgba(0,0,0,0.85);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            animation: popIn 0.15s ease-out;
-        }
-        @keyframes popIn {
-            from { transform: scale(0.92); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        .img-popup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 8px;
-        }
-        .img-popup-header h4 { margin: 0; color: #38bdf8; font-size: 1em; }
-        .img-popup-body {
-            background: #000;
             border-radius: 8px;
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid #1e293b;
+            padding: 6px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+            pointer-events: none; /* Crucial: Allows mouse to keep moving freely */
+            width: auto;
+            max-width: 320px; 
         }
-        .img-popup-content {
+        .hover-popup img {
             max-width: 100%;
-            max-height: 440px;
-            border-radius: 6px;
+            max-height: 280px; 
+            border-radius: 4px;
+            display: block;
             object-fit: contain;
+            background: #000;
         }
 
         /* --- USER GUIDE MODAL STYLES --- */
@@ -331,7 +309,7 @@
         body.light-mode { background: #f1f5f9; color: #0f172a; }
         body.light-mode .top-bar { background: #ffffff; border-bottom-color: #cbd5e1; }
         body.light-mode .storage-path { background: #f8fafc; border-bottom-color: #cbd5e1; color: #475569; }
-        body.light-mode .info-panel, body.light-mode .table-panel, body.light-mode .modal-content, body.light-mode .img-popup-card { background: #ffffff; border-color: #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        body.light-mode .info-panel, body.light-mode .table-panel, body.light-mode .modal-content { background: #ffffff; border-color: #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         
         body.light-mode .input-group label { color: #475569; }
         body.light-mode .input-group input, body.light-mode .input-group textarea, body.light-mode .search-box, body.light-mode .form-row td input, body.light-mode .form-row td select, body.light-mode .db-search, body.light-mode .bulk-input { 
@@ -352,8 +330,8 @@
         body.light-mode .summary-table tr:last-child td { border-top-color: #cbd5e1; }
         body.light-mode .sum-total { color: #0f172a; }
 
-        body.light-mode .modal-header, body.light-mode .img-popup-header { border-bottom-color: #cbd5e1; }
-        body.light-mode .img-popup-body { background: #f8fafc; border-color: #cbd5e1; }
+        body.light-mode .modal-header { border-bottom-color: #cbd5e1; }
+        body.light-mode .hover-popup { background: #ffffff; border-color: #cbd5e1; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         body.light-mode .db-card, body.light-mode .guide-card { background: #f8fafc; border-color: #cbd5e1; }
         body.light-mode .guide-card ul { color: #334155; }
         body.light-mode .guide-card code { background: #e2e8f0; color: #d97706; }
@@ -365,11 +343,19 @@
         body.light-mode .col-comp { color: #dc2626; }
         body.light-mode .db-meta-text { color: #0284c7; }
 
-        /* Light Mode Drop Zones */
+        /* Light Mode Drop Zones & Tabs */
         body.light-mode #imgDropZone { background: #f8fafc; border-color: #cbd5e1; }
         body.light-mode #imgDropZone.dragover, body.light-mode #imgDropZone:hover { background: #e2e8f0; }
         body.light-mode #excelDropZone { background: #f8fafc; border-color: #cbd5e1; }
         body.light-mode #excelDropZone.dragover, body.light-mode #excelDropZone:hover { background: #e2e8f0; border-color: #8b5cf6 !important; }
+        body.light-mode #ocrDropZone { background: #fdf2f8 !important; border-color: #fbcfe8 !important; }
+        body.light-mode #ocrDropZone.dragover, body.light-mode #ocrDropZone:hover { background: #fce7f3 !important; border-color: #ec4899 !important; }
+        body.light-mode #ocrDropText { color: #db2777 !important; }
+
+        body.light-mode .tab-bar { border-bottom-color: #cbd5e1; }
+        body.light-mode .tab-btn { color: #475569; }
+        body.light-mode .tab-btn.active { background: #f8fafc; color: #0284c7; border-bottom-color: #0284c7; }
+        body.light-mode .tab-btn:hover:not(.active) { background: #e2e8f0; color: #0f172a; }
 
         @media (max-width: 900px) {
             .info-panel { flex-direction: column; }
@@ -449,49 +435,76 @@
         </div>
 
         <div class="table-panel">
-            <div class="table-toolbar">
-                <div style="display:flex; gap:15px; align-items:center; flex-wrap: wrap;">
-                    <h3>Operation Breakdown</h3>
-                    <!-- BULK SECTION ASSIGNER -->
-                    <div class="bulk-wrapper">
-                        <input type="text" id="bulkSectionInput" class="bulk-input" list="sectionList" placeholder="Work Center (e.g. Cutting)">
-                        <datalist id="sectionList">
-                            <option value="Cutting"></option>
-                            <option value="Preparation"></option>
-                            <option value="Sewing"></option>
-                            <option value="Assembly"></option>
-                            <option value="Finishing"></option>
-                        </datalist>
-                        <button class="btn-top" style="background:#0ea5e9; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkSection()">🏷️ Apply WC</button>
-                    </div>
+            
+            <!-- TABS NAVIGATION -->
+            <div class="tab-bar">
+                <button class="tab-btn active" id="tabBtnManual" onclick="switchTab('manual')">⌨️ Standard Entry & Excel</button>
+                <button class="tab-btn" id="tabBtnAI" onclick="switchTab('ai')">🤖 AI Image Scanner (Auto-Extract)</button>
+            </div>
 
-                    <!-- BULK COMPONENT ASSIGNER -->
-                    <div class="bulk-wrapper">
-                        <input type="text" id="bulkComponentInput" class="bulk-input" list="componentList" placeholder="Component (e.g. CU)" style="width: 140px;">
-                        <datalist id="componentList">
-                            <option value="CU"></option>
-                            <option value="CI"></option>
-                            <option value="CS"></option>
-                            <option value="II"></option>
-                            <option value="SS"></option>
-                            <option value="UU"></option>
-                            <option value="AA"></option>
-                        </datalist>
-                        <button class="btn-top" style="background:#ef4444; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkComponent()">🏷️ Apply Component</button>
+            <!-- TAB 1: MANUAL ENTRY & EXCEL UPLOAD -->
+            <div id="tabManualContent" class="tab-content active">
+                <div class="table-toolbar">
+                    <div style="display:flex; gap:15px; align-items:center; flex-wrap: wrap;">
+                        <h3>Operation Breakdown</h3>
+                        <!-- BULK SECTION ASSIGNER -->
+                        <div class="bulk-wrapper">
+                            <input type="text" id="bulkSectionInput" class="bulk-input" list="sectionList" placeholder="Work Center (e.g. Cutting)">
+                            <datalist id="sectionList">
+                                <option value="Cutting"></option>
+                                <option value="Preparation"></option>
+                                <option value="Sewing"></option>
+                                <option value="Assembly"></option>
+                                <option value="Finishing"></option>
+                            </datalist>
+                            <button class="btn-top" style="background:#0ea5e9; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkSection()">🏷️ Apply WC</button>
+                        </div>
+
+                        <!-- BULK COMPONENT ASSIGNER -->
+                        <div class="bulk-wrapper">
+                            <input type="text" id="bulkComponentInput" class="bulk-input" list="componentList" placeholder="Component (e.g. CU)" style="width: 140px;">
+                            <datalist id="componentList">
+                                <option value="CU"></option>
+                                <option value="CI"></option>
+                                <option value="CS"></option>
+                                <option value="II"></option>
+                                <option value="SS"></option>
+                                <option value="UU"></option>
+                                <option value="AA"></option>
+                            </datalist>
+                            <button class="btn-top" style="background:#ef4444; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkComponent()">🏷️ Apply Component</button>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 5px;">
+                        <!-- DRAG AND DROP EXCEL IMPORT -->
+                        <div class="drop-zone" id="excelDropZone" style="padding: 8px 15px; border-radius: 20px; border: 1px dashed #8b5cf6; background: rgba(139, 92, 246, 0.1); width: 250px;">
+                            <span class="drop-zone-text" id="excelDropText" style="font-size: 0.85em; color: #c4b5fd;">📥 Drag & Drop Excel or <span style="color:#a78bfa;">Browse</span></span>
+                            <input type="file" id="excelUpload" accept=".xlsx, .xls" class="drop-zone-input" onchange="handleExcelImport(event)">
+                        </div>
+                        <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search operations..." oninput="renderTable()">
                     </div>
                 </div>
-                
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 5px;">
-                    <!-- DRAG AND DROP EXCEL IMPORT -->
-                    <div class="drop-zone" id="excelDropZone" style="padding: 8px 15px; border-radius: 20px; border: 1px dashed #8b5cf6; background: rgba(139, 92, 246, 0.1); width: 250px;">
-                        <span class="drop-zone-text" id="excelDropText" style="font-size: 0.85em; color: #c4b5fd;">📥 Drag & Drop Excel or <span style="color:#a78bfa;">Browse</span></span>
-                        <input type="file" id="excelUpload" accept=".xlsx, .xls" class="drop-zone-input" onchange="handleExcelImport(event)">
+            </div>
+
+            <!-- TAB 2: AI IMAGE SCANNER -->
+            <div id="tabAIContent" class="tab-content">
+                <div class="table-toolbar" style="margin-bottom: 0;">
+                    <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; width: 100%;">
+                        <div style="flex: 1; min-width: 300px; padding-right: 20px;">
+                            <h3 style="color: #ec4899; margin-bottom: 5px;">📷 AI Operation Scanner (Beta)</h3>
+                            <p style="color: #94a3b8; font-size: 0.9em; margin: 0; line-height: 1.5;">Have a picture of a table with Operations and SMVs? The AI will read the text and automatically generate the rows below.</p>
+                        </div>
+                        <div class="drop-zone" id="ocrDropZone" style="padding: 15px 20px; border-radius: 12px; border: 2px dashed #ec4899; background: rgba(236, 72, 153, 0.1); width: 380px;">
+                            <span class="drop-zone-text" id="ocrDropText" style="font-size: 1.05em; color: #f9a8d4;">📥 Drop Image, <span style="color:#ec4899;">Browse</span>, or press <b>Ctrl+V</b></span>
+                            <input type="file" id="ocrUpload" accept="image/*" class="drop-zone-input" onchange="handleOcrUpload(event)">
+                        </div>
                     </div>
-                    <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search operations..." oninput="renderTable()">
                 </div>
             </div>
             
-            <div class="table-container">
+            <!-- SHARED TABLE CONTAINER (Visible for both tabs) -->
+            <div class="table-container" style="margin-top: 15px;">
                 <table id="opsTable">
                     <thead>
                         <tr>
@@ -586,47 +599,38 @@
                     <ul>
                         <li><b>Drag & Drop:</b> Drag up to 6 image files directly into the photo box.</li>
                         <li><b>Clipboard Paste:</b> Copy any image or screenshot and press <code>Ctrl + V</code> anywhere on the page.</li>
-                        <li><b>Preview Picture:</b> Click any thumbnail in the gallery or inside the Cloud DB list to open a clear, medium-sized preview card.</li>
+                        <li><b>Preview Picture:</b> Hover your mouse over any thumbnail to instantly view a larger popup preview.</li>
                     </ul>
                 </div>
                 <div class="guide-card">
-                    <h4>📥 2. Excel Import & Export</h4>
+                    <h4>📥 2. Excel & AI Image Import</h4>
                     <ul>
-                        <li><b>Smart Import:</b> Drag & drop any standard Excel sheet into the purple import zone. It automatically detects <i>Operation Name</i>, <i>SMV</i>, <i>Work Center</i>, and <i>Part</i> columns.</li>
-                        <li><b>Export Bulletin:</b> Click <code>🟢 Export Excel</code> to generate a formatted DSI Operation Bulletin complete with embedded photos and part-wise SMV summaries.</li>
+                        <li><b>Smart Excel Import:</b> Use the "Standard Entry" tab and drop Excel sheets into the purple zone. It detects columns automatically.</li>
+                        <li><b>AI Image Scanner:</b> Click the 🤖 AI Image Scanner tab. Drop an image (or press Ctrl+V) of a simple table into the pink zone, and the AI will extract the text for you!</li>
                     </ul>
                 </div>
                 <div class="guide-card">
                     <h4>🏷️ 3. Bulk Work Center & Part Tagging</h4>
                     <ul>
                         <li>Select multiple operations using the checkboxes on the left of the table.</li>
-                        <li>Type or choose a Work Center (e.g., <i>Cutting</i>, <i>Sewing</i>) or Component Part (e.g., <i>CU</i>, <i>AA</i>) in the toolbar and click <b>Apply</b>.</li>
+                        <li>Type or choose a Work Center (e.g., <i>Cutting</i>) or Component Part (e.g., <i>CU</i>) in the toolbar and click <b>Apply</b>.</li>
                         <li>The Part-Wise SMV Summary table below updates automatically.</li>
                     </ul>
                 </div>
                 <div class="guide-card">
                     <h4>☁️ 4. Cloud Database & Two-Way Search</h4>
                     <ul>
-                        <li><b>Save to Cloud:</b> Enter an Item/Sample Number and click <code>💾 Save to Cloud</code> to store it in the DSI Google Sheet.</li>
-                        <li><b>Two-Way Search:</b> Inside <code>🔍 Load DB</code>, use the left bar to filter by style/process/notes, and the right bar to find bulletins containing specific operations.</li>
-                        <li><b>Admin Password:</b> Deleting rows, clearing data, or removing cloud records requires password <code>9999</code>.</li>
+                        <li><b>Save to Cloud:</b> Enter an Item Number and click <code>💾 Save to Cloud</code> to store it in the Google Sheet.</li>
+                        <li><b>Two-Way Search:</b> Inside <code>🔍 Load DB</code>, use the left bar to filter by style/process/notes, and the right bar to find specific operations.</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MEDIUM-SIZED IMAGE POPUP MODAL (NOT FULL SCREEN) -->
-    <div class="img-popup-overlay" id="imgPopupModal" onclick="closeImagePopup()">
-        <div class="img-popup-card" onclick="event.stopPropagation()">
-            <div class="img-popup-header">
-                <h4>👟 Sample Picture Preview</h4>
-                <button class="btn-close" onclick="closeImagePopup()" title="Close (Esc)">✖</button>
-            </div>
-            <div class="img-popup-body">
-                <img id="imgPopupTarget" class="img-popup-content" src="" alt="Sample Preview">
-            </div>
-        </div>
+    <!-- 🖱️ MOUSE-TRACKING HOVER POPUP (SMALLER) -->
+    <div id="hoverPopup" class="hover-popup">
+        <img id="hoverPopupImg" src="" alt="Preview">
     </div>
 
 <script>
@@ -687,25 +691,35 @@
         }
         setupDropZone('imgUpload', 'imgDropZone');
         setupDropZone('excelUpload', 'excelDropZone');
+        setupDropZone('ocrUpload', 'ocrDropZone'); 
 
-        // --- PASTE FROM CLIPBOARD SETUP ---
+        // --- PASTE FROM CLIPBOARD SETUP (CONTEXTUAL) ---
         document.addEventListener('paste', function (e) {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             for (let index in items) {
                 const item = items[index];
                 if (item.kind === 'file' && item.type.startsWith('image/')) {
-                    const blob = item.getAsFile();
-                    const reader = new FileReader();
-                    reader.onload = function (event) {
-                        if(sampleImages.length < 6) {
-                            sampleImages.push(event.target.result);
-                            localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
-                            renderGallery();
-                        } else {
-                            alert("Maximum 6 images allowed.");
-                        }
-                    };
-                    reader.readAsDataURL(blob);
+                    const file = item.getAsFile();
+                    
+                    // Check if AI Scanner tab is currently open
+                    const aiTab = document.getElementById('tabAIContent');
+                    if (aiTab && aiTab.classList.contains('active')) {
+                        // Run AI OCR Scanner
+                        processOcrFile(file);
+                    } else {
+                        // Regular Sample Photo Upload
+                        const reader = new FileReader();
+                        reader.onload = function (event) {
+                            if(sampleImages.length < 6) {
+                                sampleImages.push(event.target.result);
+                                localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
+                                renderGallery();
+                            } else {
+                                alert("Maximum 6 images allowed.");
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
                 }
             }
         });
@@ -755,27 +769,56 @@
         renderTable();
     });
 
-    // --- IMAGE POPUP & USER GUIDE FUNCTIONS ---
-    function openImagePopup(src) {
-        const modal = document.getElementById("imgPopupModal");
-        const target = document.getElementById("imgPopupTarget");
+    // --- TAB SWITCHING LOGIC ---
+    function switchTab(tabId) {
+        document.getElementById('tabBtnManual').classList.remove('active');
+        document.getElementById('tabBtnAI').classList.remove('active');
+        document.getElementById('tabManualContent').classList.remove('active');
+        document.getElementById('tabAIContent').classList.remove('active');
+
+        if(tabId === 'manual') {
+            document.getElementById('tabBtnManual').classList.add('active');
+            document.getElementById('tabManualContent').classList.add('active');
+        } else if(tabId === 'ai') {
+            document.getElementById('tabBtnAI').classList.add('active');
+            document.getElementById('tabAIContent').classList.add('active');
+        }
+    }
+
+    // --- 🖱️ HOVER-BASED IMAGE POPUP FUNCTIONS ---
+    function openImagePopup(e, src) {
+        const popup = document.getElementById("hoverPopup");
+        const target = document.getElementById("hoverPopupImg");
         target.src = src;
-        modal.style.display = "flex";
+        popup.style.display = "block";
+        moveImagePopup(e); // Initialize position instantly
+    }
+
+    function moveImagePopup(e) {
+        const popup = document.getElementById("hoverPopup");
+        if (popup.style.display === "none") return;
+        
+        let x = e.clientX + 15; // Offset slightly so it doesn't block cursor
+        let y = e.clientY + 15;
+        
+        // Prevent going off-screen right/bottom
+        const rect = popup.getBoundingClientRect();
+        if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 15;
+        if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 15;
+
+        popup.style.left = x + "px";
+        popup.style.top = y + "px";
     }
 
     function closeImagePopup() {
-        const modal = document.getElementById("imgPopupModal");
-        modal.style.display = "none";
-        document.getElementById("imgPopupTarget").src = "";
+        const popup = document.getElementById("hoverPopup");
+        popup.style.display = "none";
+        document.getElementById("hoverPopupImg").src = "";
     }
 
-    function openGuideModal() {
-        document.getElementById("guideModal").style.display = "flex";
-    }
-
-    function closeGuideModal() {
-        document.getElementById("guideModal").style.display = "none";
-    }
+    // --- GUIDE MODAL ---
+    function openGuideModal() { document.getElementById("guideModal").style.display = "flex"; }
+    function closeGuideModal() { document.getElementById("guideModal").style.display = "none"; }
 
     // --- FULL ROW COLOR MAPPING FOR WORK CENTERS ---
     function getRowStyle(text) {
@@ -824,20 +867,17 @@
 
     function applyBulkSection() {
         const sectionVal = document.getElementById("bulkSectionInput").value.trim();
-        if (!sectionVal) return alert("Please type or select a work center name first (e.g., Cutting).");
+        if (!sectionVal) return alert("Please type or select a work center name first.");
         
         const checkboxes = document.querySelectorAll('.row-check:checked');
-        if (checkboxes.length === 0) return alert("Please check the box next to at least one operation in the table.");
+        if (checkboxes.length === 0) return alert("Please check the box next to at least one operation.");
 
         saveState();
         let count = 0;
         checkboxes.forEach(cb => {
             const opId = parseInt(cb.value);
             const op = operationsData.find(o => o.id === opId);
-            if (op) {
-                op.section = sectionVal; 
-                count++;
-            }
+            if (op) { op.section = sectionVal; count++; }
         });
         
         document.getElementById("bulkSectionInput").value = ""; 
@@ -845,25 +885,21 @@
         if (masterCheck) masterCheck.checked = false; 
 
         renderTable();
-        alert(`✅ Successfully assigned Work Center ${sectionVal} to ${count} operations!`);
     }
 
     function applyBulkComponent() {
         const compVal = document.getElementById("bulkComponentInput").value.trim().toUpperCase();
-        if (!compVal) return alert("Please type or select a component part first (e.g., CU).");
+        if (!compVal) return alert("Please type or select a component part first.");
         
         const checkboxes = document.querySelectorAll('.row-check:checked');
-        if (checkboxes.length === 0) return alert("Please check the box next to at least one operation in the table.");
+        if (checkboxes.length === 0) return alert("Please check the box next to at least one operation.");
 
         saveState();
         let count = 0;
         checkboxes.forEach(cb => {
             const opId = parseInt(cb.value);
             const op = operationsData.find(o => o.id === opId);
-            if (op) {
-                op.component = compVal; 
-                count++;
-            }
+            if (op) { op.component = compVal; count++; }
         });
         
         document.getElementById("bulkComponentInput").value = ""; 
@@ -871,7 +907,6 @@
         if (masterCheck) masterCheck.checked = false; 
 
         renderTable();
-        alert(`✅ Successfully assigned Component ${compVal} to ${count} operations!`);
     }
 
     // --- GOOGLE SHEETS CLOUD DATABASE FUNCTIONS ---
@@ -950,18 +985,15 @@
         const query2 = document.getElementById("dbSearchOpInput").value.toLowerCase();
         const container = document.getElementById("dbListContainer");
 
-        // TWO-WAY SEARCH FILTERING
         const filtered = loadedCloudDB.filter(entry => {
             const match1 = (entry.meta.name || "").toLowerCase().includes(query1) ||
                            (entry.meta.cutting || "").toLowerCase().includes(query1) ||
                            (entry.meta.assembly || "").toLowerCase().includes(query1) ||
                            (entry.meta.comments || "").toLowerCase().includes(query1);
-            
             let match2 = true;
             if (query2) {
                 match2 = entry.ops && entry.ops.some(op => (op.name || "").toLowerCase().includes(query2));
             }
-            
             return match1 && match2;
         });
 
@@ -971,11 +1003,11 @@
         }
 
         container.innerHTML = filtered.map(entry => {
+            // AUTOMATIC HOVER TRACKING EVENTS INJECTED HERE
             const imgHtml = (entry.imgs || []).slice(0, 4).map(img => 
-                `<img src="${img}" class="db-mini-thumb" onclick="openImagePopup(this.src)" title="Click to preview image">`
+                `<img src="${img}" class="db-mini-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()">`
             ).join("");
             
-            // COLORFUL BADGES WITH FULL TOOLTIPS
             const cutText = entry.meta.cutting || 'N/A';
             const assyText = entry.meta.assembly || 'N/A';
             const noteText = entry.meta.comments ? entry.meta.comments : 'N/A';
@@ -1048,7 +1080,7 @@
         }
     }
 
-    // --- IMPORT EXCEL MAGIC SCANNER ---
+    // --- IMPORT EXCEL SCANNER ---
     async function handleExcelImport(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -1067,7 +1099,6 @@
                 let headerRowIdx = -1;
                 let colMap = { op: -1, smv: -1, mac: -1, tgt: -1, rem: -1, att: -1, wc: -1, secFallback: -1, comp: -1 };
                 
-                // Scan the first 20 rows to find headers intelligently
                 for (let r = 1; r <= Math.min(ws.rowCount, 20); r++) {
                     const row = ws.getRow(r);
                     let foundOp = false;
@@ -1098,7 +1129,6 @@
                 } else {
 
                     const finalWcCol = colMap.wc > -1 ? colMap.wc : colMap.secFallback;
-
                     let newOps = [];
                     let currentNo = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.no)) + 1 : 1;
 
@@ -1186,6 +1216,129 @@
         reader.readAsArrayBuffer(file);
     }
 
+    // --- AI OCR LOGIC WITH AUTO-ENHANCE ---
+    async function handleOcrUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        await processOcrFile(file);
+        event.target.value = "";
+    }
+
+    async function processOcrFile(file) {
+        const dropText = document.getElementById('ocrDropText');
+        const originalText = `<span style="font-size: 1.05em; color: #f9a8d4;">📥 Drop Image, <span style="color:#ec4899;">Browse</span>, or press <b>Ctrl+V</b></span>`;
+        dropText.innerHTML = `⏳ Enhancing Image...`;
+
+        try {
+            // --- IMAGE PREPROCESSING (Fixes Yellow Highlights) ---
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            await new Promise((resolve) => { img.onload = resolve; });
+
+            const canvas = document.createElement('canvas');
+            // UPSCALE BY 3x TO PREVENT "0.30" TURNING INTO "0.20"
+            const scale = 3;
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i], g = data[i+1], b = data[i+2];
+                // DETECT HIGHLIGHTER YELLOW AND MAKE WHITE
+                if (r > 150 && g > 150 && b < 100) {
+                    data[i] = 255; data[i+1] = 255; data[i+2] = 255;
+                } else {
+                    // GRAYSCALE HIGH CONTRAST
+                    let gray = (r * 0.299) + (g * 0.587) + (b * 0.114);
+                    let finalColor = gray < 160 ? 0 : 255;
+                    data[i] = data[i+1] = data[i+2] = finalColor;
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+            const processedImage = canvas.toDataURL('image/png');
+
+            dropText.innerHTML = `⏳ Analyzing Image...`;
+
+            // --- RUN OCR ON ENHANCED IMAGE ---
+            const result = await Tesseract.recognize(processedImage, 'eng');
+            const lines = result.data.text.split('\n');
+
+            let newOps = [];
+            let currentNo = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.no)) + 1 : 1;
+
+            lines.forEach(line => {
+                let lineStr = line.trim();
+                if (!lineStr) return;
+
+                // Fix common OCR issues (broken decimals, Os read as 0s)
+                lineStr = lineStr.replace(/(?:\b| )[Oo]\s*([.,]\s*\d+)\s*$/, ' 0$1');
+                lineStr = lineStr.replace(/\b0\s+[.,]?\s*(\d+)\s*$/, '0.$1');
+                lineStr = lineStr.replace(/(\d)[.,]\s+(\d+)\s*$/, '$1.$2');
+
+                const parts = lineStr.split(/\s+/);
+                if(parts.length < 2) return;
+
+                let possibleSMV = parts[parts.length - 1].replace(',', '.').replace(/[^0-9.]/g, '');
+                let smvVal = parseFloat(possibleSMV);
+
+                if (isNaN(smvVal) && parts.length > 2) {
+                    possibleSMV = parts[parts.length - 2].replace(',', '.').replace(/[^0-9.]/g, '');
+                    smvVal = parseFloat(possibleSMV);
+                }
+
+                if (smvVal > 5 && smvVal < 100 && !possibleSMV.includes('.')) {
+                    smvVal = smvVal / 100;
+                }
+
+                if (!isNaN(smvVal) && smvVal > 0 && smvVal < 100) {
+                    let opName = parts.slice(0, -1).join(' ').trim();
+                    opName = opName.replace(/[,.\]|]+$/, '').trim(); 
+                    
+                    if (opName.toLowerCase().includes('operation') || opName.toLowerCase() === 'total' || opName === '') return;
+
+                    let targetVal = Math.round(60 / smvVal);
+
+                    newOps.push({
+                        id: Date.now() + Math.random(),
+                        no: currentNo++,
+                        name: opName,
+                        section: '',
+                        component: '',
+                        machine: '',
+                        smv: smvVal,
+                        target: targetVal,
+                        remarks: '',
+                        attach: ''
+                    });
+                }
+            });
+
+            if (newOps.length > 0) {
+                saveState();
+                operationsData = operationsData.concat(newOps);
+                renderTable();
+                dropText.innerHTML = `✅ Added ${newOps.length} ops!`;
+                // alert(`Successfully extracted ${newOps.length} operations!`);
+            } else {
+                dropText.innerHTML = `⚠️ No ops found.`;
+                alert("Could not extract operations and SMVs. Please ensure the image is clear.");
+            }
+        } catch (err) {
+            console.error(err);
+            dropText.innerHTML = `❌ Scan error.`;
+            alert("Error analyzing image.");
+        } finally {
+            setTimeout(() => {
+                dropText.innerHTML = originalText;
+            }, 4000);
+        }
+    }
+
     // --- STANDARD FUNCTIONS ---
     function populateMachineDropdown(selectValue = "") {
         const select = document.getElementById("inMachine");
@@ -1240,9 +1393,10 @@
             gal.innerHTML = `<span class="empty-msg" style="margin:auto; font-size:0.9em; pointer-events: none; color: #94a3b8;">📸 Drag & Drop photos, press <span style="color:#10b981;">Ctrl+V</span> to paste, or <span style="color:#38bdf8;">Browse</span></span>`;
             return;
         }
+        // AUTOMATIC HOVER TRACKING EVENTS INJECTED HERE
         gal.innerHTML = sampleImages.map((src, i) => `
             <div style="position:relative; pointer-events: auto;">
-                <img src="${src}" class="sample-thumb" onclick="openImagePopup(this.src)" title="Click to preview picture">
+                <img src="${src}" class="sample-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()">
                 <button onclick="removeImage(${i})" style="position:absolute; top:-5px; right:-5px; background:#ef4444; color:#fff; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:10px; font-weight:bold; z-index: 20;">X</button>
             </div>
         `).join("");
