@@ -515,16 +515,16 @@
     function handleMediaUpload(event) { Array.from(event.target.files).forEach(file => processMediaFile(file)); event.target.value = ""; }
 
     // THE FIX: CONVERTING VIDEOS AND DOCS TO BASE64 SO THEY CAN BE TRANSMITTED
-    function processMediaFile(file) {
+function processMediaFile(file) {
         const reader = new FileReader();
         
         // Strict Google Sheets Limits Checker
-        if (file.size > 2000000) { // Warns if file is over 2MB
-            alert("⚠️ Warning: This file is very large (" + Math.round(file.size/1000000) + "MB).\nGoogle Sheets has a strict database cell limit. If you click 'Save to Cloud' and it fails, you must use smaller files or paste a Google Drive link in the comments instead.");
+        if (file.size > 2500000) { // Warns if file is over 2.5MB
+            alert("⚠️ Warning: This file is " + Math.round(file.size/1000000) + "MB.\nGoogle Sheets has a strict database cell limit. If you click 'Save to Cloud' and it fails, you must use smaller files or paste a Google Drive link in the comments instead.");
         }
 
         reader.onload = (e) => {
-            const dataUrl = e.target.result;
+            const dataUrl = e.target.result; // This converts the file to transmittable text!
             if (file.type.startsWith('image/')) {
                 if (sampleImages.length >= 8) return alert("Maximum 8 images allowed.");
                 sampleImages.push(dataUrl);
@@ -539,7 +539,7 @@
             localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
             renderMediaGallery();
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(file); // Executes the Base64 conversion
     }
 
     function renderMediaGallery() {
@@ -548,18 +548,25 @@
             gal.innerHTML = `<span class="drop-zone-text">📂 Drag & Drop Photos, Videos, or Details Sheet, or press <span>Ctrl+V</span></span>`; return;
         }
         let html = "";
-        sampleImages.forEach((src, i) => { html += `<div class="media-preview-box"><img src="${src}" class="sample-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()"><button onclick="removeMedia('img', ${i})" class="btn-del-media" title="Delete Image">✖</button></div>`; });
+        
+        sampleImages.forEach((src, i) => { 
+            html += `<div class="media-preview-box"><img src="${src}" class="sample-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()"><button onclick="removeMedia('img', ${i})" class="btn-del-media" title="Delete Image">✖</button></div>`; 
+        });
+        
+        // Videos with Click-to-Download link
         sampleVideos.forEach((vid, i) => { 
             const linkHref = vid.data ? vid.data : '#';
-            html += `<div class="media-preview-box"><a href="${linkHref}" download="${vid.name}" style="text-decoration:none;"><div class="file-thumb" title="${vid.name}">🎥<br><span style="font-size:0.7em; color:#fff;">Video ${i+1}</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline;">Click to Save</span></div></a><button onclick="removeMedia('vid', ${i})" class="btn-del-media" title="Delete Video">✖</button></div>`; 
+            html += `<div class="media-preview-box"><a href="${linkHref}" download="${vid.name}" style="text-decoration:none;"><div class="file-thumb" title="${vid.name}">🎥<br><span style="font-size:0.7em; color:#fff;">Video ${i+1}</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline; margin-top:4px;">Click to DL</span></div></a><button onclick="removeMedia('vid', ${i})" class="btn-del-media" title="Delete Video">✖</button></div>`; 
         });
+        
+        // Detail Sheet with Click-to-Download link
         if (detailsSheet) { 
             const linkHref = detailsSheet.data ? detailsSheet.data : '#';
-            html += `<div class="media-preview-box"><a href="${linkHref}" download="${detailsSheet.name}" style="text-decoration:none;"><div class="file-thumb" title="${detailsSheet.name}">📄<br><span style="font-size:0.7em; color:#10b981;">Details Sheet</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline;">Click to Save</span></div></a><button onclick="removeMedia('doc', 0)" class="btn-del-media" title="Delete Sheet">✖</button></div>`; 
+            html += `<div class="media-preview-box"><a href="${linkHref}" download="${detailsSheet.name}" style="text-decoration:none;"><div class="file-thumb" title="${detailsSheet.name}">📄<br><span style="font-size:0.7em; color:#10b981;">Details Sheet</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline; margin-top:4px;">Click to DL</span></div></a><button onclick="removeMedia('doc', 0)" class="btn-del-media" title="Delete Sheet">✖</button></div>`; 
         }
+        
         gal.innerHTML = html;
     }
-
     function removeMedia(type, idx) {
         if (type === 'img') { sampleImages.splice(idx, 1); localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages)); } 
         else if (type === 'vid') { sampleVideos.splice(idx, 1); } 
