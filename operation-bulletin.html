@@ -175,7 +175,6 @@
     </div>
 
     <div class="dashboard-container">
-        
         <div class="info-panel">
             <div class="meta-inputs">
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
@@ -183,7 +182,6 @@
                         <label>Item Type / Sample Number <span style="color: #ef4444;">*</span></label>
                         <input type="text" id="sampleName" placeholder="e.g., Kelsey / PF0339" oninput="saveMetaData()">
                     </div>
-                    
                     <div class="input-group" style="flex: 2; min-width: 200px;">
                         <label>Process Name</label>
                         <div style="display: flex; align-items: center; gap: 5px;">
@@ -436,9 +434,7 @@
         if (localStorage.getItem("dsi_theme") === "light") {
             document.body.classList.add("light-mode");
             const btn = document.getElementById("btnTheme");
-            btn.innerHTML = "🌙 Dark Mode";
-            btn.style.background = "#1e293b";
-            btn.style.color = "#fff";
+            btn.innerHTML = "🌙 Dark Mode"; btn.style.background = "#1e293b"; btn.style.color = "#fff";
         }
 
         const savedCustomMachines = localStorage.getItem("dsi_custom_machines");
@@ -734,7 +730,7 @@
     }
 
     // --- BUTTON 2: EMAIL IE MEMBER VIA GMAIL APP ---
-    function emailAllocatedIE() {
+    async function emailAllocatedIE() {
         const sampleName = document.getElementById("sampleName").value.trim();
         const processName = document.getElementById("processName").value.trim() || "N/A";
         const plant = document.getElementById("targetPlant").value || "N/A";
@@ -743,6 +739,32 @@
 
         if (!sampleName) return alert("Please enter a Sample Number first.");
         if (!ieEmail) return alert("Please select an Allocated IE Member from the dropdown first.");
+
+        // AUTO-SAVE BEFORE EMAIL TO ENSURE DATA EXISTS FOR THE LINK
+        const btn = document.getElementById("btnEmailIE");
+        const originalText = btn.innerText;
+        btn.innerText = "⏳ Saving & Preparing Email...";
+        btn.disabled = true;
+
+        const payload = {
+            id: sampleName.toLowerCase().replace(/\s+/g, '_'),
+            date: new Date().toLocaleDateString(),
+            meta: { name: sampleName, process: processName, comments: comments, plant: plant, ieMember: ieEmail },
+            ops: operationsData,
+            imgs: sampleImages
+        };
+
+        try {
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({ action: "save", payload: payload })
+            });
+        } catch (e) {
+            console.error("Auto-save network error:", e);
+        }
+
+        btn.innerText = originalText;
+        btn.disabled = false;
 
         const safeId = sampleName.toLowerCase().replace(/\s+/g, '_');
         const systemLink = `https://shyamanwickramasinghe-jpg.github.io/footwear-gallery/operation-bulletin.html?load=${safeId}`;
@@ -823,7 +845,7 @@
                 loadFromCloudDB(loadId, true); // true = bypass confirm box
                 alert(`✅ Successfully loaded assigned bulletin: ${entry.meta.name}`);
             } else {
-                alert("❌ Could not find the assigned bulletin in the database.");
+                alert("❌ Could not find the assigned bulletin in the database. Ensure the Central Team saved it to the cloud.");
             }
         }, () => {
             document.getElementById("autoLoadOverlay").remove();
@@ -831,7 +853,7 @@
         });
     }
 
-function renderDatabaseList() {
+    function renderDatabaseList() {
         const query1 = document.getElementById("dbSearchInput").value.toLowerCase(); 
         const query2 = document.getElementById("dbSearchOpInput").value.toLowerCase(); 
         const container = document.getElementById("dbListContainer");
@@ -851,23 +873,23 @@ function renderDatabaseList() {
         container.innerHTML = filtered.map(entry => {
             const imgHtml = (entry.imgs || []).slice(0, 4).map(img => `<img src="${img}" class="db-mini-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()">`).join("");
             
-            // Get Process and Plant
+            // FALLBACK FOR OLD RECORDS
             const procText = entry.meta.process || entry.meta.cutting || entry.meta.assembly || 'N/A'; 
             const plantText = entry.meta.plant || 'N/A';
             
-            // Lookup the IE Member's exact name from their email address
+            // IE NAME LOOKUP
             let ieName = "Unassigned";
             if (entry.meta.ieMember) {
-                ieName = entry.meta.ieMember; // Fallback to email if name isn't found
+                ieName = entry.meta.ieMember; 
                 for (let p in ieData) {
                     let found = ieData[p].find(x => x.email === entry.meta.ieMember);
                     if (found) { ieName = found.name; break; }
                 }
             }
             
-            const plantBadge = `<span class="sec-badge" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;" title="Target Plant">🏢 ${plantText}</span>`;
-            const ieBadge = `<span class="sec-badge" style="background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid #a855f7;" title="Allocated IE Member">👤 ${ieName}</span>`;
-            const procBadge = `<span class="sec-badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444;" title="Process">⚙️ ${procText}</span>`;
+            const plantBadge = `<span class="sec-badge" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;">🏢 ${plantText}</span>`;
+            const ieBadge = `<span class="sec-badge" style="background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid #a855f7;">👤 ${ieName}</span>`;
+            const procBadge = `<span class="sec-badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444;">⚙️ ${procText}</span>`;
 
             let cleanDate = entry.date ? entry.date.split("T")[0] : "";
 
@@ -1372,7 +1394,7 @@ function renderDatabaseList() {
                 let smvVal = parseFloat(possibleSMV);
 
                 if (isNaN(smvVal) && parts.length > 2) {
-                    possibleSMV = parts[parts.length - 2].replace(',', '.').replace(/[^0-9.]/g, '');
+                    possibleSMV = parts[parts.length - 2].replace(',', '.replace(/[^0-9.]/g, ''));
                     smvVal = parseFloat(possibleSMV);
                 }
 
