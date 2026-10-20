@@ -1,156 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="dark light">
-    <title>DSI FOOTTECH — Operation Bulletin</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <style>
-        * { box-sizing: border-box; }
-        body { background: #0b1120; color: #f8fafc; font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; display: flex; flex-direction: column; min-height: 100vh; transition: background-color 0.3s, color 0.3s; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; background: #0f172a; border-bottom: 1px solid #1e293b; padding: 10px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .brand h2 { margin: 0; font-size: 1.2em; color: #10b981; text-transform: uppercase; letter-spacing: 1px; }
-        .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .btn-top { background: #334155; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.15s; }
-        .btn-top:hover { opacity: 0.9; }
-        .storage-path { background: #1e293b; color: #94a3b8; font-size: 0.75em; padding: 4px 20px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; }
-        .dashboard-container { padding: 20px; max-width: 1700px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 20px; flex: 1; }
-        .info-panel, .table-panel { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 20px; display: flex; gap: 20px; flex-wrap: wrap; }
-        .table-panel { flex-direction: column; overflow: hidden; flex: 1; align-items: flex-start; } 
-        .meta-inputs { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 12px; }
-        .input-group { display: flex; flex-direction: column; }
-        .input-group label { font-size: 0.75em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: bold;}
-        .input-group input, .input-group textarea, .input-group select { background: #1e293b; border: 1px solid #475569; color: #fff; padding: 10px; border-radius: 6px; font-size: 0.95em; width: 100%; }
-        .input-group textarea { resize: vertical; min-height: 60px; }
-        .custom-dropdown-container { position: relative; width: 100%; }
-        .custom-dropdown-list { display: none; position: absolute; top: 100%; left: 0; width: 100%; background: #1e293b; border: 1px solid #38bdf8; border-radius: 6px; z-index: 100; max-height: 200px; overflow-y: auto; box-shadow: 0 8px 16px rgba(0,0,0,0.5); margin-top: 4px; }
-        .custom-dropdown-list.show { display: block; }
-        .custom-dropdown-item { padding: 10px 12px; cursor: pointer; color: #f8fafc; border-bottom: 1px solid #334155; font-size: 0.9em;}
-        .custom-dropdown-item:hover { background: #38bdf8; color: #000; font-weight: bold;}
-        .custom-dropdown-item:last-child { border-bottom: none; }
-        
-        .image-gallery-container { flex: 2; min-width: 400px; display: flex; flex-direction: column; gap: 4px; border-left: 1px dashed #334155; padding-left: 20px;}
-        .media-preview-box { position: relative; pointer-events: auto; display: inline-block; }
-        .sample-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #475569; cursor: crosshair; }
-        .sample-thumb:hover { border-color: #38bdf8; }
-        .file-thumb { width: 100px; height: 100px; border-radius: 6px; border: 2px solid #475569; display: flex; align-items: center; justify-content: center; background: #1e293b; font-size: 0.8em; text-align: center; padding: 5px; color: #38bdf8; word-break: break-word; flex-direction: column;}
-        .btn-del-media { position: absolute; top: -5px; right: -5px; background: #ef4444; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 10px; font-weight: bold; z-index: 20; }
-        .drop-zone { position: relative; border-radius: 8px; text-align: center; cursor: pointer; border: 2px dashed #475569; background: #000; padding: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; min-height: 120px; }
-        .drop-zone.dragover, .drop-zone:hover { border-color: #38bdf8 !important; }
-        .drop-zone-text { font-weight: bold; pointer-events: none; color: #94a3b8; margin: auto;}
-        .drop-zone-text span { color: #10b981; }
-        .drop-zone-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 5;}
-
-        .tab-bar { display: flex; width: 100%; border-bottom: 2px solid #334155; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 12px; background: transparent; color: #94a3b8; border: none; font-weight: bold; cursor: pointer; font-size: 1em; border-radius: 8px 8px 0 0; }
-        .tab-btn.active { background: #1e293b; color: #38bdf8; border-bottom: 3px solid #38bdf8; }
-        .tab-content { display: none; width: 100%; flex-direction: column; gap: 15px; }
-        .tab-content.active { display: flex; }
-
-        .table-toolbar { display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 10px;}
-        .table-toolbar h3 { margin: 0; color: #f8fafc; }
-        .bulk-wrapper { background: #1e293b; padding: 4px 10px; border-radius: 6px; border: 1px solid #475569; display: flex; gap: 8px; align-items: center; }
-        .bulk-input { background: #0b1120; border: 1px solid #334155; color: #fff; padding: 6px; border-radius: 4px; width: 150px; }
-        .search-box { background: #1e293b; border: 1px solid #475569; color: #fff; padding: 8px 12px; border-radius: 20px; width: 250px; }
-        
-        .table-container { overflow-x: auto; width: 100%; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88em; min-width: 1250px; }
-        th { background: #1e293b; color: #94a3b8; padding: 12px 8px; position: sticky; top: 0; font-weight: bold; border-bottom: 2px solid #334155; z-index: 5; }
-        td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
-        tr:hover td { background: rgba(255,255,255,0.05); }
-        .form-row { background: rgba(16, 185, 129, 0.05) !important; }
-        .form-row td input, .form-row td select { background: #0b1120; border: 1px solid #475569; color: #fff; padding: 6px; border-radius: 4px; width: 100%; font-size: 0.9em; }
-        
-        .btn-table { padding: 6px 10px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; font-size: 0.85em; }
-        .btn-save-row { background: #10b981; color: #000; width: 100%;}
-        .btn-edit { background: #38bdf8; color: #000; padding: 4px 8px;}
-        .btn-delete { background: #ef4444; color: #fff; padding: 4px 8px;}
-        .btn-move { background: #475569; color: #fff; padding: 4px 8px; }
-        .btn-add-machine { background: #f59e0b; color: #000; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8em; margin-left: 4px; }
-        .total-row td { background: #1e293b !important; font-weight: bold; font-size: 1.1em; color: #10b981; border-top: 2px solid #334155;}
-        
-        .col-no { color: #38bdf8; font-weight: bold; }
-        .col-sec { font-weight: bold; text-transform: uppercase; font-size: 0.85em; }
-        .col-comp { color: #ef4444; font-weight: 900; font-size: 0.95em; text-transform: uppercase; }
-        .col-name { font-weight: bold; }
-        .col-mac { color: #94a3b8; }
-        .col-smv { color: #10b981; font-weight: bold; font-family: monospace; font-size: 1.05em; }
-        .col-rem { color: #94a3b8; }
-        .col-att { color: #cbd5e1; }
-        .empty-msg { text-align: center; padding: 20px; color: #64748b; }
-
-        .summary-panel { background: #1e293b; padding: 15px 25px; border-radius: 8px; margin-top: 20px; border: 1px solid #334155; width: 300px !important; align-self: flex-start !important; }
-        .summary-panel h4 { margin: 0 0 10px 0; color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 8px; font-size: 1.05em; }
-        .summary-table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
-        .summary-table td { padding: 6px 0; border-bottom: 1px dashed #334155; }
-        .summary-table td:first-child { padding-right: 50px; } 
-        .summary-table tr:last-child td { border-bottom: none; border-top: 2px solid #334155; padding-top: 8px; margin-top: 4px; font-weight: bold; }
-        .p-name { color: #ef4444; font-weight: 900; }
-        .p-val { color: #10b981; font-weight: bold; font-family: monospace; font-size: 1.1em; text-align: right; display: block; }
-        .sum-total { color: #f8fafc; }
-
-        /* DATABASE MODAL CSS RESTORED */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: #0f172a; border: 1px solid #38bdf8; border-radius: 12px; width: 96%; max-width: 1450px; padding: 20px; display: flex; flex-direction: column; gap: 15px; height: 90vh; max-height: 90vh; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; }
-        .modal-header h3 { margin: 0; color: #f8fafc; }
-        .btn-close { background: transparent; border: none; color: #ef4444; font-size: 1.5em; cursor: pointer; font-weight: bold; }
-        .search-row { display: flex; gap: 10px; width: 100%; }
-        .db-search { background: #1e293b; border: 1px solid #38bdf8; color: #fff; padding: 12px; border-radius: 6px; font-size: 1.05em; flex: 1;}
-        .db-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; padding-right: 5px; }
-        .db-card { background: #1e293b; border-left: 4px solid #38bdf8; padding: 8px 14px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; gap: 15px;}
-        .db-card-content { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
-        .db-card-name { margin: 0; color: #10b981; font-size: 1.05em; font-weight: bold; white-space: nowrap; width: 250px; overflow: hidden; text-overflow: ellipsis; cursor: help; border-bottom: 1px dotted #10b981; }
-        .db-badges { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; overflow: hidden; }
-        .db-meta-text { font-size: 0.8em; color: #38bdf8; font-weight: bold; margin-left: auto; white-space: nowrap; display: flex; align-items: center; flex-shrink: 0; }
-        .db-images { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
-        .db-mini-thumb { width: 30px; height: 30px; object-fit: cover; border-radius: 4px; border: 1px solid #475569; cursor: crosshair; transition: transform 0.15s, border-color 0.15s; }
-        .db-mini-thumb:hover { transform: scale(1.15); border-color: #38bdf8; }
-        .db-actions { display: flex; gap: 8px; flex-direction: row; align-items: center; flex-shrink: 0; }
-        .sec-badge { padding: 3px 8px; border-radius: 6px; font-size: 0.75em; margin-right: 0; text-transform: uppercase; font-weight: 700; border: 1px solid transparent; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; }
-
-        .hover-popup { display: none; position: fixed; z-index: 10001; background: #0f172a; border: 2px solid #38bdf8; border-radius: 8px; padding: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); pointer-events: none; width: auto; max-width: 320px; }
-        .hover-popup img { max-width: 100%; max-height: 280px; border-radius: 4px; display: block; object-fit: contain; }
-
-        .ops-popup { pointer-events: auto; max-width: 450px; width: auto; padding: 12px; padding-top: 0; border: 2px solid #10b981; color: #f8fafc; font-size: 0.85em; max-height: 50vh; overflow-y: auto; }
-        .ops-popup::-webkit-scrollbar { width: 8px; }
-        .ops-popup::-webkit-scrollbar-track { background: #0f172a; }
-        .ops-popup::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        .ops-popup table { width: 100%; min-width: 0 !important; border-collapse: collapse; }
-        .ops-thead { position: sticky; top: 0; background: #0f172a; box-shadow: 0 4px 6px -4px #10b981; z-index: 5; }
-        .ops-popup th, .ops-popup td { padding: 6px; border-bottom: 1px dashed #334155; text-align: left; }
-        .ops-popup th { color: #10b981; padding-top: 12px;}
-        .ops-popup td.smv { text-align: right; color: #38bdf8; font-weight: bold; }
-
-        /* LIGHT MODE */
-        body.light-mode { background: #f1f5f9; color: #0f172a; }
-        body.light-mode .top-bar { background: #ffffff; border-bottom-color: #cbd5e1; }
-        body.light-mode .storage-path { background: #f8fafc; border-bottom-color: #cbd5e1; color: #475569; }
-        body.light-mode .info-panel, body.light-mode .table-panel, body.light-mode .modal-content { background: #ffffff; border-color: #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        body.light-mode .input-group label { color: #475569; }
-        body.light-mode .input-group input, body.light-mode .input-group textarea, body.light-mode .input-group select { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
-        body.light-mode .custom-dropdown-list { background: #f8fafc; border-color: #cbd5e1; }
-        body.light-mode .custom-dropdown-item { color: #0f172a; border-bottom-color: #e2e8f0; }
-        body.light-mode .custom-dropdown-item:hover { background: #e2e8f0; color: #0ea5e9;}
-        body.light-mode .image-gallery-container { border-left-color: #cbd5e1; }
-        body.light-mode .table-toolbar h3, body.light-mode .modal-header h3 { color: #0f172a; }
-        body.light-mode .bulk-wrapper { background: #f8fafc; border-color: #cbd5e1; }
-        body.light-mode th { background: #e2e8f0; color: #334155; border-bottom-color: #cbd5e1; }
-        body.light-mode td { border-bottom-color: #cbd5e1; }
-        body.light-mode tr:hover td { background: rgba(0,0,0,0.03); }
-        body.light-mode .total-row td { background: #f1f5f9 !important; border-top-color: #cbd5e1; }
-        body.light-mode .summary-panel { background: #f8fafc; border-color: #cbd5e1; }
-        body.light-mode .ops-popup { border-color: #059669; color: #0f172a; }
-        body.light-mode .ops-thead { background: #ffffff; }
-        body.light-mode .db-card { background: #f8fafc; border-color: #cbd5e1; }
-        body.light-mode .db-search { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
-        body.light-mode .db-meta-text { color: #0284c7; }
-        body.light-mode #imgDropZone { background: #f8fafc; border-color: #cbd5e1; }
-        body.light-mode .file-thumb { background: #f1f5f9; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>DSI FOOTTECH — Operation Bulletin</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+* { box-sizing: border-box; }
+body { background:#0b1120; color:#f8fafc; font-family:'Segoe UI',system-ui,sans-serif; margin:0; display:flex; flex-direction:column; min-height:100vh; transition:background-color 0.3s,color 0.3s; }
+.top-bar { display:flex; justify-content:space-between; align-items:center; background:#0f172a; border-bottom:1px solid #1e293b; padding:10px 20px; box-shadow:0 4px 6px rgba(0,0,0,0.3); }
+.brand { display:flex; align-items:center; gap:12px; }
+.brand h2 { margin:0; font-size:1.2em; color:#10b981; text-transform:uppercase; letter-spacing:1px; }
+.top-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.btn-top { background:#334155; color:white; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:bold; transition:0.15s; }
+.btn-top:hover { opacity:0.9; }
+.storage-path { background:#1e293b; color:#94a3b8; font-size:0.75em; padding:4px 20px; border-bottom:1px solid #334155; display:flex; justify-content:space-between; }
+.dashboard-container { padding:20px; max-width:1700px; margin:0 auto; width:100%; display:flex; flex-direction:column; gap:20px; flex:1; }
+.info-panel, .table-panel { background:#0f172a; border:1px solid #334155; border-radius:10px; padding:20px; display:flex; gap:20px; flex-wrap:wrap; }
+.table-panel { flex-direction:column; overflow:hidden; flex:1; align-items:flex-start; } 
+.meta-inputs { flex:1; min-width:300px; display:flex; flex-direction:column; gap:12px; }
+.input-group { display:flex; flex-direction:column; }
+.input-group label { font-size:0.75em; text-transform:uppercase; color:#94a3b8; margin-bottom:4px; font-weight:bold;}
+.input-group input, .input-group textarea, .input-group select { background:#1e293b; border:1px solid #475569; color:#fff; padding:10px; border-radius:6px; font-size:0.95em; width:100%; }
+.input-group textarea { resize:vertical; min-height:60px; }
+.custom-dropdown-container { position:relative; width:100%; }
+.custom-dropdown-list { display:none; position:absolute; top:100%; left:0; width:100%; background:#1e293b; border:1px solid #38bdf8; border-radius:6px; z-index:100; max-height:200px; overflow-y:auto; box-shadow:0 8px 16px rgba(0,0,0,0.5); margin-top:4px; }
+.custom-dropdown-list.show { display:block; }
+.custom-dropdown-item { padding:10px 12px; cursor:pointer; color:#f8fafc; border-bottom:1px solid #334155; font-size:0.9em;}
+.custom-dropdown-item:hover { background:#38bdf8; color:#000; font-weight:bold;}
+.custom-dropdown-item:last-child { border-bottom:none; }
+.image-gallery-container { flex:2; min-width:400px; display:flex; flex-direction:column; gap:4px; border-left:1px dashed #334155; padding-left:20px;}
+.media-preview-box { position:relative; pointer-events:auto; display:inline-block; }
+.sample-thumb { width:100px; height:100px; object-fit:cover; border-radius:6px; border:2px solid #475569; cursor:crosshair; }
+.sample-thumb:hover { border-color:#38bdf8; }
+.file-thumb { width:100px; height:100px; border-radius:6px; border:2px solid #475569; display:flex; align-items:center; justify-content:center; background:#1e293b; font-size:0.8em; text-align:center; padding:5px; color:#38bdf8; word-break:break-word; flex-direction:column;}
+.btn-del-media { position:absolute; top:-5px; right:-5px; background:#ef4444; color:#fff; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:10px; font-weight:bold; z-index:20; }
+.drop-zone { position:relative; border-radius:8px; text-align:center; cursor:pointer; border:2px dashed #475569; background:#000; padding:10px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center; min-height:120px; }
+.drop-zone.dragover, .drop-zone:hover { border-color:#38bdf8 !important; }
+.drop-zone-text { font-weight:bold; pointer-events:none; color:#94a3b8; margin:auto;}
+.drop-zone-text span { color:#10b981; }
+.drop-zone-input { position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:5;}
+.tab-bar { display:flex; width:100%; border-bottom:2px solid #334155; margin-bottom:15px; }
+.tab-btn { flex:1; padding:12px; background:transparent; color:#94a3b8; border:none; font-weight:bold; cursor:pointer; font-size:1em; border-radius:8px 8px 0 0; }
+.tab-btn.active { background:#1e293b; color:#38bdf8; border-bottom:3px solid #38bdf8; }
+.tab-content { display:none; width:100%; flex-direction:column; gap:15px; }
+.tab-content.active { display:flex; }
+.table-toolbar { display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:10px;}
+.table-toolbar h3 { margin:0; color:#f8fafc; }
+.bulk-wrapper { background:#1e293b; padding:4px 10px; border-radius:6px; border:1px solid #475569; display:flex; gap:8px; align-items:center; }
+.bulk-input { background:#0b1120; border:1px solid #334155; color:#fff; padding:6px; border-radius:4px; width:150px; }
+.search-box { background:#1e293b; border:1px solid #475569; color:#fff; padding:8px 12px; border-radius:20px; width:250px; }
+.table-container { overflow-x:auto; width:100%; }
+table { width:100%; border-collapse:collapse; text-align:left; font-size:0.88em; min-width:1250px; }
+th { background:#1e293b; color:#94a3b8; padding:12px 8px; position:sticky; top:0; font-weight:bold; border-bottom:2px solid #334155; z-index:5; }
+td { padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align:middle; }
+tr:hover td { background:rgba(255,255,255,0.05); }
+.form-row { background:rgba(16,185,129,0.05) !important; }
+.form-row td input, .form-row td select { background:#0b1120; border:1px solid #475569; color:#fff; padding:6px; border-radius:4px; width:100%; font-size:0.9em; }
+.btn-table { padding:6px 10px; border-radius:4px; border:none; cursor:pointer; font-weight:bold; font-size:0.85em; }
+.btn-save-row { background:#10b981; color:#000; width:100%;}
+.btn-edit { background:#38bdf8; color:#000; padding:4px 8px;}
+.btn-delete { background:#ef4444; color:#fff; padding:4px 8px;}
+.btn-move { background:#475569; color:#fff; padding:4px 8px; }
+.btn-add-machine { background:#f59e0b; color:#000; border:none; padding:6px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.8em; margin-left:4px; }
+.total-row td { background:#1e293b !important; font-weight:bold; font-size:1.1em; color:#10b981; border-top:2px solid #334155;}
+.col-no { color:#38bdf8; font-weight:bold; }
+.col-sec { font-weight:bold; text-transform:uppercase; font-size:0.85em; }
+.col-comp { color:#ef4444; font-weight:900; font-size:0.95em; text-transform:uppercase; }
+.col-name { font-weight:bold; }
+.col-mac { color:#94a3b8; }
+.col-smv { color:#10b981; font-weight:bold; font-family:monospace; font-size:1.05em; }
+.col-rem { color:#94a3b8; }
+.col-att { color:#cbd5e1; }
+.empty-msg { text-align:center; padding:20px; color:#64748b; }
+.summary-panel { background:#1e293b; padding:15px 25px; border-radius:8px; margin-top:20px; border:1px solid #334155; width:300px !important; align-self:flex-start !important; }
+.summary-panel h4 { margin:0 0 10px 0; color:#f8fafc; border-bottom:2px solid #334155; padding-bottom:8px; font-size:1.05em; }
+.summary-table { width:100%; border-collapse:collapse; font-size:0.95em; }
+.summary-table td { padding:6px 0; border-bottom:1px dashed #334155; }
+.summary-table td:first-child { padding-right:50px; } 
+.summary-table tr:last-child td { border-bottom:none; border-top:2px solid #334155; padding-top:8px; margin-top:4px; font-weight:bold; }
+.p-name { color:#ef4444; font-weight:900; }
+.p-val { color:#10b981; font-weight:bold; font-family:monospace; font-size:1.1em; text-align:right; display:block; }
+.sum-total { color:#f8fafc; }
+.modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:1000; justify-content:center; align-items:center; }
+.modal-content { background:#0f172a; border:1px solid #38bdf8; border-radius:12px; width:96%; max-width:1450px; padding:20px; display:flex; flex-direction:column; gap:15px; height:90vh; max-height:90vh; }
+.modal-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:10px; }
+.modal-header h3 { margin:0; color:#f8fafc; }
+.btn-close { background:transparent; border:none; color:#ef4444; font-size:1.5em; cursor:pointer; font-weight:bold; }
+.search-row { display:flex; gap:10px; width:100%; }
+.db-search { background:#1e293b; border:1px solid #38bdf8; color:#fff; padding:12px; border-radius:6px; font-size:1.05em; flex:1;}
+.db-list { display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex:1; padding-right:5px; }
+.db-card { background:#1e293b; border-left:4px solid #38bdf8; padding:8px 14px; border-radius:6px; display:flex; align-items:center; justify-content:space-between; gap:15px;}
+.db-card-content { display:flex; align-items:center; gap:14px; flex:1; min-width:0; }
+.db-card-name { margin:0; color:#10b981; font-size:1.05em; font-weight:bold; white-space:nowrap; width:250px; overflow:hidden; text-overflow:ellipsis; cursor:help; border-bottom:1px dotted #10b981; }
+.db-badges { display:flex; gap:6px; align-items:center; flex-wrap:nowrap; overflow:hidden; }
+.db-meta-text { font-size:0.8em; color:#38bdf8; font-weight:bold; margin-left:auto; white-space:nowrap; display:flex; align-items:center; flex-shrink:0; }
+.db-images { display:flex; gap:4px; align-items:center; flex-shrink:0; }
+.db-mini-thumb { width:30px; height:30px; object-fit:cover; border-radius:4px; border:1px solid #475569; cursor:crosshair; transition:transform 0.15s, border-color 0.15s; }
+.db-mini-thumb:hover { transform:scale(1.15); border-color:#38bdf8; }
+.db-actions { display:flex; gap:8px; flex-direction:row; align-items:center; flex-shrink:0; }
+.sec-badge { padding:3px 8px; border-radius:6px; font-size:0.75em; margin-right:0; text-transform:uppercase; font-weight:700; border:1px solid transparent; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; vertical-align:middle; }
+.hover-popup { display:none; position:fixed; z-index:10001; background:#0f172a; border:2px solid #38bdf8; border-radius:8px; padding:6px; box-shadow:0 10px 25px rgba(0,0,0,0.8); pointer-events:none; width:auto; max-width:320px; }
+.hover-popup img { max-width:100%; max-height:280px; border-radius:4px; display:block; object-fit:contain; }
+.ops-popup { pointer-events:auto; max-width:450px; width:auto; padding:12px; padding-top:0; border:2px solid #10b981; color:#f8fafc; font-size:0.85em; max-height:50vh; overflow-y:auto; }
+.ops-popup::-webkit-scrollbar { width:8px; }
+.ops-popup::-webkit-scrollbar-track { background:#0f172a; }
+.ops-popup::-webkit-scrollbar-thumb { background:#334155; border-radius:4px; }
+.ops-popup table { width:100%; min-width:0 !important; border-collapse:collapse; }
+.ops-thead { position:sticky; top:0; background:#0f172a; box-shadow:0 4px 6px -4px #10b981; z-index:5; }
+.ops-popup th, .ops-popup td { padding:6px; border-bottom:1px dashed #334155; text-align:left; }
+.ops-popup th { color:#10b981; padding-top:12px;}
+.ops-popup td.smv { text-align:right; color:#38bdf8; font-weight:bold; }
+body.light-mode { background:#f1f5f9; color:#0f172a; }
+body.light-mode .top-bar { background:#ffffff; border-bottom-color:#cbd5e1; }
+body.light-mode .storage-path { background:#f8fafc; border-bottom-color:#cbd5e1; color:#475569; }
+body.light-mode .info-panel, body.light-mode .table-panel, body.light-mode .modal-content { background:#ffffff; border-color:#cbd5e1; box-shadow:0 4px 6px rgba(0,0,0,0.05); }
+body.light-mode .input-group label { color:#475569; }
+body.light-mode .input-group input, body.light-mode .input-group textarea, body.light-mode .input-group select { background:#f8fafc; border-color:#cbd5e1; color:#0f172a; }
+body.light-mode .custom-dropdown-list { background:#f8fafc; border-color:#cbd5e1; }
+body.light-mode .custom-dropdown-item { color:#0f172a; border-bottom-color:#e2e8f0; }
+body.light-mode .custom-dropdown-item:hover { background:#e2e8f0; color:#0ea5e9;}
+body.light-mode .image-gallery-container { border-left-color:#cbd5e1; }
+body.light-mode .table-toolbar h3, body.light-mode .modal-header h3 { color:#0f172a; }
+body.light-mode .bulk-wrapper { background:#f8fafc; border-color:#cbd5e1; }
+body.light-mode th { background:#e2e8f0; color:#334155; border-bottom-color:#cbd5e1; }
+body.light-mode td { border-bottom-color:#cbd5e1; }
+body.light-mode tr:hover td { background:rgba(0,0,0,0.03); }
+body.light-mode .total-row td { background:#f1f5f9 !important; border-top-color:#cbd5e1; }
+body.light-mode .summary-panel { background:#f8fafc; border-color:#cbd5e1; }
+body.light-mode .ops-popup { border-color:#059669; color:#0f172a; }
+body.light-mode .ops-thead { background:#ffffff; }
+body.light-mode .db-card { background:#f8fafc; border-color:#cbd5e1; }
+body.light-mode .db-search { background:#f8fafc; border-color:#cbd5e1; color:#0f172a; }
+body.light-mode .db-meta-text { color:#0284c7; }
+body.light-mode #imgDropZone { background:#f8fafc; border-color:#cbd5e1; }
+body.light-mode .file-thumb { background:#f1f5f9; }
     </style>
 </head>
 <body>
@@ -248,13 +235,7 @@
                         <h3>Operation Breakdown</h3>
                         <div class="bulk-wrapper">
                             <input type="text" id="bulkSectionInput" class="bulk-input" list="sectionList" placeholder="Work Center (e.g. Cutting)">
-                            <datalist id="sectionList">
-                                <option value="Cutting"></option>
-                                <option value="Preparation"></option>
-                                <option value="Sewing"></option>
-                                <option value="Assembly"></option>
-                                <option value="Finishing"></option>
-                            </datalist>
+                            <datalist id="sectionList"><option value="Cutting"></option><option value="Preparation"></option><option value="Sewing"></option><option value="Assembly"></option><option value="Finishing"></option></datalist>
                             <button class="btn-top" style="background:#0ea5e9; color:#fff; padding:6px 12px; font-size:0.8em;" onclick="applyBulkSection()">🏷️ Apply WC</button>
                         </div>
                         <div class="bulk-wrapper">
@@ -339,7 +320,6 @@
                 <h4>Part-Wise SMV Summary</h4>
                 <div id="partSummaryContainer"></div>
             </div>
-
         </div>
     </div>
 
@@ -375,32 +355,13 @@
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxE7xvXiQhpUkIHl0PfglW0J0xzzhmiTYfz4arEMv4cha56zES-11iy1QnUiINmcaIg/exec";
 
     const ieData = {
-        "MP": [
-            {name: "Isuru", email: "processdev6@dsifootwear.com"},
-            {name: "Asanka", email: "processdev3@dsifootwear.com"},
-            {name: "Visal", email: "processdev2@dsifootwear.com"},
-            {name: "Keshala", email: "processdev4@dsifootwear.com"},
-            {name: "Ishara", email: "processdev8@dsifootwear.com"},
-            {name: "Malsha", email: "processdev9@dsifootwear.com"}
-        ],
-        "BP": [
-            {name: "Milinda", email: "workstudy.bp@dsifootwear.com"},
-            {name: "Shakila", email: "workstudy4.bp@dsifootwear.com"},
-            {name: "Vishmi", email: "workstudy2.bp@dsifootwear.com"}
-        ],
-        "KP": [
-            {name: "Tushari", email: "workstudy.kp@dsifootwear.com"},
-            {name: "Darshani", email: "workstudy4.kp@dsifootwear.com"}
-        ],
-        "SP": [
-            {name: "Praneeth", email: "praneethm@samsonsportswear.com"},
-            {name: "Dilan", email: "works1@samsonsportswear.com"}
-        ]
+        "MP": [{name:"Isuru", email:"processdev6@dsifootwear.com"}, {name:"Asanka", email:"processdev3@dsifootwear.com"}, {name:"Visal", email:"processdev2@dsifootwear.com"}, {name:"Keshala", email:"processdev4@dsifootwear.com"}, {name:"Ishara", email:"processdev8@dsifootwear.com"}, {name:"Malsha", email:"processdev9@dsifootwear.com"}],
+        "BP": [{name:"Milinda", email:"workstudy.bp@dsifootwear.com"}, {name:"Shakila", email:"workstudy4.bp@dsifootwear.com"}, {name:"Vishmi", email:"workstudy2.bp@dsifootwear.com"}],
+        "KP": [{name:"Tushari", email:"workstudy.kp@dsifootwear.com"}, {name:"Darshani", email:"workstudy4.kp@dsifootwear.com"}],
+        "SP": [{name:"Praneeth", email:"praneethm@samsonsportswear.com"}, {name:"Dilan", email:"works1@samsonsportswear.com"}]
     };
 
-    let dsiMachines = [
-        {"name": "Travelling head Die cutter", "ma": 4.0}, {"name": "Hydraulic Die cutter", "ma": 4.0}, {"name": "Clicker cutter Die cutter", "ma": 3.0}, {"name": "Programe cutter Cutter", "ma": 8.0}, {"name": "Strap Cutter Cutter", "ma": 2.0}, {"name": "Strap Folding Folding", "ma": 2.0}, {"name": "Combine Combining", "ma": 7.0}, {"name": "Skiving", "ma": 2.5}, {"name": "Toe Gum", "ma": 3.0}, {"name": "Welding", "ma": 9.0}, {"name": "SNLS FB", "ma": 5.0}, {"name": "DNLS FB", "ma": 7.0}, {"name": "SNLS PB", "ma": 5.0}, {"name": "DNLS PB", "ma": 7.0}, {"name": "SNLS BINDING", "ma": 5.5}, {"name": "DNCS", "ma": 7.0}, {"name": "ZZ FB", "ma": 5.0}, {"name": "SEAM OPENER", "ma": 3.0}, {"name": "PUNCHING", "ma": 3.0}, {"name": "EYELET", "ma": 4.0}, {"name": "Pattern Sewer", "ma": 5.0}, {"name": "Hammering", "ma": 2.0}, {"name": "Stroble", "ma": 4.0}, {"name": "EDGE CUT", "ma": 2.0}, {"name": "Strap Auto", "ma": 4.0}, {"name": "Strap Manual", "ma": 2.0}, {"name": "BTK", "ma": 5.0}, {"name": "Folding", "ma": 2.0}, {"name": "Lacing 2 thread", "ma": 5.5}, {"name": "Heat Sealing", "ma": 2.5}, {"name": "Thread trimmer", "ma": 2.0}, {"name": "Toe Foaming", "ma": 2.0}, {"name": "Manual Table / Bench Work", "ma": 0.0}
-    ];
+    let dsiMachines = [ {"name":"Travelling head Die cutter","ma":4.0}, {"name":"Hydraulic Die cutter","ma":4.0}, {"name":"Clicker cutter Die cutter","ma":3.0}, {"name":"Programe cutter Cutter","ma":8.0}, {"name":"Strap Cutter Cutter","ma":2.0}, {"name":"Strap Folding Folding","ma":2.0}, {"name":"Combine Combining","ma":7.0}, {"name":"Skiving","ma":2.5}, {"name":"Toe Gum","ma":3.0}, {"name":"Welding","ma":9.0}, {"name":"SNLS FB","ma":5.0}, {"name":"DNLS FB","ma":7.0}, {"name":"SNLS PB","ma":5.0}, {"name":"DNLS PB","ma":7.0}, {"name":"SNLS BINDING","ma":5.5}, {"name":"DNCS","ma":7.0}, {"name":"ZZ FB","ma":5.0}, {"name":"SEAM OPENER","ma":3.0}, {"name":"PUNCHING","ma":3.0}, {"name":"EYELET","ma":4.0}, {"name":"Pattern Sewer","ma":5.0}, {"name":"Hammering","ma":2.0}, {"name":"Stroble","ma":4.0}, {"name":"EDGE CUT","ma":2.0}, {"name":"Strap Auto","ma":4.0}, {"name":"Strap Manual","ma":2.0}, {"name":"BTK","ma":5.0}, {"name":"Folding","ma":2.0}, {"name":"Lacing 2 thread","ma":5.5}, {"name":"Heat Sealing","ma":2.5}, {"name":"Thread trimmer","ma":2.0}, {"name":"Toe Foaming","ma":2.0}, {"name":"Manual Table / Bench Work","ma":0.0} ];
 
     document.addEventListener("DOMContentLoaded", () => {
         setupDropZone('mediaUpload', 'imgDropZone');
@@ -414,11 +375,8 @@
                 if (item.kind === 'file' && item.type.startsWith('image/')) {
                     const file = item.getAsFile();
                     const aiTab = document.getElementById('tabAIContent');
-                    if (aiTab && aiTab.classList.contains('active')) {
-                        processOcrFile(file);
-                    } else {
-                        processMediaFile(file);
-                    }
+                    if (aiTab && aiTab.classList.contains('active')) processOcrFile(file);
+                    else processMediaFile(file);
                 }
             }
         });
@@ -433,8 +391,9 @@
 
         if (localStorage.getItem("dsi_theme") === "light") {
             document.body.classList.add("light-mode");
-            const btn = document.getElementById("btnTheme");
-            btn.innerHTML = "🌙 Dark Mode"; btn.style.background = "#1e293b"; btn.style.color = "#fff";
+            document.getElementById("btnTheme").innerHTML = "🌙 Dark Mode"; 
+            document.getElementById("btnTheme").style.background = "#1e293b"; 
+            document.getElementById("btnTheme").style.color = "#fff";
         }
 
         const savedCustomMachines = localStorage.getItem("dsi_custom_machines");
@@ -453,25 +412,16 @@
             document.getElementById("sampleName").value = m.name || "";
             document.getElementById("processName").value = m.process || m.cutting || m.assembly || "";
             document.getElementById("sampleComments").value = m.comments || "";
-            
-            if(m.plant) {
-                document.getElementById("targetPlant").value = m.plant;
-                updateIEList(m.ieMember);
-            }
+            if(m.plant) { document.getElementById("targetPlant").value = m.plant; updateIEList(m.ieMember); }
         }
-        if (savedImgs) {
-            sampleImages = JSON.parse(savedImgs);
-            renderMediaGallery();
-        }
+        if (savedImgs) { sampleImages = JSON.parse(savedImgs); renderMediaGallery(); }
         reindexOperations();
         renderTable();
 
         // --- AUTO-LOAD FROM EMAIL LINK LOGIC ---
         const urlParams = new URLSearchParams(window.location.search);
         const loadId = urlParams.get('load');
-        if (loadId) {
-            fetchCloudDataAndLoad(loadId);
-        }
+        if (loadId) fetchCloudDataAndLoad(loadId);
     });
 
     function updateIEList(selectedEmail = "") {
@@ -479,213 +429,109 @@
         const ieSelect = document.getElementById("allocatedIE");
         ieSelect.innerHTML = '<option value="">-- Select IE --</option>';
         if (plant && ieData[plant]) {
-            ieData[plant].forEach(person => {
-                ieSelect.innerHTML += `<option value="${person.email}">${person.name} (${person.email})</option>`;
-            });
+            ieData[plant].forEach(person => { ieSelect.innerHTML += `<option value="${person.email}">${person.name} (${person.email})</option>`; });
         }
         if (selectedEmail) ieSelect.value = selectedEmail;
     }
 
-    function handleMediaUpload(event) {
-        const files = Array.from(event.target.files);
-        files.forEach(file => processMediaFile(file));
-        event.target.value = "";
-    }
+    function handleMediaUpload(event) { Array.from(event.target.files).forEach(file => processMediaFile(file)); event.target.value = ""; }
 
     function processMediaFile(file) {
         if (file.type.startsWith('image/')) {
             if (sampleImages.length >= 8) return alert("Maximum 8 images allowed.");
             const reader = new FileReader();
-            reader.onload = (e) => {
-                sampleImages.push(e.target.result);
-                localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
-                renderMediaGallery();
-            };
+            reader.onload = (e) => { sampleImages.push(e.target.result); localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages)); renderMediaGallery(); };
             reader.readAsDataURL(file);
         } else if (file.type.startsWith('video/')) {
             if (sampleVideos.length >= 2) return alert("Maximum 2 videos allowed.");
-            sampleVideos.push({ file: file, name: file.name });
-            renderMediaGallery();
+            sampleVideos.push({ file: file, name: file.name }); renderMediaGallery();
         } else {
             if (detailsSheet !== null) return alert("You can only upload 1 Item Details Sheet.");
-            detailsSheet = { file: file, name: file.name };
-            renderMediaGallery();
+            detailsSheet = { file: file, name: file.name }; renderMediaGallery();
         }
     }
 
     function renderMediaGallery() {
         const gal = document.getElementById("mediaGallery");
         if (sampleImages.length === 0 && sampleVideos.length === 0 && !detailsSheet) {
-            gal.innerHTML = `<span class="drop-zone-text">📂 Drag & Drop Photos, Videos, or Details Sheet, or press <span>Ctrl+V</span></span>`;
-            return;
+            gal.innerHTML = `<span class="drop-zone-text">📂 Drag & Drop Photos, Videos, or Details Sheet, or press <span>Ctrl+V</span></span>`; return;
         }
         let html = "";
-        sampleImages.forEach((src, i) => {
-            html += `<div class="media-preview-box">
-                <img src="${src}" class="sample-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()">
-                <button onclick="removeMedia('img', ${i})" class="btn-del-media" title="Delete Image">✖</button>
-            </div>`;
-        });
-        sampleVideos.forEach((vid, i) => {
-            html += `<div class="media-preview-box">
-                <div class="file-thumb" title="${vid.name}">🎥<br><span style="font-size:0.7em; color:#fff;">Video ${i+1}</span></div>
-                <button onclick="removeMedia('vid', ${i})" class="btn-del-media" title="Delete Video">✖</button>
-            </div>`;
-        });
-        if (detailsSheet) {
-            html += `<div class="media-preview-box">
-                <div class="file-thumb" title="${detailsSheet.name}">📄<br><span style="font-size:0.7em; color:#10b981;">Details Sheet</span></div>
-                <button onclick="removeMedia('doc', 0)" class="btn-del-media" title="Delete Sheet">✖</button>
-            </div>`;
-        }
+        sampleImages.forEach((src, i) => { html += `<div class="media-preview-box"><img src="${src}" class="sample-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()"><button onclick="removeMedia('img', ${i})" class="btn-del-media" title="Delete Image">✖</button></div>`; });
+        sampleVideos.forEach((vid, i) => { html += `<div class="media-preview-box"><div class="file-thumb" title="${vid.name}">🎥<br><span style="font-size:0.7em; color:#fff;">Video ${i+1}</span></div><button onclick="removeMedia('vid', ${i})" class="btn-del-media" title="Delete Video">✖</button></div>`; });
+        if (detailsSheet) { html += `<div class="media-preview-box"><div class="file-thumb" title="${detailsSheet.name}">📄<br><span style="font-size:0.7em; color:#10b981;">Details Sheet</span></div><button onclick="removeMedia('doc', 0)" class="btn-del-media" title="Delete Sheet">✖</button></div>`; }
         gal.innerHTML = html;
     }
 
     function removeMedia(type, idx) {
-        if (type === 'img') {
-            sampleImages.splice(idx, 1);
-            localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
-        } else if (type === 'vid') {
-            sampleVideos.splice(idx, 1);
-        } else if (type === 'doc') {
-            detailsSheet = null;
-        }
+        if (type === 'img') { sampleImages.splice(idx, 1); localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages)); } 
+        else if (type === 'vid') { sampleVideos.splice(idx, 1); } 
+        else if (type === 'doc') { detailsSheet = null; }
         renderMediaGallery();
     }
 
     function switchTab(tabId) {
-        document.getElementById('tabBtnManual').classList.remove('active');
-        document.getElementById('tabBtnAI').classList.remove('active');
-        document.getElementById('tabManualContent').classList.remove('active');
-        document.getElementById('tabAIContent').classList.remove('active');
-
-        if(tabId === 'manual') {
-            document.getElementById('tabBtnManual').classList.add('active');
-            document.getElementById('tabManualContent').classList.add('active');
-        } else if(tabId === 'ai') {
-            document.getElementById('tabBtnAI').classList.add('active');
-            document.getElementById('tabAIContent').classList.add('active');
-        }
+        document.getElementById('tabBtnManual').classList.remove('active'); document.getElementById('tabBtnAI').classList.remove('active'); document.getElementById('tabManualContent').classList.remove('active'); document.getElementById('tabAIContent').classList.remove('active');
+        if(tabId === 'manual') { document.getElementById('tabBtnManual').classList.add('active'); document.getElementById('tabManualContent').classList.add('active'); } 
+        else if(tabId === 'ai') { document.getElementById('tabBtnAI').classList.add('active'); document.getElementById('tabAIContent').classList.add('active'); }
     }
 
-    function openImagePopup(e, src) {
-        const popup = document.getElementById("hoverPopup");
-        document.getElementById("hoverPopupImg").src = src;
-        popup.style.display = "block";
-        moveImagePopup(e); 
-    }
+    function openImagePopup(e, src) { const popup = document.getElementById("hoverPopup"); document.getElementById("hoverPopupImg").src = src; popup.style.display = "block"; moveImagePopup(e); }
     function moveImagePopup(e) {
-        const popup = document.getElementById("hoverPopup");
-        if (popup.style.display === "none") return;
-        let x = e.clientX + 15, y = e.clientY + 15;
-        const rect = popup.getBoundingClientRect();
-        if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 15;
-        if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 15;
+        const popup = document.getElementById("hoverPopup"); if (popup.style.display === "none") return;
+        let x = e.clientX + 15, y = e.clientY + 15; const rect = popup.getBoundingClientRect();
+        if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 15; if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 15;
         popup.style.left = x + "px"; popup.style.top = y + "px";
     }
     function closeImagePopup() { document.getElementById("hoverPopup").style.display = "none"; }
 
     function openOpsPopup(e, entryId) {
-        clearTimeout(opsPopupTimeout);
-        const entry = loadedCloudDB.find(x => String(x.id) === String(entryId));
-        if (!entry || !entry.ops || entry.ops.length === 0) return;
-
-        const popup = document.getElementById("hoverOpsPopup");
-        let html = '<table><thead class="ops-thead"><tr><th>Operation Name</th><th style="text-align:right">SMV</th></tr></thead><tbody>';
-        entry.ops.forEach(op => { html += `<tr><td>${op.name}</td><td class="smv">${Number(op.smv).toFixed(4)}</td></tr>`; });
-        html += '</tbody></table>';
-        document.getElementById("hoverOpsContent").innerHTML = html;
-        popup.style.display = "block";
-        moveOpsPopup(e);
+        clearTimeout(opsPopupTimeout); const entry = loadedCloudDB.find(x => String(x.id) === String(entryId)); if (!entry || !entry.ops || entry.ops.length === 0) return;
+        const popup = document.getElementById("hoverOpsPopup"); let html = '<table><thead class="ops-thead"><tr><th>Operation Name</th><th style="text-align:right">SMV</th></tr></thead><tbody>';
+        entry.ops.forEach(op => { html += `<tr><td>${op.name}</td><td class="smv">${Number(op.smv).toFixed(4)}</td></tr>`; }); html += '</tbody></table>';
+        document.getElementById("hoverOpsContent").innerHTML = html; popup.style.display = "block"; moveOpsPopup(e);
     }
     function moveOpsPopup(e) {
-        const popup = document.getElementById("hoverOpsPopup");
-        if (popup.style.display === "none" || popup.matches(':hover')) return;
-        let x = e.clientX + 15, y = e.clientY + 15;
-        const rect = popup.getBoundingClientRect();
-        if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 15;
-        if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 15;
+        const popup = document.getElementById("hoverOpsPopup"); if (popup.style.display === "none" || popup.matches(':hover')) return;
+        let x = e.clientX + 15, y = e.clientY + 15; const rect = popup.getBoundingClientRect();
+        if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 15; if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 15;
         popup.style.left = x + "px"; popup.style.top = y + "px";
     }
-    function closeOpsPopupDelay() {
-        opsPopupTimeout = setTimeout(() => { document.getElementById("hoverOpsPopup").style.display = "none"; }, 250); 
-    }
+    function closeOpsPopupDelay() { opsPopupTimeout = setTimeout(() => { document.getElementById("hoverOpsPopup").style.display = "none"; }, 250); }
     function closeOpsPopup() { document.getElementById("hoverOpsPopup").style.display = "none"; }
 
-    function showDropdown(id) {
-        const dropdown = document.getElementById(id);
-        const list = JSON.parse(localStorage.getItem("dsi_custom_process") || "[]");
-        dropdown.innerHTML = list.length ? list.map(v => `<div class="custom-dropdown-item" onclick="selectProcess('processName', '${v.replace(/'/g, "\\'")}')">${v}</div>`).join('') : '<div style="padding:10px; color:#94a3b8; font-size:0.85em;">No saved history</div>';
-        dropdown.classList.add('show');
-    }
+    function showDropdown(id) { const dropdown = document.getElementById(id); const list = JSON.parse(localStorage.getItem("dsi_custom_process") || "[]"); dropdown.innerHTML = list.length ? list.map(v => `<div class="custom-dropdown-item" onclick="selectProcess('processName', '${v.replace(/'/g, "\\'")}')">${v}</div>`).join('') : '<div style="padding:10px; color:#94a3b8; font-size:0.85em;">No saved history</div>'; dropdown.classList.add('show'); }
     function hideDropdown(id) { document.getElementById(id).classList.remove('show'); }
-    function selectProcess(inputId, val) {
-        document.getElementById(inputId).value = val;
-        saveMetaData();
-        hideDropdown('processDropdown');
-    }
-    function saveCustomProcesses() {
-        const val = document.getElementById("processName").value.trim();
-        if (val) {
-            let list = JSON.parse(localStorage.getItem("dsi_custom_process") || "[]");
-            if (!list.includes(val)) { list.unshift(val); localStorage.setItem("dsi_custom_process", JSON.stringify(list.slice(0, 15))); }
-        }
-    }
-    function clearCustomList(type) {
-        localStorage.removeItem("dsi_custom_process");
-        document.getElementById("processName").value = "";
-        showDropdown('processDropdown');
-    }
+    function selectProcess(inputId, val) { document.getElementById(inputId).value = val; saveMetaData(); hideDropdown('processDropdown'); }
+    function saveCustomProcesses() { const val = document.getElementById("processName").value.trim(); if (val) { let list = JSON.parse(localStorage.getItem("dsi_custom_process") || "[]"); if (!list.includes(val)) { list.unshift(val); localStorage.setItem("dsi_custom_process", JSON.stringify(list.slice(0, 15))); } } }
+    function clearCustomList(type) { localStorage.removeItem("dsi_custom_process"); document.getElementById("processName").value = ""; showDropdown('processDropdown'); }
 
     function getRowStyle(text) {
-        if(!text) return "";
-        const colors = ['rgba(16,185,129,0.1)', 'rgba(56,189,248,0.1)', 'rgba(168,85,247,0.1)', 'rgba(236,72,153,0.1)', 'rgba(245,158,11,0.1)', 'rgba(239,68,68,0.1)', 'rgba(132,204,22,0.1)'];
-        let hash = 0;
-        for (let i = 0; i < text.length; i++) hash = text.charCodeAt(i) + ((hash << 5) - hash);
+        if(!text) return ""; const colors = ['rgba(16,185,129,0.1)', 'rgba(56,189,248,0.1)', 'rgba(168,85,247,0.1)', 'rgba(236,72,153,0.1)', 'rgba(245,158,11,0.1)', 'rgba(239,68,68,0.1)', 'rgba(132,204,22,0.1)'];
+        let hash = 0; for (let i = 0; i < text.length; i++) hash = text.charCodeAt(i) + ((hash << 5) - hash);
         return `background-color: ${colors[Math.abs(hash) % colors.length]};`;
     }
 
     function toggleTheme() {
-        const body = document.body;
-        const btn = document.getElementById("btnTheme");
-        body.classList.toggle("light-mode");
-        if (body.classList.contains("light-mode")) {
-            localStorage.setItem("dsi_theme", "light"); btn.innerHTML = "🌙 Dark Mode"; btn.style.background = "#1e293b"; btn.style.color = "#fff";
-        } else {
-            localStorage.setItem("dsi_theme", "dark"); btn.innerHTML = "☀️ Light Mode"; btn.style.background = "#e2e8f0"; btn.style.color = "#0f172a";
-        }
+        const body = document.body; const btn = document.getElementById("btnTheme"); body.classList.toggle("light-mode");
+        if (body.classList.contains("light-mode")) { localStorage.setItem("dsi_theme", "light"); btn.innerHTML = "🌙 Dark Mode"; btn.style.background = "#1e293b"; btn.style.color = "#fff"; } 
+        else { localStorage.setItem("dsi_theme", "dark"); btn.innerHTML = "☀️ Light Mode"; btn.style.background = "#e2e8f0"; btn.style.color = "#0f172a"; }
     }
 
     function toggleAllChecks(source) { document.querySelectorAll('.row-check').forEach(cb => cb.checked = source.checked); }
 
     function applyBulkSection() {
-        const sectionVal = document.getElementById("bulkSectionInput").value.trim();
-        if (!sectionVal) return alert("Please type or select a work center.");
-        const checkboxes = document.querySelectorAll('.row-check:checked');
-        if (checkboxes.length === 0) return alert("Please check at least one operation.");
-        saveState();
-        checkboxes.forEach(cb => {
-            const op = operationsData.find(o => o.id === parseInt(cb.value));
-            if (op) op.section = sectionVal; 
-        });
-        document.getElementById("bulkSectionInput").value = ""; 
-        document.querySelector('input[onclick="toggleAllChecks(this)"]').checked = false; 
-        renderTable();
+        const sectionVal = document.getElementById("bulkSectionInput").value.trim(); if (!sectionVal) return alert("Please type or select a work center.");
+        const checkboxes = document.querySelectorAll('.row-check:checked'); if (checkboxes.length === 0) return alert("Please check at least one operation.");
+        saveState(); checkboxes.forEach(cb => { const op = operationsData.find(o => o.id === parseInt(cb.value)); if (op) op.section = sectionVal; });
+        document.getElementById("bulkSectionInput").value = ""; document.querySelector('input[onclick="toggleAllChecks(this)"]').checked = false; renderTable();
     }
 
     function applyBulkComponent() {
-        const compVal = document.getElementById("bulkComponentInput").value.trim().toUpperCase();
-        if (!compVal) return alert("Please type or select a component part.");
-        const checkboxes = document.querySelectorAll('.row-check:checked');
-        if (checkboxes.length === 0) return alert("Please check at least one operation.");
-        saveState();
-        checkboxes.forEach(cb => {
-            const op = operationsData.find(o => o.id === parseInt(cb.value));
-            if (op) op.component = compVal; 
-        });
-        document.getElementById("bulkComponentInput").value = ""; 
-        document.querySelector('input[onclick="toggleAllChecks(this)"]').checked = false; 
-        renderTable();
+        const compVal = document.getElementById("bulkComponentInput").value.trim().toUpperCase(); if (!compVal) return alert("Please type or select a component part.");
+        const checkboxes = document.querySelectorAll('.row-check:checked'); if (checkboxes.length === 0) return alert("Please check at least one operation.");
+        saveState(); checkboxes.forEach(cb => { const op = operationsData.find(o => o.id === parseInt(cb.value)); if (op) op.component = compVal; });
+        document.getElementById("bulkComponentInput").value = ""; document.querySelector('input[onclick="toggleAllChecks(this)"]').checked = false; renderTable();
     }
 
     // --- BUTTON 1: SAVE ONLY TO CLOUD (Bypassing CORS restrictions) ---
@@ -698,35 +544,18 @@
         
         if (!sampleName) return alert("Please enter an 'Item Type / Sample Number'.");
 
-        const btn = document.getElementById("btnSaveDB");
-        const originalText = btn.innerText;
-        btn.innerText = "⏳ Saving...";
-        btn.disabled = true;
+        const btn = document.getElementById("btnSaveDB"); const originalText = btn.innerText; btn.innerText = "⏳ Saving..."; btn.disabled = true;
 
         const payload = {
-            id: sampleName.toLowerCase().replace(/\s+/g, '_'),
-            date: new Date().toLocaleDateString(),
-            meta: { 
-                name: sampleName, process: processName, comments: comments, plant: plant, ieMember: ieMember 
-            },
-            ops: operationsData,
-            imgs: sampleImages
+            id: sampleName.toLowerCase().replace(/\s+/g, '_'), date: new Date().toLocaleDateString(),
+            meta: { name: sampleName, process: processName, comments: comments, plant: plant, ieMember: ieMember },
+            ops: operationsData, imgs: sampleImages
         };
 
         try {
-            await fetch(GOOGLE_SCRIPT_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ action: "save", payload: payload })
-            });
+            await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "save", payload: payload }) });
             alert(`✅ Bulletin successfully fired to Cloud!`);
-        } catch (e) {
-            alert("Network Error: Make sure your GOOGLE_SCRIPT_URL is correct.");
-            console.error(e);
-        } finally {
-            btn.innerText = originalText; btn.disabled = false;
-        }
+        } catch (e) { alert("Network Error: Make sure your GOOGLE_SCRIPT_URL is correct."); } finally { btn.innerText = originalText; btn.disabled = false; }
     }
 
     // --- BUTTON 2: EMAIL IE MEMBER VIA GMAIL APP ---
@@ -740,164 +569,77 @@
         if (!sampleName) return alert("Please enter a Sample Number first.");
         if (!ieEmail) return alert("Please select an Allocated IE Member from the dropdown first.");
 
-        // AUTO-SAVE BEFORE EMAIL TO ENSURE DATA EXISTS FOR THE LINK
-        const btn = document.getElementById("btnEmailIE");
-        const originalText = btn.innerText;
-        btn.innerText = "⏳ Saving & Preparing Email...";
-        btn.disabled = true;
+        const btn = document.getElementById("btnEmailIE"); const originalText = btn.innerText; btn.innerText = "⏳ Saving & Preparing Email..."; btn.disabled = true;
 
-        const payload = {
-            id: sampleName.toLowerCase().replace(/\s+/g, '_'),
-            date: new Date().toLocaleDateString(),
-            meta: { name: sampleName, process: processName, comments: comments, plant: plant, ieMember: ieEmail },
-            ops: operationsData,
-            imgs: sampleImages
-        };
+        const payload = { id: sampleName.toLowerCase().replace(/\s+/g, '_'), date: new Date().toLocaleDateString(), meta: { name: sampleName, process: processName, comments: comments, plant: plant, ieMember: ieEmail }, ops: operationsData, imgs: sampleImages };
 
-        try {
-            await fetch(GOOGLE_SCRIPT_URL, {
-                method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ action: "save", payload: payload })
-            });
-        } catch (e) {
-            console.error("Auto-save network error:", e);
-        }
+        try { await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "save", payload: payload }) }); } catch (e) {}
 
-        btn.innerText = originalText;
-        btn.disabled = false;
+        btn.innerText = originalText; btn.disabled = false;
 
         const safeId = sampleName.toLowerCase().replace(/\s+/g, '_');
         const systemLink = `https://shyamanwickramasinghe-jpg.github.io/footwear-gallery/operation-bulletin.html?load=${safeId}`;
-
         const subject = encodeURIComponent("Action Required: Complete Operation Bulletin for " + sampleName);
-        const body = encodeURIComponent(
-            "Hello,\n\n" +
-            "A new operation bulletin has been assigned to you for SMV calculation.\n\n" +
-            "Item / Sample: " + sampleName + "\n" +
-            "Target Plant: " + plant + "\n" +
-            "Process: " + processName + "\n" +
-            "Notes / Comments: " + comments + "\n\n" +
-            "*** INSTRUCTIONS ***\n" +
-            "1. Click the link below. The system will automatically open and load this item's attached photos, videos, and details sheet.\n" +
-            "2. Analyze the media and enter the complete Operation Breakdown and SMVs into the system.\n" +
-            "3. Click 'Save to Cloud' to upload your completed bulletin.\n\n" +
-            "System Link: " + systemLink + "\n\n" +
-            "Best regards,\nCentral IE Team"
-        );
+        const body = encodeURIComponent("Hello,\n\nA new operation bulletin has been assigned to you for SMV calculation.\n\nItem / Sample: " + sampleName + "\nTarget Plant: " + plant + "\nProcess: " + processName + "\nNotes / Comments: " + comments + "\n\n*** INSTRUCTIONS ***\n1. Click the link below. The system will automatically open and load this item's attached photos, videos, and details sheet.\n2. Analyze the media and enter the complete Operation Breakdown and SMVs into the system.\n3. Click 'Save to Cloud' to upload your completed bulletin.\n\nSystem Link: " + systemLink + "\n\nBest regards,\nCentral IE Team");
 
         window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${ieEmail}&su=${subject}&body=${body}`, '_blank');
     }
 
     let loadedCloudDB = [];
 
-    // --- JSONP NETWORK BYPASS FETCH (RE-ADDED) ---
+    // --- JSONP NETWORK BYPASS FETCH ---
     function fetchCloudData(onSuccess, onError) {
         const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
         window[callbackName] = function(data) {
-            loadedCloudDB = data;
-            delete window[callbackName];
-            const scriptNode = document.getElementById(callbackName);
-            if(scriptNode) scriptNode.remove();
-            if(onSuccess) onSuccess();
+            loadedCloudDB = data; delete window[callbackName]; const scriptNode = document.getElementById(callbackName); if(scriptNode) scriptNode.remove(); if(onSuccess) onSuccess();
         };
-
-        const script = document.createElement('script');
-        script.src = GOOGLE_SCRIPT_URL + "?callback=" + callbackName;
-        script.id = callbackName;
-        
-        script.onerror = function() {
-            delete window[callbackName];
-            script.remove();
-            if(onError) onError();
-        };
-
+        const script = document.createElement('script'); script.src = GOOGLE_SCRIPT_URL + "?callback=" + callbackName; script.id = callbackName;
+        script.onerror = function() { delete window[callbackName]; script.remove(); if(onError) onError(); };
         document.body.appendChild(script);
     }
 
     function openLoadModal() {
-        document.getElementById("dbModal").style.display = "flex";
-        const container = document.getElementById("dbListContainer");
-        container.innerHTML = `<span class="empty-msg" style="font-weight:bold;">⏳ Fetching Bulletins from Google Sheets...</span>`;
-        
-        fetchCloudData(() => {
-            document.getElementById("dbSearchInput").value = "";
-            document.getElementById("dbSearchOpInput").value = "";
-            renderDatabaseList();
-        }, () => {
-            container.innerHTML = `<span style="color:#ef4444; text-align:center; padding:20px;">Error fetching data. Network blocked the connection.</span>`;
-        });
+        document.getElementById("dbModal").style.display = "flex"; const container = document.getElementById("dbListContainer"); container.innerHTML = `<span class="empty-msg" style="font-weight:bold;">⏳ Fetching Bulletins from Google Sheets...</span>`;
+        fetchCloudData(() => { document.getElementById("dbSearchInput").value = ""; document.getElementById("dbSearchOpInput").value = ""; renderDatabaseList(); }, () => { container.innerHTML = `<span style="color:#ef4444; text-align:center; padding:20px;">Error fetching data. Network blocked the connection.</span>`; });
     }
 
     function closeLoadModal() { document.getElementById("dbModal").style.display = "none"; }
 
     // --- AUTO-LOAD FROM EMAIL LOGIC ---
     function fetchCloudDataAndLoad(loadId) {
-        const overlay = document.createElement('div');
-        overlay.id = "autoLoadOverlay";
-        overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);color:#10b981;display:flex;align-items:center;justify-content:center;z-index:9999;font-size:1.5em;font-weight:bold;";
-        overlay.innerHTML = "⏳ Auto-Loading Assigned Bulletin...";
-        document.body.appendChild(overlay);
-
+        const overlay = document.createElement('div'); overlay.id = "autoLoadOverlay"; overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);color:#10b981;display:flex;align-items:center;justify-content:center;z-index:9999;font-size:1.5em;font-weight:bold;"; overlay.innerHTML = "⏳ Auto-Loading Assigned Bulletin..."; document.body.appendChild(overlay);
         fetchCloudData(() => {
-            document.getElementById("autoLoadOverlay").remove();
-            const entry = loadedCloudDB.find(e => String(e.id) === String(loadId));
-            if (entry) {
-                loadFromCloudDB(loadId, true); // true = bypass confirm box
-                alert(`✅ Successfully loaded assigned bulletin: ${entry.meta.name}`);
-            } else {
-                alert("❌ Could not find the assigned bulletin in the database. Ensure the Central Team saved it to the cloud.");
-            }
-        }, () => {
-            document.getElementById("autoLoadOverlay").remove();
-            alert("❌ Failed to connect to Cloud Database.");
-        });
+            document.getElementById("autoLoadOverlay").remove(); const entry = loadedCloudDB.find(e => String(e.id) === String(loadId));
+            if (entry) { loadFromCloudDB(loadId, true); alert(`✅ Successfully loaded assigned bulletin: ${entry.meta.name}`); } else { alert("❌ Could not find the assigned bulletin in the database. Ensure the Central Team saved it to the cloud."); }
+        }, () => { document.getElementById("autoLoadOverlay").remove(); alert("❌ Failed to connect to Cloud Database."); });
     }
 
     function renderDatabaseList() {
-        const query1 = document.getElementById("dbSearchInput").value.toLowerCase(); 
-        const query2 = document.getElementById("dbSearchOpInput").value.toLowerCase(); 
-        const container = document.getElementById("dbListContainer");
-
+        const query1 = document.getElementById("dbSearchInput").value.toLowerCase(); const query2 = document.getElementById("dbSearchOpInput").value.toLowerCase(); const container = document.getElementById("dbListContainer");
         const filtered = loadedCloudDB.filter(entry => {
-            const m = entry.meta || {}; 
-            const match1 = (m.name || "").toLowerCase().includes(query1) || 
-                           (m.process || m.cutting || m.assembly || "").toLowerCase().includes(query1) || 
-                           (m.comments || "").toLowerCase().includes(query1);
-            let match2 = true; 
-            if (query2) match2 = entry.ops && entry.ops.some(op => (op.name || "").toLowerCase().includes(query2));
-            return match1 && match2;
+            const m = entry.meta || {}; const match1 = (m.name || "").toLowerCase().includes(query1) || (m.process || m.cutting || m.assembly || "").toLowerCase().includes(query1) || (m.comments || "").toLowerCase().includes(query1);
+            let match2 = true; if (query2) match2 = entry.ops && entry.ops.some(op => (op.name || "").toLowerCase().includes(query2)); return match1 && match2;
         });
-
         if (filtered.length === 0) return container.innerHTML = `<span class="empty-msg">No saved bulletins found.</span>`;
-
         container.innerHTML = filtered.map(entry => {
             const imgHtml = (entry.imgs || []).slice(0, 4).map(img => `<img src="${img}" class="db-mini-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()">`).join("");
+            const procText = entry.meta.process || entry.meta.cutting || entry.meta.assembly || 'N/A'; const plantText = entry.meta.plant || 'N/A';
             
-            // FALLBACK FOR OLD RECORDS
-            const procText = entry.meta.process || entry.meta.cutting || entry.meta.assembly || 'N/A'; 
-            const plantText = entry.meta.plant || 'N/A';
-            
-            // IE NAME LOOKUP
             let ieName = "Unassigned";
             if (entry.meta.ieMember) {
                 ieName = entry.meta.ieMember; 
-                for (let p in ieData) {
-                    let found = ieData[p].find(x => x.email === entry.meta.ieMember);
-                    if (found) { ieName = found.name; break; }
-                }
+                for (let p in ieData) { let found = ieData[p].find(x => x.email === entry.meta.ieMember); if (found) { ieName = found.name; break; } }
             }
             
-            const plantBadge = `<span class="sec-badge" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;">🏢 ${plantText}</span>`;
-            const ieBadge = `<span class="sec-badge" style="background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid #a855f7;">👤 ${ieName}</span>`;
-            const procBadge = `<span class="sec-badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444;">⚙️ ${procText}</span>`;
-
+            const plantBadge = `<span class="sec-badge" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;" title="Target Plant">🏢 ${plantText}</span>`;
+            const ieBadge = `<span class="sec-badge" style="background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid #a855f7;" title="Allocated IE Member">👤 ${ieName}</span>`;
+            const procBadge = `<span class="sec-badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444;" title="Process">⚙️ ${procText}</span>`;
             let cleanDate = entry.date ? entry.date.split("T")[0] : "";
-
+            
             return `
             <div class="db-card">
                 <div class="db-card-content">
-                    <span class="db-card-name" style="cursor: help; border-bottom: 1px dotted #10b981;"
-                          onmouseenter="openOpsPopup(event, '${entry.id}')" onmousemove="moveOpsPopup(event)" onmouseleave="closeOpsPopupDelay()">👟 ${entry.meta.name}</span>
+                    <span class="db-card-name" style="cursor: help; border-bottom: 1px dotted #10b981;" onmouseenter="openOpsPopup(event, '${entry.id}')" onmousemove="moveOpsPopup(event)" onmouseleave="closeOpsPopupDelay()">👟 ${entry.meta.name}</span>
                     <div class="db-badges">${plantBadge} ${ieBadge} ${procBadge}</div>
                     <span class="db-meta-text">📅 ${cleanDate} &nbsp;|&nbsp; ⚙️ ${entry.ops ? entry.ops.length : 0} Ops</span>
                     <div class="db-images">${imgHtml}</div>
@@ -906,318 +648,94 @@
                     <button class="btn-table btn-save-row" style="padding: 6px 12px; font-size:0.9em; width: auto;" onclick="loadFromCloudDB('${entry.id}')">📂 Load</button>
                     <button class="btn-table btn-delete" style="padding: 6px 12px; font-size:0.9em;" onclick="deleteFromCloudDB('${entry.id}')">✖ Delete</button>
                 </div>
-            </div>
-            `;
+            </div>`;
         }).join("");
     }
 
     function loadFromCloudDB(id, bypassConfirm = false) {
         if (!bypassConfirm && !confirm("This will overwrite your current active table and images on screen. Do you want to proceed?")) return;
-        const entry = loadedCloudDB.find(e => String(e.id) === String(id));
-        if (!entry) return;
-
-        operationsData = entry.ops || [];
-        sampleImages = entry.imgs || [];
-        sampleVideos = [];
-        detailsSheet = null;
-        
-        document.getElementById("sampleName").value = entry.meta.name || "";
-        // FALLBACK FOR OLD RECORDS
-        document.getElementById("processName").value = entry.meta.process || entry.meta.cutting || entry.meta.assembly || "";
-        document.getElementById("sampleComments").value = entry.meta.comments || "";
-        
-        if (entry.meta.plant) {
-            document.getElementById("targetPlant").value = entry.meta.plant;
-            updateIEList(entry.meta.ieMember);
-        } else {
-            document.getElementById("targetPlant").value = "";
-            updateIEList("");
-        }
-        
-        saveMetaData();
-        localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
-        localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
-
-        renderMediaGallery();
-        renderTable();
-        
-        const modal = document.getElementById("dbModal");
-        if (modal) modal.style.display = "none";
+        const entry = loadedCloudDB.find(e => String(e.id) === String(id)); if (!entry) return;
+        operationsData = entry.ops || []; sampleImages = entry.imgs || []; sampleVideos = []; detailsSheet = null;
+        document.getElementById("sampleName").value = entry.meta.name || ""; document.getElementById("processName").value = entry.meta.process || entry.meta.cutting || entry.meta.assembly || ""; document.getElementById("sampleComments").value = entry.meta.comments || "";
+        if (entry.meta.plant) { document.getElementById("targetPlant").value = entry.meta.plant; updateIEList(entry.meta.ieMember); } else { document.getElementById("targetPlant").value = ""; updateIEList(""); }
+        saveMetaData(); localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData)); localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
+        renderMediaGallery(); renderTable();
+        const modal = document.getElementById("dbModal"); if (modal) modal.style.display = "none";
     }
 
     async function deleteFromCloudDB(id) {
-        const pass = prompt("Enter Admin Password to Delete Cloud File (9999):");
-        if (pass !== "9999") return alert("Incorrect password. Deletion blocked.");
+        if (prompt("Enter Admin Password to Delete Cloud File (9999):") !== "9999") return alert("Incorrect password. Deletion blocked.");
         if (!confirm("Are you sure you want to permanently delete this saved bulletin?")) return;
-        
-        try {
-            await fetch(GOOGLE_SCRIPT_URL, { 
-                method: "POST", 
-                mode: "no-cors",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ action: "delete", payload: { id: id } }) 
-            });
-            loadedCloudDB = loadedCloudDB.filter(e => String(e.id) !== String(id));
-            renderDatabaseList();
-            alert("Delete request sent to cloud.");
-        } catch (e) { alert("Error connecting to cloud."); }
+        try { await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "delete", payload: { id: id } }) }); loadedCloudDB = loadedCloudDB.filter(e => String(e.id) !== String(id)); renderDatabaseList(); alert("Delete request sent to cloud."); } catch (e) { alert("Error connecting to cloud."); }
     }
 
-    function setupDropZone(inputId, zoneId) {
-        const input = document.getElementById(inputId); const zone = document.getElementById(zoneId);
-        if(input && zone) {
-            input.addEventListener('dragover', () => zone.classList.add('dragover'));
-            input.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-            input.addEventListener('drop', () => zone.classList.remove('dragover'));
-        }
-    }
-
-    function populateMachineDropdown(selectValue = "") {
-        const select = document.getElementById("inMachine");
-        select.innerHTML = `<option value="">Select Machine...</option>` + dsiMachines.map(m => `<option value="${m.name}">${m.name}</option>`).join("");
-        if (selectValue) select.value = selectValue;
-    }
-
-    function addNewMachineType() {
-        const name = prompt("Enter new Machine Type name:");
-        if (!name) return;
-        const newMachine = { name: name.trim(), ma: 0.0 };
-        dsiMachines.push(newMachine);
-        const savedCustoms = JSON.parse(localStorage.getItem("dsi_custom_machines") || "[]");
-        savedCustoms.push(newMachine);
-        localStorage.setItem("dsi_custom_machines", JSON.stringify(savedCustoms));
-        populateMachineDropdown(newMachine.name);
-    }
-
-    function saveMetaData() {
-        const meta = {
-            name: document.getElementById("sampleName").value,
-            process: document.getElementById("processName").value,
-            comments: document.getElementById("sampleComments").value,
-            plant: document.getElementById("targetPlant").value,
-            ieMember: document.getElementById("allocatedIE").value
-        };
-        localStorage.setItem("dsi_costing_meta", JSON.stringify(meta));
-    }
-
-    function calculateTargetFromSmv() {
-        const smv = parseFloat(document.getElementById("inSmv").value);
-        document.getElementById("inTarget").value = smv > 0 ? Math.round(60 / smv) : "";
-    }
-
-    function calculateSmvFromTarget() {
-        const target = parseFloat(document.getElementById("inTarget").value);
-        document.getElementById("inSmv").value = target > 0 ? (60 / target).toFixed(4) : "";
-    }
-
-    function saveState() {
-        historyStack.push(JSON.parse(JSON.stringify(operationsData)));
-        document.getElementById("btnUndo").disabled = false;
-        localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
-    }
-
-    function undoLastAction() {
-        if (historyStack.length === 0) return;
-        operationsData = historyStack.pop();
-        if (historyStack.length === 0) document.getElementById("btnUndo").disabled = true;
-        reindexOperations();
-        renderTable();
-    }
-
-    function reindexOperations() {
-        operationsData.forEach((op, i) => op.no = i + 1);
-        localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
-    }
+    function calculateTargetFromSmv() { const smv = parseFloat(document.getElementById("inSmv").value); document.getElementById("inTarget").value = smv > 0 ? Math.round(60 / smv) : ""; }
+    function calculateSmvFromTarget() { const target = parseFloat(document.getElementById("inTarget").value); document.getElementById("inSmv").value = target > 0 ? (60 / target).toFixed(4) : ""; }
+    function saveState() { historyStack.push(JSON.parse(JSON.stringify(operationsData))); document.getElementById("btnUndo").disabled = false; localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData)); }
+    function undoLastAction() { if (historyStack.length === 0) return; operationsData = historyStack.pop(); if (historyStack.length === 0) document.getElementById("btnUndo").disabled = true; reindexOperations(); renderTable(); }
+    function reindexOperations() { operationsData.forEach((op, i) => op.no = i + 1); localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData)); }
 
     function addOperationRow() {
-        let no = parseInt(document.getElementById("inNo").value);
-        const section = document.getElementById("inSection").value.trim();
-        const component = document.getElementById("inComponent").value.trim().toUpperCase();
-        const name = document.getElementById("inOpName").value.trim();
-        const machine = document.getElementById("inMachine").value;
-        const remarks = document.getElementById("inRemarks").value.trim();
-        const attach = document.getElementById("inAttach").value.trim();
-        const smv = parseFloat(document.getElementById("inSmv").value) || 0;
-        const target = parseInt(document.getElementById("inTarget").value) || 0;
-
+        let no = parseInt(document.getElementById("inNo").value); const section = document.getElementById("inSection").value.trim(); const component = document.getElementById("inComponent").value.trim().toUpperCase(); const name = document.getElementById("inOpName").value.trim(); const machine = document.getElementById("inMachine").value; const remarks = document.getElementById("inRemarks").value.trim(); const attach = document.getElementById("inAttach").value.trim(); const smv = parseFloat(document.getElementById("inSmv").value) || 0; const target = parseInt(document.getElementById("inTarget").value) || 0;
         if (!name || smv <= 0) return alert("Operation Name and SMV are required.");
         saveState();
-
-        if (!no) {
-            no = operationsData.length > 0 ? operationsData.length + 1 : 1;
-        } else {
-            operationsData.forEach(op => { if (op.no >= no) op.no += 1; });
-        }
-
+        if (!no) { no = operationsData.length > 0 ? operationsData.length + 1 : 1; } else { operationsData.forEach(op => { if (op.no >= no) op.no += 1; }); }
         operationsData.push({ id: Date.now(), no: no, section, component, name, machine, smv, target, remarks, attach });
-        operationsData.sort((a, b) => a.no - b.no);
-        reindexOperations(); 
-
-        document.getElementById("inNo").value = "";
-        document.getElementById("inSection").value = "";
-        document.getElementById("inComponent").value = "";
-        document.getElementById("inOpName").value = "";
-        document.getElementById("inMachine").value = "";
-        document.getElementById("inRemarks").value = "";
-        document.getElementById("inAttach").value = "";
-        document.getElementById("inSmv").value = "";
-        document.getElementById("inTarget").value = "";
-
+        operationsData.sort((a, b) => a.no - b.no); reindexOperations(); 
+        document.getElementById("inNo").value = ""; document.getElementById("inSection").value = ""; document.getElementById("inComponent").value = ""; document.getElementById("inOpName").value = ""; document.getElementById("inMachine").value = ""; document.getElementById("inRemarks").value = ""; document.getElementById("inAttach").value = ""; document.getElementById("inSmv").value = ""; document.getElementById("inTarget").value = "";
         renderTable();
     }
 
-    function moveRowUp(id) {
-        const index = operationsData.findIndex(o => o.id === id);
-        if (index > 0) {
-            saveState();
-            const temp = operationsData[index - 1]; operationsData[index - 1] = operationsData[index]; operationsData[index] = temp;
-            reindexOperations(); renderTable();
-        }
-    }
-
-    function moveRowDown(id) {
-        const index = operationsData.findIndex(o => o.id === id);
-        if (index !== -1 && index < operationsData.length - 1) {
-            saveState();
-            const temp = operationsData[index + 1]; operationsData[index + 1] = operationsData[index]; operationsData[index] = temp;
-            reindexOperations(); renderTable();
-        }
-    }
-
-    function deleteRow(id, bypassConfirm = false) {
-        if (!bypassConfirm) {
-            const pass = prompt("Enter Admin Password to Delete Row (9999):");
-            if (pass !== "9999") return alert("Incorrect password.");
-        }
-        saveState();
-        operationsData = operationsData.filter(op => op.id !== id);
-        reindexOperations(); renderTable();
-    }
-
+    function moveRowUp(id) { const index = operationsData.findIndex(o => o.id === id); if (index > 0) { saveState(); const temp = operationsData[index - 1]; operationsData[index - 1] = operationsData[index]; operationsData[index] = temp; reindexOperations(); renderTable(); } }
+    function moveRowDown(id) { const index = operationsData.findIndex(o => o.id === id); if (index !== -1 && index < operationsData.length - 1) { saveState(); const temp = operationsData[index + 1]; operationsData[index + 1] = operationsData[index]; operationsData[index] = temp; reindexOperations(); renderTable(); } }
+    function deleteRow(id, bypassConfirm = false) { if (!bypassConfirm) { if(prompt("Enter Admin Password to Delete Row (9999):") !== "9999") return alert("Incorrect password."); } saveState(); operationsData = operationsData.filter(op => op.id !== id); reindexOperations(); renderTable(); }
     function editRow(id) {
-        const op = operationsData.find(o => o.id === id);
-        if (!op) return;
-
-        document.getElementById("inNo").value = op.no;
-        document.getElementById("inSection").value = op.section || '';
-        document.getElementById("inComponent").value = op.component || '';
-        document.getElementById("inOpName").value = op.name;
-        document.getElementById("inMachine").value = op.machine;
-        document.getElementById("inRemarks").value = op.remarks || '';
-        document.getElementById("inAttach").value = op.attach || '';
-        document.getElementById("inSmv").value = op.smv;
-        document.getElementById("inTarget").value = op.target;
-
-        saveState();
-        operationsData = operationsData.filter(o => o.id !== id);
-        reindexOperations(); renderTable();
+        const op = operationsData.find(o => o.id === id); if (!op) return;
+        document.getElementById("inNo").value = op.no; document.getElementById("inSection").value = op.section || ''; document.getElementById("inComponent").value = op.component || ''; document.getElementById("inOpName").value = op.name; document.getElementById("inMachine").value = op.machine; document.getElementById("inRemarks").value = op.remarks || ''; document.getElementById("inAttach").value = op.attach || ''; document.getElementById("inSmv").value = op.smv; document.getElementById("inTarget").value = op.target;
+        saveState(); operationsData = operationsData.filter(o => o.id !== id); reindexOperations(); renderTable();
     }
 
     function clearAllData() {
         if (prompt("Enter Admin Password to Clear All (9999):") !== "9999") return alert("Incorrect password.");
         if (!confirm("Are you sure you want to clear the current table and images?")) return;
-        
-        saveState();
-        operationsData = []; sampleImages = []; sampleVideos = []; detailsSheet = null;
-        
-        document.getElementById("sampleName").value = "";
-        document.getElementById("processName").value = "";
-        document.getElementById("sampleComments").value = "";
-        document.getElementById("targetPlant").value = "";
-        updateIEList("");
-        
+        saveState(); operationsData = []; sampleImages = []; sampleVideos = []; detailsSheet = null;
+        document.getElementById("sampleName").value = ""; document.getElementById("processName").value = ""; document.getElementById("sampleComments").value = ""; document.getElementById("targetPlant").value = ""; updateIEList("");
         localStorage.removeItem("dsi_costing_ops"); localStorage.removeItem("dsi_costing_meta"); localStorage.removeItem("dsi_costing_imgs");
         renderMediaGallery(); renderTable();
     }
 
     function renderTable() {
-        const tbody = document.getElementById("tableBody");
-        const query = document.getElementById("searchInput").value.toLowerCase();
-        
-        let totalSmv = 0; let partSmvMap = {};
-        
-        const filteredOps = operationsData.filter(op => 
-            op.name.toLowerCase().includes(query) || (op.machine || '').toLowerCase().includes(query) || op.no.toString().includes(query) || (op.remarks || '').toLowerCase().includes(query) || (op.attach || '').toLowerCase().includes(query) || (op.section || '').toLowerCase().includes(query) || (op.component || '').toLowerCase().includes(query)
-        );
-
+        const tbody = document.getElementById("tableBody"); const query = document.getElementById("searchInput").value.toLowerCase(); let totalSmv = 0; let partSmvMap = {};
+        const filteredOps = operationsData.filter(op => op.name.toLowerCase().includes(query) || (op.machine || '').toLowerCase().includes(query) || op.no.toString().includes(query) || (op.remarks || '').toLowerCase().includes(query) || (op.attach || '').toLowerCase().includes(query) || (op.section || '').toLowerCase().includes(query) || (op.component || '').toLowerCase().includes(query));
         tbody.innerHTML = filteredOps.map(op => {
-            totalSmv += op.smv;
-            let partName = (op.component || "").trim().toUpperCase();
-            if (partName) {
-                if (!partSmvMap[partName]) partSmvMap[partName] = 0;
-                partSmvMap[partName] += op.smv;
-            }
-            const rowStyle = op.section ? getRowStyle(op.section) : '';
-            const compHtml = op.component ? `<span class="col-comp">${op.component}</span>` : '-';
-
-            return `
-                <tr style="${rowStyle}">
-                    <td><input type="checkbox" class="row-check" value="${op.id}"></td>
-                    <td class="col-no">${op.no}</td>
-                    <td class="col-sec">${op.section || '-'}</td>
-                    <td>${compHtml}</td>
-                    <td class="col-name">${op.name}</td>
-                    <td class="col-mac">${op.machine || '-'}</td>
-                    <td class="col-smv">${op.smv.toFixed(4)}</td>
-                    <td>${op.target}</td>
-                    <td class="col-rem">${op.remarks || '-'}</td>
-                    <td class="col-att">${op.attach || '-'}</td>
-                    <td>
-                        <div style="display:flex; gap:4px;">
-                            <button class="btn-table btn-move" onclick="moveRowUp(${op.id})">⬆️</button>
-                            <button class="btn-table btn-move" onclick="moveRowDown(${op.id})">⬇️</button>
-                            <button class="btn-table btn-edit" onclick="editRow(${op.id})">✏️</button>
-                            <button class="btn-table btn-delete" onclick="deleteRow(${op.id})">✖</button>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            totalSmv += op.smv; let partName = (op.component || "").trim().toUpperCase(); if (partName) { if (!partSmvMap[partName]) partSmvMap[partName] = 0; partSmvMap[partName] += op.smv; }
+            const rowStyle = op.section ? getRowStyle(op.section) : ''; const compHtml = op.component ? `<span class="col-comp">${op.component}</span>` : '-';
+            return `<tr style="${rowStyle}"><td><input type="checkbox" class="row-check" value="${op.id}"></td><td class="col-no">${op.no}</td><td class="col-sec">${op.section || '-'}</td><td>${compHtml}</td><td class="col-name">${op.name}</td><td class="col-mac">${op.machine || '-'}</td><td class="col-smv">${op.smv.toFixed(4)}</td><td>${op.target}</td><td class="col-rem">${op.remarks || '-'}</td><td class="col-att">${op.attach || '-'}</td><td><div style="display:flex; gap:4px;"><button class="btn-table btn-move" onclick="moveRowUp(${op.id})">⬆️</button><button class="btn-table btn-move" onclick="moveRowDown(${op.id})">⬇️</button><button class="btn-table btn-edit" onclick="editRow(${op.id})">✏️</button><button class="btn-table btn-delete" onclick="deleteRow(${op.id})">✖</button></div></td></tr>`;
         }).join("");
 
         if (filteredOps.length === 0) tbody.innerHTML = `<tr><td colspan="11" class="empty-msg">No operations found.</td></tr>`;
-
         document.getElementById("totSmv").innerText = totalSmv.toFixed(4);
         
-        const summaryContainer = document.getElementById("partSummaryContainer");
-        const sortedParts = Object.keys(partSmvMap).sort();
+        const summaryContainer = document.getElementById("partSummaryContainer"); const sortedParts = Object.keys(partSmvMap).sort();
         if (sortedParts.length > 0) {
-            let tableHtml = '<table class="summary-table">';
-            let gTotal = 0;
-            sortedParts.forEach(p => {
-                gTotal += partSmvMap[p];
-                tableHtml += `<tr><td class="p-name">${p}</td><td><span class="p-val">${partSmvMap[p].toFixed(4)}</span></td></tr>`;
-            });
+            let tableHtml = '<table class="summary-table">'; let gTotal = 0;
+            sortedParts.forEach(p => { gTotal += partSmvMap[p]; tableHtml += `<tr><td class="p-name">${p}</td><td><span class="p-val">${partSmvMap[p].toFixed(4)}</span></td></tr>`; });
             tableHtml += `<tr><td class="sum-total">TOTAL</td><td><span class="p-val" style="text-decoration:underline;">${gTotal.toFixed(4)}</span></td></tr></table>`;
             summaryContainer.innerHTML = tableHtml;
-        } else {
-            summaryContainer.innerHTML = `<span class="empty-msg" style="padding:0; text-align:left;">No parts assigned yet.</span>`;
-        }
+        } else { summaryContainer.innerHTML = `<span class="empty-msg" style="padding:0; text-align:left;">No parts assigned yet.</span>`; }
         localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
     }
 
     async function handleExcelImport(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        const dropText = document.getElementById('excelDropText');
-        dropText.innerHTML = `⏳ Importing from Excel...`;
-
+        const file = event.target.files[0]; if (!file) return; const dropText = document.getElementById('excelDropText'); dropText.innerHTML = `⏳ Importing from Excel...`;
         const reader = new FileReader();
         reader.onload = async function(e) {
             try {
-                const buffer = e.target.result;
-                const wb = new ExcelJS.Workbook();
-                await wb.xlsx.load(buffer);
-                const ws = wb.worksheets[0]; 
-                
-                let headerRowIdx = -1;
-                let colMap = { op: -1, smv: -1, mac: -1, tgt: -1, rem: -1, att: -1, wc: -1, secFallback: -1, comp: -1 };
+                const buffer = e.target.result; const wb = new ExcelJS.Workbook(); await wb.xlsx.load(buffer); const ws = wb.worksheets[0]; 
+                let headerRowIdx = -1; let colMap = { op: -1, smv: -1, mac: -1, tgt: -1, rem: -1, att: -1, wc: -1, secFallback: -1, comp: -1 };
                 
                 for (let r = 1; r <= Math.min(ws.rowCount, 20); r++) {
-                    const row = ws.getRow(r);
-                    let foundOp = false;
-                    let foundSmv = false;
-                    
+                    const row = ws.getRow(r); let foundOp = false; let foundSmv = false;
                     row.eachCell((cell, colNumber) => {
                         const val = String(cell.value || '').toLowerCase().trim();
                         if (val.includes("operation") || val.includes("name")) { colMap.op = colNumber; foundOp = true; }
@@ -1230,219 +748,72 @@
                         else if (val.includes("section") || val.includes("dept")) { colMap.secFallback = colNumber; }
                         else if (val.includes("component part") || val === "part" || val.includes("pcode") || val === "component") { colMap.comp = colNumber; }
                     });
-                    
-                    if (foundOp && foundSmv) {
-                        headerRowIdx = r;
-                        break;
-                    }
+                    if (foundOp && foundSmv) { headerRowIdx = r; break; }
                 }
                 
                 if (headerRowIdx === -1 || colMap.op === -1 || colMap.smv === -1) {
-                    dropText.innerHTML = `❌ Error! Headers missing.`;
-                    alert("Error: Could not automatically detect 'Operation Name' and 'SMV' columns in this Excel file.");
+                    dropText.innerHTML = `❌ Error! Headers missing.`; alert("Error: Could not automatically detect 'Operation Name' and 'SMV' columns in this Excel file.");
                 } else {
-
-                    const finalWcCol = colMap.wc > -1 ? colMap.wc : colMap.secFallback;
-                    let newOps = [];
-                    let currentNo = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.no)) + 1 : 1;
-
+                    const finalWcCol = colMap.wc > -1 ? colMap.wc : colMap.secFallback; let newOps = []; let currentNo = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.no)) + 1 : 1;
                     for (let r = headerRowIdx + 1; r <= ws.rowCount; r++) {
                         const row = ws.getRow(r);
-                        
-                        let opNameCell = row.getCell(colMap.op).value;
-                        let opNameStr = opNameCell ? (opNameCell.richText ? opNameCell.richText.map(t=>t.text).join('') : opNameCell.toString()).trim() : '';
-                        
-                        let smvCell = row.getCell(colMap.smv).value;
-                        if (smvCell && smvCell.result !== undefined) smvCell = smvCell.result; 
-                        let smvVal = parseFloat(smvCell);
-                        
+                        let opNameCell = row.getCell(colMap.op).value; let opNameStr = opNameCell ? (opNameCell.richText ? opNameCell.richText.map(t=>t.text).join('') : opNameCell.toString()).trim() : '';
+                        let smvCell = row.getCell(colMap.smv).value; if (smvCell && smvCell.result !== undefined) smvCell = smvCell.result; let smvVal = parseFloat(smvCell);
                         if (!opNameStr || isNaN(smvVal) || opNameStr.toLowerCase().includes("total")) continue;
-
-                        let targetVal = 0;
-                        if (colMap.tgt > -1) {
-                            let tVal = row.getCell(colMap.tgt).value;
-                            if (tVal && tVal.result !== undefined) tVal = tVal.result;
-                            targetVal = parseInt(tVal) || 0;
-                        }
-                        if (targetVal === 0 && smvVal > 0) {
-                            targetVal = Math.round(60 / smvVal);
-                        }
                         
-                        let macStr = '';
-                        if(colMap.mac > -1) { 
-                            let cv = row.getCell(colMap.mac).value; 
-                            macStr = cv ? cv.toString().trim() : ''; 
-                            if (macStr && !dsiMachines.some(m => m.name.toLowerCase() === macStr.toLowerCase())) {
-                                const newMachine = { name: macStr, ma: 0.0 };
-                                dsiMachines.push(newMachine);
-                                const savedCustoms = JSON.parse(localStorage.getItem("dsi_custom_machines") || "[]");
-                                savedCustoms.push(newMachine);
-                                localStorage.setItem("dsi_custom_machines", JSON.stringify(savedCustoms));
-                            }
-                        }
+                        let targetVal = 0; if (colMap.tgt > -1) { let tVal = row.getCell(colMap.tgt).value; if (tVal && tVal.result !== undefined) tVal = tVal.result; targetVal = parseInt(tVal) || 0; }
+                        if (targetVal === 0 && smvVal > 0) { targetVal = Math.round(60 / smvVal); }
+                        
+                        let macStr = ''; if(colMap.mac > -1) { let cv = row.getCell(colMap.mac).value; macStr = cv ? cv.toString().trim() : ''; if (macStr && !dsiMachines.some(m => m.name.toLowerCase() === macStr.toLowerCase())) { const newMachine = { name: macStr, ma: 0.0 }; dsiMachines.push(newMachine); const savedCustoms = JSON.parse(localStorage.getItem("dsi_custom_machines") || "[]"); savedCustoms.push(newMachine); localStorage.setItem("dsi_custom_machines", JSON.stringify(savedCustoms)); } }
+                        let remStr = ''; if(colMap.rem > -1) { let cv = row.getCell(colMap.rem).value; remStr = cv ? cv.toString().trim() : ''; }
+                        let attStr = ''; if(colMap.att > -1) { let cv = row.getCell(colMap.att).value; attStr = cv ? cv.toString().trim() : ''; }
+                        let secStr = ''; if(finalWcCol > -1) { let cv = row.getCell(finalWcCol).value; secStr = cv ? cv.toString().trim() : ''; }
+                        let compStr = ''; if(colMap.comp > -1) { let cv = row.getCell(colMap.comp).value; compStr = cv ? cv.toString().trim().toUpperCase() : ''; }
 
-                        let remStr = '';
-                        if(colMap.rem > -1) { let cv = row.getCell(colMap.rem).value; remStr = cv ? cv.toString().trim() : ''; }
-                        let attStr = '';
-                        if(colMap.att > -1) { let cv = row.getCell(colMap.att).value; attStr = cv ? cv.toString().trim() : ''; }
-                        let secStr = '';
-                        if(finalWcCol > -1) { let cv = row.getCell(finalWcCol).value; secStr = cv ? cv.toString().trim() : ''; }
-                        let compStr = '';
-                        if(colMap.comp > -1) { let cv = row.getCell(colMap.comp).value; compStr = cv ? cv.toString().trim().toUpperCase() : ''; }
-
-                        newOps.push({
-                            id: Date.now() + r,
-                            no: currentNo++,
-                            name: opNameStr,
-                            section: secStr,
-                            component: compStr,
-                            machine: macStr,
-                            smv: smvVal,
-                            target: targetVal,
-                            remarks: remStr,
-                            attach: attStr
-                        });
+                        newOps.push({ id: Date.now() + r, no: currentNo++, name: opNameStr, section: secStr, component: compStr, machine: macStr, smv: smvVal, target: targetVal, remarks: remStr, attach: attStr });
                     }
-
-                    if (newOps.length > 0) {
-                        saveState();
-                        populateMachineDropdown(); 
-                        operationsData = operationsData.concat(newOps);
-                        renderTable();
-                        dropText.innerHTML = `✅ Added ${newOps.length} ops!`;
-                    } else {
-                        dropText.innerHTML = `⚠️ No valid ops found.`;
-                        alert("No valid operations found in the file.");
-                    }
+                    if (newOps.length > 0) { saveState(); populateMachineDropdown(); operationsData = operationsData.concat(newOps); renderTable(); dropText.innerHTML = `✅ Added ${newOps.length} ops!`; } 
+                    else { dropText.innerHTML = `⚠️ No valid ops found.`; alert("No valid operations found in the file."); }
                 }
-            } catch (err) {
-                console.error(err);
-                dropText.innerHTML = `❌ Excel read error.`;
-                alert("Error reading Excel file. Make sure it's a valid .xlsx file.");
-            }
-            
-            setTimeout(() => {
-                dropText.innerHTML = `📥 Drag & Drop Excel or <span style="color:#a78bfa;">Browse</span>`;
-            }, 3000);
-            
-            event.target.value = ""; 
+            } catch (err) { console.error(err); dropText.innerHTML = `❌ Excel read error.`; alert("Error reading Excel file."); }
+            setTimeout(() => { dropText.innerHTML = `📥 Drag & Drop Excel or <span style="color:#a78bfa;">Browse</span>`; }, 3000); event.target.value = ""; 
         };
         reader.readAsArrayBuffer(file);
     }
 
-    async function handleOcrUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        await processOcrFile(file);
-        event.target.value = "";
-    }
+    async function handleOcrUpload(event) { const file = event.target.files[0]; if (!file) return; await processOcrFile(file); event.target.value = ""; }
 
     async function processOcrFile(file) {
-        const dropText = document.getElementById('ocrDropText');
-        const originalText = `<span style="font-size: 1.05em; color: #f9a8d4;">📥 Drop Image, <span style="color:#ec4899;">Browse</span>, or press <b>Ctrl+V</b></span>`;
-        dropText.innerHTML = `⏳ Enhancing Image...`;
-
+        const dropText = document.getElementById('ocrDropText'); const originalText = `<span style="font-size: 1.05em; color: #f9a8d4;">📥 Drop Image, <span style="color:#ec4899;">Browse</span>, or press <b>Ctrl+V</b></span>`; dropText.innerHTML = `⏳ Enhancing Image...`;
         try {
-            const img = new Image();
-            img.src = URL.createObjectURL(file);
-            await new Promise((resolve) => { img.onload = resolve; });
-
-            const canvas = document.createElement('canvas');
-            const scale = 3;
-            canvas.width = img.width * scale;
-            canvas.height = img.height * scale;
-            const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            for (let i = 0; i < data.length; i += 4) {
-                let r = data[i], g = data[i+1], b = data[i+2];
-                if (r > 150 && g > 150 && b < 100) {
-                    data[i] = 255; data[i+1] = 255; data[i+2] = 255;
-                } else {
-                    let gray = (r * 0.299) + (g * 0.587) + (b * 0.114);
-                    let finalColor = gray < 160 ? 0 : 255;
-                    data[i] = data[i+1] = data[i+2] = finalColor;
-                }
-            }
-            ctx.putImageData(imageData, 0, 0);
-            const processedImage = canvas.toDataURL('image/png');
-
+            const img = new Image(); img.src = URL.createObjectURL(file); await new Promise((resolve) => { img.onload = resolve; });
+            const canvas = document.createElement('canvas'); const scale = 3; canvas.width = img.width * scale; canvas.height = img.height * scale;
+            const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; if (r > 150 && g > 150 && b < 100) { data[i] = 255; data[i+1] = 255; data[i+2] = 255; } else { let gray = (r * 0.299) + (g * 0.587) + (b * 0.114); let finalColor = gray < 160 ? 0 : 255; data[i] = data[i+1] = data[i+2] = finalColor; } }
+            ctx.putImageData(imageData, 0, 0); const processedImage = canvas.toDataURL('image/png');
             dropText.innerHTML = `⏳ Analyzing Image...`;
-
-            const result = await Tesseract.recognize(processedImage, 'eng');
-            const lines = result.data.text.split('\n');
-
-            let newOps = [];
-            let currentNo = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.no)) + 1 : 1;
+            const result = await Tesseract.recognize(processedImage, 'eng'); const lines = result.data.text.split('\n');
+            let newOps = []; let currentNo = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.no)) + 1 : 1;
 
             lines.forEach(line => {
-                let lineStr = line.trim();
-                if (!lineStr) return;
-
-                lineStr = lineStr.replace(/(?:\b| )[Oo]\s*([.,]\s*\d+)\s*$/, ' 0$1');
-                lineStr = lineStr.replace(/\b0\s+[.,]?\s*(\d+)\s*$/, '0.$1');
-                lineStr = lineStr.replace(/(\d)[.,]\s+(\d+)\s*$/, '$1.$2');
-
-                const parts = lineStr.split(/\s+/);
-                if(parts.length < 2) return;
-
-                let possibleSMV = parts[parts.length - 1].replace(',', '.').replace(/[^0-9.]/g, '');
-                let smvVal = parseFloat(possibleSMV);
-
-                if (isNaN(smvVal) && parts.length > 2) {
-                    possibleSMV = parts[parts.length - 2].replace(',', '.replace(/[^0-9.]/g, ''));
-                    smvVal = parseFloat(possibleSMV);
-                }
-
-                if (smvVal > 5 && smvVal < 100 && !possibleSMV.includes('.')) {
-                    smvVal = smvVal / 100;
-                }
-
+                let lineStr = line.trim(); if (!lineStr) return;
+                lineStr = lineStr.replace(/(?:\b| )[Oo]\s*([.,]\s*\d+)\s*$/, ' 0$1').replace(/\b0\s+[.,]?\s*(\d+)\s*$/, '0.$1').replace(/(\d)[.,]\s+(\d+)\s*$/, '$1.$2');
+                const parts = lineStr.split(/\s+/); if(parts.length < 2) return;
+                let possibleSMV = parts[parts.length - 1].replace(',', '.').replace(/[^0-9.]/g, ''); let smvVal = parseFloat(possibleSMV);
+                if (isNaN(smvVal) && parts.length > 2) { possibleSMV = parts[parts.length - 2].replace(',', '.').replace(/[^0-9.]/g, ''); smvVal = parseFloat(possibleSMV); }
+                if (smvVal > 5 && smvVal < 100 && !possibleSMV.includes('.')) { smvVal = smvVal / 100; }
                 if (!isNaN(smvVal) && smvVal > 0 && smvVal < 100) {
-                    let opName = parts.slice(0, -1).join(' ').trim();
-                    opName = opName.replace(/[,.\]|]+$/, '').trim(); 
-                    
+                    let opName = parts.slice(0, -1).join(' ').trim().replace(/[,.\]|]+$/, '').trim(); 
                     if (opName.toLowerCase().includes('operation') || opName.toLowerCase() === 'total' || opName === '') return;
-
                     let targetVal = Math.round(60 / smvVal);
-
-                    newOps.push({
-                        id: Date.now() + Math.random(),
-                        no: currentNo++,
-                        name: opName,
-                        section: '',
-                        component: '',
-                        machine: '',
-                        smv: smvVal,
-                        target: targetVal,
-                        remarks: '',
-                        attach: ''
-                    });
+                    newOps.push({ id: Date.now() + Math.random(), no: currentNo++, name: opName, section: '', component: '', machine: '', smv: smvVal, target: targetVal, remarks: '', attach: '' });
                 }
             });
-
-            if (newOps.length > 0) {
-                saveState();
-                operationsData = operationsData.concat(newOps);
-                renderTable();
-                dropText.innerHTML = `✅ Added ${newOps.length} ops!`;
-            } else {
-                dropText.innerHTML = `⚠️ No ops found.`;
-                alert("Could not extract operations and SMVs. Please ensure the image is clear.");
-            }
-        } catch (err) {
-            console.error(err);
-            dropText.innerHTML = `❌ Scan error.`;
-            alert("Error analyzing image.");
-        } finally {
-            setTimeout(() => {
-                dropText.innerHTML = originalText;
-            }, 4000);
-        }
+            if (newOps.length > 0) { saveState(); operationsData = operationsData.concat(newOps); renderTable(); dropText.innerHTML = `✅ Added ${newOps.length} ops!`; } 
+            else { dropText.innerHTML = `⚠️ No ops found.`; alert("Could not extract operations and SMVs. Please ensure the image is clear."); }
+        } catch (err) { console.error(err); dropText.innerHTML = `❌ Scan error.`; alert("Error analyzing image."); } 
+        finally { setTimeout(() => { dropText.innerHTML = originalText; }, 4000); }
     }
 
     async function exportToExcel() {
@@ -1467,8 +838,7 @@
                 const colPos = [0, 2, 5]; 
                 sampleImages.forEach((imgBase64, idx) => {
                     try {
-                        const base64Data = imgBase64.split(',')[1];
-                        const ext = imgBase64.substring(imgBase64.indexOf('/') + 1, imgBase64.indexOf(';'));
+                        const base64Data = imgBase64.split(',')[1]; const ext = imgBase64.substring(imgBase64.indexOf('/') + 1, imgBase64.indexOf(';'));
                         const imageId = wb.addImage({ base64: base64Data, extension: ext === 'jpeg' ? 'jpeg' : 'png' });
                         const c = colPos[idx % 3]; const r = currentDataRow - 1 + Math.floor(idx / 3) * 8; 
                         ws.addImage(imageId, { tl: { col: c + 0.1, row: r + 0.2 }, ext: { width: 140, height: 140 } });
