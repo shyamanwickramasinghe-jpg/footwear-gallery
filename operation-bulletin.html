@@ -94,6 +94,15 @@
         .p-val { color: #10b981; font-weight: bold; font-family: monospace; font-size: 1.1em; text-align: right; display: block; }
         .sum-total { color: #f8fafc; }
 
+        /* GUIDE STYLES */
+        .guide-content { overflow-y: auto; padding-right: 10px; line-height: 1.6; }
+        .guide-content h4 { border-bottom: 1px solid #334155; padding-bottom: 5px; margin-top: 20px; }
+        .guide-content h4.phase1 { color: #38bdf8; }
+        .guide-content h4.phase2 { color: #10b981; }
+        .guide-content ol { margin-top: 10px; padding-left: 20px; }
+        .guide-content li { margin-bottom: 10px; }
+        .guide-warning { background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 10px; color: #fcd34d; border-radius: 4px; margin-top:10px;}
+
         /* DATABASE MODAL CSS RESTORED */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: #0f172a; border: 1px solid #38bdf8; border-radius: 12px; width: 96%; max-width: 1450px; padding: 20px; display: flex; flex-direction: column; gap: 15px; height: 90vh; max-height: 90vh; }
@@ -152,6 +161,10 @@
         body.light-mode .db-meta-text { color: #0284c7; }
         body.light-mode #imgDropZone { background: #f8fafc; border-color: #cbd5e1; }
         body.light-mode .file-thumb { background: #f1f5f9; }
+        body.light-mode .guide-content h4 { border-bottom-color: #cbd5e1; }
+        body.light-mode .guide-content h4.phase1 { color: #0284c7; }
+        body.light-mode .guide-content h4.phase2 { color: #059669; }
+        body.light-mode .guide-warning { background: #fef3c7; border-left-color: #d97706; color: #92400e; }
     </style>
 </head>
 <body>
@@ -162,8 +175,10 @@
             <h2>📊 Operation Bulletin v2.0</h2>
         </div>
         <div class="top-actions">
-            <button class="btn-top" onclick="manualAutoLoad()" style="background:#f59e0b; color:#000; font-size:1.1em; border: 2px solid #000;">📥 Load Assigned Task</button>
+            <!-- NEW USER GUIDE BUTTON -->
+            <button class="btn-top" onclick="openGuideModal()" style="background:#8b5cf6; color:#fff;">📖 User Guide</button>
             
+            <button class="btn-top" onclick="manualAutoLoad()" style="background:#f59e0b; color:#000; font-size:1.1em; border: 2px solid #000;">📥 Load Assigned Task</button>
             <button class="btn-top" id="btnTheme" onclick="toggleTheme()" style="background:#e2e8f0; color:#0f172a;">☀️ Light Mode</button>
             <button class="btn-top" onclick="undoLastAction()" id="btnUndo" disabled style="background:#f59e0b; color:#000;">🔙 Undo</button>
             <button class="btn-top" id="btnSaveDB" onclick="saveBulletinToDB()" style="background:#0284c7; color:#fff;">💾 Save to Cloud</button>
@@ -216,6 +231,11 @@
                             <option value="">-- Select IE --</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="input-group" style="margin-top: 10px;">
+                    <label style="color: #38bdf8;">🔗 Cloud Video Link (OneDrive / Google Drive)</label>
+                    <input type="text" id="sampleVideoLink" placeholder="Paste video share link here..." oninput="saveMetaData()">
                 </div>
 
                 <div class="input-group" style="margin-top: 10px;">
@@ -354,6 +374,39 @@
         </div>
     </div>
 
+    <!-- USER GUIDE MODAL -->
+    <div class="modal-overlay" id="guideModal">
+        <div class="modal-content" style="max-width: 900px; height: auto; max-height: 85vh;">
+            <div class="modal-header">
+                <h3>📖 Operation Bulletin System — User Guide</h3>
+                <button class="btn-close" onclick="closeGuideModal()">✖</button>
+            </div>
+            <div class="guide-content">
+                <h4 class="phase1">🏢 Phase 1: Central IE Team (Task Assignment)</h4>
+                <ol>
+                    <li><b>Enter Core Details:</b> Type in the <b>Item Type / Sample Number</b> (this acts as the unique ID for the task). Select the Process Name, Target Plant, and the specific Allocated IE Member from the dropdowns.</li>
+                    <li><b>Add Video Links & Comments:</b> Paste the OneDrive/SharePoint video link into the <b>🔗 Cloud Video Link</b> box. Add any specific guidelines into the General Comments box.</li>
+                    <li><b>Upload Media:</b> Drag and drop up to 8 photos and 1 Details Sheet (Excel/PDF) into the Media & Documents box.</li>
+                    <li><b>Auto-Save & Assign:</b> Click the pink <b>📧 Email Allocated IE</b> button at the top of the screen. The system will automatically save the media and text to the cloud, then open a pre-written email to the assigned Plant IE. Hit "Send" on the email.</li>
+                </ol>
+                <div class="guide-warning">
+                    <b>⚠️ Important Note on Videos:</b> Do not drag and drop raw video files into the media upload box, as this will crash the Google Sheets database limit. Always upload videos to DSI OneDrive/SharePoint first and paste the "Share Link" into the designated Cloud Video Link box.
+                </div>
+
+                <h4 class="phase2">🏭 Phase 2: Plant IE Team (Calculation & Submission)</h4>
+                <ol>
+                    <li><b>Open the Assignment:</b> Open the email from the Central IE team. Note the "Item / Sample Number" and click the provided <b>System Link</b> at the bottom of the email.</li>
+                    <li><b>Load the Task:</b> Once the web page opens, click the orange <b>📥 Load Assigned Task</b> button at the top of the screen. Type in the Sample Number from your email. The system will instantly download the photos, video links, details sheet, and comments from the cloud.</li>
+                    <li><b>Review the Media:</b> Hover over the photos to zoom in. Click the "Details Sheet" icon to download the attached document, and click the Video Link to watch the operation.</li>
+                    <li><b>Draft the Bulletin in Excel:</b> Open Microsoft Excel on your computer. Create your Operation Breakdown (ensure you have columns for <i>Operation Name</i>, <i>SMV</i>, <i>Machine Type</i>, <i>Part</i>) and calculate your values.</li>
+                    <li><b>Upload the Completed Breakdown:</b> In the web system, ensure you are on the <b>⌨️ Standard Entry & Excel</b> tab. Drag and drop your completed Excel file into the purple "📥 Drag & Drop Excel" box. The system will automatically read your Excel file and populate the table.</li>
+                    <li><b>Save to Cloud:</b> Review the rows to ensure the SMVs and Totals are correct, then click the blue <b>💾 Save to Cloud</b> button at the top to permanently save the completed bulletin to the central database.</li>
+                    <li><b>Confirm Completion:</b> Go back to your email client and reply to the original assignment email from the Central IE team, mentioning: <i>"Done. The completed bulletin has been saved to the cloud."</i></li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
     <!-- 🖱️ HOVER POPUPS -->
     <div id="hoverPopup" class="hover-popup"><img id="hoverPopupImg" src="" alt="Preview"></div>
     <div id="hoverOpsPopup" class="hover-popup ops-popup" onmouseenter="clearTimeout(opsPopupTimeout)" onmouseleave="closeOpsPopupDelay()">
@@ -403,6 +456,7 @@
                 if(typeof closeImagePopup === 'function') closeImagePopup();
                 if(typeof closeOpsPopup === 'function') closeOpsPopup();
                 if(typeof closeLoadModal === 'function') closeLoadModal();
+                if(typeof closeGuideModal === 'function') closeGuideModal();
             }
         });
 
@@ -428,10 +482,9 @@
             const m = JSON.parse(savedMeta);
             document.getElementById("sampleName").value = m.name || "";
             document.getElementById("processName").value = m.process || m.cutting || m.assembly || "";
+            document.getElementById("sampleVideoLink").value = m.videoLink || "";
             document.getElementById("sampleComments").value = m.comments || "";
             if(m.plant) { document.getElementById("targetPlant").value = m.plant; updateIEList(m.ieMember); }
-            
-            // LOAD VIDS & DOCS FROM CACHE IF THEY EXIST
             if(m.vids) sampleVideos = m.vids;
             if(m.docs) detailsSheet = m.docs;
         }
@@ -441,15 +494,15 @@
         reindexOperations();
         renderTable();
 
-        // --- URL AUTO-LOAD LOGIC ---
         const urlParams = new URLSearchParams(window.location.search);
         const loadId = urlParams.get('load');
-        if (loadId) {
-            setTimeout(() => { fetchCloudDataAndLoad(loadId); }, 500); // slight delay to ensure DOM is ready
-        }
+        if (loadId) { setTimeout(() => { fetchCloudDataAndLoad(loadId); }, 500); }
     });
 
-    // --- MANUAL AUTO LOAD (FAIL-SAFE) ---
+    // --- USER GUIDE MODAL CONTROLS ---
+    function openGuideModal() { document.getElementById("guideModal").style.display = "flex"; }
+    function closeGuideModal() { document.getElementById("guideModal").style.display = "none"; }
+
     function manualAutoLoad() {
         const inputId = prompt("Enter the Sample Number / Item Type assigned to you in the email:");
         if (!inputId || inputId.trim() === "") return;
@@ -457,45 +510,28 @@
         fetchCloudDataAndLoad(safeId);
     }
 
-    // --- JSONP NETWORK BYPASS FETCH ---
     function fetchCloudData(onSuccess, onError) {
         const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
         window[callbackName] = function(data) {
-            loadedCloudDB = data; 
-            delete window[callbackName]; 
-            const scriptNode = document.getElementById(callbackName); 
-            if(scriptNode) scriptNode.remove(); 
-            if(onSuccess) onSuccess();
+            loadedCloudDB = data; delete window[callbackName]; const scriptNode = document.getElementById(callbackName); 
+            if(scriptNode) scriptNode.remove(); if(onSuccess) onSuccess();
         };
-        const script = document.createElement('script'); 
-        script.src = GOOGLE_SCRIPT_URL + "?callback=" + callbackName; 
-        script.id = callbackName;
-        script.onerror = function() { 
-            delete window[callbackName]; 
-            script.remove(); 
-            if(onError) onError(); 
-        };
+        const script = document.createElement('script'); script.src = GOOGLE_SCRIPT_URL + "?callback=" + callbackName; script.id = callbackName;
+        script.onerror = function() { delete window[callbackName]; script.remove(); if(onError) onError(); };
         document.body.appendChild(script);
     }
 
-    // --- AUTO-LOAD FETCH AND RENDER ---
     function fetchCloudDataAndLoad(loadId) {
-        const overlay = document.createElement('div'); 
-        overlay.id = "autoLoadOverlay"; 
+        const overlay = document.createElement('div'); overlay.id = "autoLoadOverlay"; 
         overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15, 23, 42, 0.95);color:#10b981;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;font-size:1.5em;font-weight:bold;"; 
         overlay.innerHTML = `<h2 style="color:#38bdf8;">⏳ Downloading Assigned Bulletin...</h2><p style="color:#94a3b8; font-size: 0.6em;">Please wait.</p>`; 
         document.body.appendChild(overlay);
 
         fetchCloudData(() => {
             if(document.getElementById("autoLoadOverlay")) document.getElementById("autoLoadOverlay").remove(); 
-            
             const entry = loadedCloudDB.find(e => String(e.id) === String(loadId));
-            if (entry) { 
-                loadFromCloudDB(loadId, true); 
-                alert(`✅ Successfully loaded assigned bulletin: ${entry.meta.name}\n\nYou can now enter your SMVs and hit 'Save to Cloud' when finished.`); 
-            } else { 
-                alert(`❌ Could not find bulletin ID '${loadId}' in the database.\n\nPlease ensure the Central Team clicked 'Save to Cloud' before sending the email!`); 
-            }
+            if (entry) { loadFromCloudDB(loadId, true); alert(`✅ Successfully loaded assigned bulletin: ${entry.meta.name}\n\nYou can now enter your SMVs and hit 'Save to Cloud' when finished.`); } 
+            else { alert(`❌ Could not find bulletin ID '${loadId}' in the database.\n\nPlease ensure the Central Team clicked 'Save to Cloud' before sending the email!`); }
         }, () => { 
             if(document.getElementById("autoLoadOverlay")) document.getElementById("autoLoadOverlay").remove(); 
             alert("❌ Failed to connect to Cloud Database. The network blocked the connection."); 
@@ -503,76 +539,42 @@
     }
 
     function updateIEList(selectedEmail = "") {
-        const plant = document.getElementById("targetPlant").value;
-        const ieSelect = document.getElementById("allocatedIE");
+        const plant = document.getElementById("targetPlant").value; const ieSelect = document.getElementById("allocatedIE");
         ieSelect.innerHTML = '<option value="">-- Select IE --</option>';
-        if (plant && ieData[plant]) {
-            ieData[plant].forEach(person => { ieSelect.innerHTML += `<option value="${person.email}">${person.name} (${person.email})</option>`; });
-        }
+        if (plant && ieData[plant]) { ieData[plant].forEach(person => { ieSelect.innerHTML += `<option value="${person.email}">${person.name} (${person.email})</option>`; }); }
         if (selectedEmail) ieSelect.value = selectedEmail;
     }
 
     function handleMediaUpload(event) { Array.from(event.target.files).forEach(file => processMediaFile(file)); event.target.value = ""; }
 
-    // THE FIX: CONVERTING VIDEOS AND DOCS TO BASE64 SO THEY CAN BE TRANSMITTED
-function processMediaFile(file) {
+    function processMediaFile(file) {
         const reader = new FileReader();
-        
-        // Strict Google Sheets Limits Checker
-        if (file.size > 2500000) { // Warns if file is over 2.5MB
-            alert("⚠️ Warning: This file is " + Math.round(file.size/1000000) + "MB.\nGoogle Sheets has a strict database cell limit. If you click 'Save to Cloud' and it fails, you must use smaller files or paste a Google Drive link in the comments instead.");
-        }
-
+        if (file.size > 2500000) { alert("⚠️ Warning: This file is " + Math.round(file.size/1000000) + "MB.\nGoogle Sheets has a strict database cell limit. If you click 'Save to Cloud' and it fails, you must use smaller files or paste a Google Drive link in the comments instead."); }
         reader.onload = (e) => {
-            const dataUrl = e.target.result; // This converts the file to transmittable text!
-            if (file.type.startsWith('image/')) {
-                if (sampleImages.length >= 8) return alert("Maximum 8 images allowed.");
-                sampleImages.push(dataUrl);
-            } else if (file.type.startsWith('video/')) {
-                if (sampleVideos.length >= 2) return alert("Maximum 2 videos allowed.");
-                sampleVideos.push({ name: file.name, data: dataUrl });
-            } else {
-                if (detailsSheet !== null) return alert("You can only upload 1 Item Details Sheet.");
-                detailsSheet = { name: file.name, data: dataUrl };
-            }
-            saveMetaData();
-            localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
-            renderMediaGallery();
+            const dataUrl = e.target.result;
+            if (file.type.startsWith('image/')) { if (sampleImages.length >= 8) return alert("Maximum 8 images allowed."); sampleImages.push(dataUrl); } 
+            else if (file.type.startsWith('video/')) { if (sampleVideos.length >= 2) return alert("Maximum 2 videos allowed."); sampleVideos.push({ name: file.name, data: dataUrl }); } 
+            else { if (detailsSheet !== null) return alert("You can only upload 1 Item Details Sheet."); detailsSheet = { name: file.name, data: dataUrl }; }
+            saveMetaData(); localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages)); renderMediaGallery();
         };
-        reader.readAsDataURL(file); // Executes the Base64 conversion
+        reader.readAsDataURL(file);
     }
 
     function renderMediaGallery() {
         const gal = document.getElementById("mediaGallery");
-        if (sampleImages.length === 0 && sampleVideos.length === 0 && !detailsSheet) {
-            gal.innerHTML = `<span class="drop-zone-text">📂 Drag & Drop Photos, Videos, or Details Sheet, or press <span>Ctrl+V</span></span>`; return;
-        }
+        if (sampleImages.length === 0 && sampleVideos.length === 0 && !detailsSheet) { gal.innerHTML = `<span class="drop-zone-text">📂 Drag & Drop Photos, Videos, or Details Sheet, or press <span>Ctrl+V</span></span>`; return; }
         let html = "";
-        
-        sampleImages.forEach((src, i) => { 
-            html += `<div class="media-preview-box"><img src="${src}" class="sample-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()"><button onclick="removeMedia('img', ${i})" class="btn-del-media" title="Delete Image">✖</button></div>`; 
-        });
-        
-        // Videos with Click-to-Download link
-        sampleVideos.forEach((vid, i) => { 
-            const linkHref = vid.data ? vid.data : '#';
-            html += `<div class="media-preview-box"><a href="${linkHref}" download="${vid.name}" style="text-decoration:none;"><div class="file-thumb" title="${vid.name}">🎥<br><span style="font-size:0.7em; color:#fff;">Video ${i+1}</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline; margin-top:4px;">Click to DL</span></div></a><button onclick="removeMedia('vid', ${i})" class="btn-del-media" title="Delete Video">✖</button></div>`; 
-        });
-        
-        // Detail Sheet with Click-to-Download link
-        if (detailsSheet) { 
-            const linkHref = detailsSheet.data ? detailsSheet.data : '#';
-            html += `<div class="media-preview-box"><a href="${linkHref}" download="${detailsSheet.name}" style="text-decoration:none;"><div class="file-thumb" title="${detailsSheet.name}">📄<br><span style="font-size:0.7em; color:#10b981;">Details Sheet</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline; margin-top:4px;">Click to DL</span></div></a><button onclick="removeMedia('doc', 0)" class="btn-del-media" title="Delete Sheet">✖</button></div>`; 
-        }
-        
+        sampleImages.forEach((src, i) => { html += `<div class="media-preview-box"><img src="${src}" class="sample-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()"><button onclick="removeMedia('img', ${i})" class="btn-del-media" title="Delete Image">✖</button></div>`; });
+        sampleVideos.forEach((vid, i) => { const linkHref = vid.data ? vid.data : '#'; html += `<div class="media-preview-box"><a href="${linkHref}" download="${vid.name}" style="text-decoration:none;"><div class="file-thumb" title="${vid.name}">🎥<br><span style="font-size:0.7em; color:#fff;">Video ${i+1}</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline; margin-top:4px;">Click to DL</span></div></a><button onclick="removeMedia('vid', ${i})" class="btn-del-media" title="Delete Video">✖</button></div>`; });
+        if (detailsSheet) { const linkHref = detailsSheet.data ? detailsSheet.data : '#'; html += `<div class="media-preview-box"><a href="${linkHref}" download="${detailsSheet.name}" style="text-decoration:none;"><div class="file-thumb" title="${detailsSheet.name}">📄<br><span style="font-size:0.7em; color:#10b981;">Details Sheet</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline; margin-top:4px;">Click to DL</span></div></a><button onclick="removeMedia('doc', 0)" class="btn-del-media" title="Delete Sheet">✖</button></div>`; }
         gal.innerHTML = html;
     }
+    
     function removeMedia(type, idx) {
         if (type === 'img') { sampleImages.splice(idx, 1); localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages)); } 
         else if (type === 'vid') { sampleVideos.splice(idx, 1); } 
         else if (type === 'doc') { detailsSheet = null; }
-        saveMetaData();
-        renderMediaGallery();
+        saveMetaData(); renderMediaGallery();
     }
 
     function switchTab(tabId) {
@@ -639,68 +641,51 @@ function processMediaFile(file) {
         document.getElementById("bulkComponentInput").value = ""; document.querySelector('input[onclick="toggleAllChecks(this)"]').checked = false; renderTable();
     }
 
-    // --- BUTTON 1: SAVE ONLY TO CLOUD ---
     async function saveBulletinToDB() {
         const sampleName = document.getElementById("sampleName").value.trim();
         const processName = document.getElementById("processName").value.trim();
+        const videoLink = document.getElementById("sampleVideoLink").value.trim(); 
         const comments = document.getElementById("sampleComments").value.trim();
         const plant = document.getElementById("targetPlant").value;
         const ieMember = document.getElementById("allocatedIE").value;
-        
         if (!sampleName) return alert("Please enter an 'Item Type / Sample Number'.");
-
         const btn = document.getElementById("btnSaveDB"); const originalText = btn.innerText; btn.innerText = "⏳ Saving..."; btn.disabled = true;
-
         const payload = {
             id: sampleName.toLowerCase().replace(/\s+/g, '_'), date: new Date().toLocaleDateString(),
-            meta: { 
-                name: sampleName, process: processName, comments: comments, plant: plant, ieMember: ieMember,
-                vids: sampleVideos, // Now fully packed into the payload
-                docs: detailsSheet  // Now fully packed into the payload
-            },
+            meta: { name: sampleName, process: processName, videoLink: videoLink, comments: comments, plant: plant, ieMember: ieMember, vids: sampleVideos, docs: detailsSheet },
             ops: operationsData, imgs: sampleImages
         };
-
         try {
             await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "save", payload: payload }) });
             alert(`✅ Bulletin successfully fired to Cloud!`);
         } catch (e) { alert("Network Error: Make sure your GOOGLE_SCRIPT_URL is correct."); } finally { btn.innerText = originalText; btn.disabled = false; }
     }
 
-    // --- BUTTON 2: EMAIL IE MEMBER VIA GMAIL APP ---
     async function emailAllocatedIE() {
         const sampleName = document.getElementById("sampleName").value.trim();
         const processName = document.getElementById("processName").value.trim() || "N/A";
+        const videoLink = document.getElementById("sampleVideoLink").value.trim() || "No external video attached";
         const plant = document.getElementById("targetPlant").value || "N/A";
         const ieEmail = document.getElementById("allocatedIE").value;
         const comments = document.getElementById("sampleComments").value.trim() || "None";
-
         if (!sampleName) return alert("Please enter a Sample Number first.");
         if (!ieEmail) return alert("Please select an Allocated IE Member from the dropdown first.");
 
-        // THE FIX: It now automatically executes a Cloud Save BEFORE opening the email!
         const btn = document.getElementById("btnEmailIE"); const originalText = btn.innerText; btn.innerText = "⏳ Saving & Preparing Email..."; btn.disabled = true;
-
         const payload = { 
-            id: sampleName.toLowerCase().replace(/\s+/g, '_'), 
-            date: new Date().toLocaleDateString(), 
-            meta: { name: sampleName, process: processName, comments: comments, plant: plant, ieMember: ieEmail, vids: sampleVideos, docs: detailsSheet }, 
+            id: sampleName.toLowerCase().replace(/\s+/g, '_'), date: new Date().toLocaleDateString(), 
+            meta: { name: sampleName, process: processName, videoLink: document.getElementById("sampleVideoLink").value.trim(), comments: comments, plant: plant, ieMember: ieEmail, vids: sampleVideos, docs: detailsSheet }, 
             ops: operationsData, imgs: sampleImages 
         };
-
         try { await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "save", payload: payload }) }); } catch (e) {}
-
         btn.innerText = originalText; btn.disabled = false;
 
         const safeId = sampleName.toLowerCase().replace(/\s+/g, '_');
         const systemLink = `https://shyamanwickramasinghe-jpg.github.io/footwear-gallery/operation-bulletin.html?load=${safeId}`;
         const subject = encodeURIComponent("Action Required: Complete Operation Bulletin for " + sampleName);
-        const body = encodeURIComponent("Hello,\n\nA new operation bulletin has been assigned to you for SMV calculation.\n\nItem / Sample: " + sampleName + "\nTarget Plant: " + plant + "\nProcess: " + processName + "\nNotes / Comments: " + comments + "\n\n*** INSTRUCTIONS ***\n1. Click the link below. The system will automatically open and load this item's attached photos, videos, and details sheet.\n2. Analyze the media and enter the complete Operation Breakdown and SMVs into the system.\n3. Click 'Save to Cloud' to upload your completed bulletin.\n\nSystem Link: " + systemLink + "\n\nBest regards,\nCentral IE Team");
-
+        const body = encodeURIComponent("Hello,\n\nA new operation bulletin has been assigned to you for SMV calculation.\n\nItem / Sample: " + sampleName + "\nTarget Plant: " + plant + "\nProcess: " + processName + "\nVideo Link: " + videoLink + "\nNotes / Comments: " + comments + "\n\n*** INSTRUCTIONS ***\n1. Click the link below. The system will automatically open and load this item's attached photos, videos, and details sheet.\n2. Analyze the media and enter the complete Operation Breakdown and SMVs into the system.\n3. Click 'Save to Cloud' to upload your completed bulletin.\n\nSystem Link: " + systemLink + "\n\nBest regards,\nCentral IE Team");
         window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${ieEmail}&su=${subject}&body=${body}`, '_blank');
     }
-
-    let loadedCloudDB = [];
 
     function openLoadModal() {
         document.getElementById("dbModal").style.display = "flex"; const container = document.getElementById("dbListContainer"); container.innerHTML = `<span class="empty-msg" style="font-weight:bold;">⏳ Fetching Bulletins from Google Sheets...</span>`;
@@ -719,10 +704,7 @@ function processMediaFile(file) {
             const imgHtml = (entry.imgs || []).slice(0, 4).map(img => `<img src="${img}" class="db-mini-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()">`).join("");
             const procText = entry.meta.process || entry.meta.cutting || entry.meta.assembly || 'N/A'; const plantText = entry.meta.plant || 'N/A';
             let ieName = "Unassigned";
-            if (entry.meta.ieMember) {
-                ieName = entry.meta.ieMember; 
-                for (let p in ieData) { let found = ieData[p].find(x => x.email === entry.meta.ieMember); if (found) { ieName = found.name; break; } }
-            }
+            if (entry.meta.ieMember) { ieName = entry.meta.ieMember; for (let p in ieData) { let found = ieData[p].find(x => x.email === entry.meta.ieMember); if (found) { ieName = found.name; break; } } }
             const plantBadge = `<span class="sec-badge" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;" title="Target Plant">🏢 ${plantText}</span>`;
             const ieBadge = `<span class="sec-badge" style="background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid #a855f7;" title="Allocated IE Member">👤 ${ieName}</span>`;
             const procBadge = `<span class="sec-badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444;" title="Process">⚙️ ${procText}</span>`;
@@ -746,26 +728,12 @@ function processMediaFile(file) {
     function loadFromCloudDB(id, bypassConfirm = false) {
         if (!bypassConfirm && !confirm("This will overwrite your current active table and images on screen. Do you want to proceed?")) return;
         const entry = loadedCloudDB.find(e => String(e.id) === String(id)); if (!entry) return;
-        
-        operationsData = entry.ops || []; 
-        sampleImages = entry.imgs || []; 
-        
-        // PULLING VIDEOS AND DOCS BACK FROM THE DATABASE
-        sampleVideos = (entry.meta && entry.meta.vids) ? entry.meta.vids : []; 
-        detailsSheet = (entry.meta && entry.meta.docs) ? entry.meta.docs : null;
-        
-        document.getElementById("sampleName").value = entry.meta.name || ""; 
-        document.getElementById("processName").value = entry.meta.process || entry.meta.cutting || entry.meta.assembly || ""; 
-        document.getElementById("sampleComments").value = entry.meta.comments || "";
-        
-        if (entry.meta.plant) { document.getElementById("targetPlant").value = entry.meta.plant; updateIEList(entry.meta.ieMember); } 
-        else { document.getElementById("targetPlant").value = ""; updateIEList(""); }
-        
+        operationsData = entry.ops || []; sampleImages = entry.imgs || []; 
+        sampleVideos = (entry.meta && entry.meta.vids) ? entry.meta.vids : []; detailsSheet = (entry.meta && entry.meta.docs) ? entry.meta.docs : null;
+        document.getElementById("sampleName").value = entry.meta.name || ""; document.getElementById("processName").value = entry.meta.process || entry.meta.cutting || entry.meta.assembly || ""; document.getElementById("sampleVideoLink").value = entry.meta.videoLink || ""; document.getElementById("sampleComments").value = entry.meta.comments || "";
+        if (entry.meta.plant) { document.getElementById("targetPlant").value = entry.meta.plant; updateIEList(entry.meta.ieMember); } else { document.getElementById("targetPlant").value = ""; updateIEList(""); }
         saveMetaData(); localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData)); localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
-        
-        renderMediaGallery(); 
-        renderTable(); 
-        const modal = document.getElementById("dbModal"); if (modal) modal.style.display = "none";
+        renderMediaGallery(); renderTable(); const modal = document.getElementById("dbModal"); if (modal) modal.style.display = "none";
     }
 
     async function deleteFromCloudDB(id) {
@@ -779,15 +747,7 @@ function processMediaFile(file) {
     function addNewMachineType() { const name = prompt("Enter new Machine Type name:"); if (!name) return; const newMachine = { name: name.trim(), ma: 0.0 }; dsiMachines.push(newMachine); const savedCustoms = JSON.parse(localStorage.getItem("dsi_custom_machines") || "[]"); savedCustoms.push(newMachine); localStorage.setItem("dsi_custom_machines", JSON.stringify(savedCustoms)); populateMachineDropdown(newMachine.name); }
     
     function saveMetaData() { 
-        const meta = { 
-            name: document.getElementById("sampleName").value, 
-            process: document.getElementById("processName").value, 
-            comments: document.getElementById("sampleComments").value, 
-            plant: document.getElementById("targetPlant").value, 
-            ieMember: document.getElementById("allocatedIE").value,
-            vids: sampleVideos,
-            docs: detailsSheet
-        }; 
+        const meta = { name: document.getElementById("sampleName").value, process: document.getElementById("processName").value, videoLink: document.getElementById("sampleVideoLink").value, comments: document.getElementById("sampleComments").value, plant: document.getElementById("targetPlant").value, ieMember: document.getElementById("allocatedIE").value, vids: sampleVideos, docs: detailsSheet }; 
         localStorage.setItem("dsi_costing_meta", JSON.stringify(meta)); 
     }
     
@@ -821,7 +781,7 @@ function processMediaFile(file) {
         if (prompt("Enter Admin Password to Clear All (9999):") !== "9999") return alert("Incorrect password.");
         if (!confirm("Are you sure you want to clear the current table and images?")) return;
         saveState(); operationsData = []; sampleImages = []; sampleVideos = []; detailsSheet = null;
-        document.getElementById("sampleName").value = ""; document.getElementById("processName").value = ""; document.getElementById("sampleComments").value = ""; document.getElementById("targetPlant").value = ""; updateIEList("");
+        document.getElementById("sampleName").value = ""; document.getElementById("processName").value = ""; document.getElementById("sampleVideoLink").value = ""; document.getElementById("sampleComments").value = ""; document.getElementById("targetPlant").value = ""; updateIEList("");
         localStorage.removeItem("dsi_costing_ops"); localStorage.removeItem("dsi_costing_meta"); localStorage.removeItem("dsi_costing_imgs");
         renderMediaGallery(); renderTable();
     }
