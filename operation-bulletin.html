@@ -808,8 +808,19 @@
         localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
     }
 
-    async function handleExcelImport(event) {
-        const file = event.target.files[0]; if (!file) return; const dropText = document.getElementById('excelDropText'); dropText.innerHTML = `⏳ Importing from Excel...`;
+async function handleExcelImport(event) {
+const file = event.target.files[0]; if (!file) return; const dropText = document.getElementById('excelDropText'); 
+        
+        // --- NEW: Catch old .xls format immediately and give a helpful error ---
+        if (file.name.toLowerCase().endsWith('.xls')) {
+            dropText.innerHTML = `❌ .xls not supported`;
+            alert("⚠️ Unsupported File Format!\n\nYou uploaded an older 'Excel 97-2003' (.xls) file. This system requires the modern .xlsx format.\n\nPlease open your file in Excel, go to 'File > Save As', choose 'Excel Workbook (*.xlsx)', and upload the new file.");
+            setTimeout(() => { dropText.innerHTML = `📥 Drag & Drop Excel or <span style="color:#a78bfa;">Browse</span>`; }, 5000);
+            event.target.value = "";
+            return;
+        }
+
+        dropText.innerHTML = `⏳ Importing from Excel...`;
         const reader = new FileReader();
         reader.onload = async function(e) {
             try {
@@ -857,7 +868,7 @@
                     if (newOps.length > 0) { saveState(); populateMachineDropdown(); operationsData = operationsData.concat(newOps); renderTable(); dropText.innerHTML = `✅ Added ${newOps.length} ops!`; } 
                     else { dropText.innerHTML = `⚠️ No valid ops found.`; alert("No valid operations found in the file."); }
                 }
-            } catch (err) { console.error(err); dropText.innerHTML = `❌ Excel read error.`; alert("Error reading Excel file."); }
+            } catch (err) { console.error(err); dropText.innerHTML = `❌ Excel read error.`; alert("Error reading Excel file. Ensure the file is not corrupted."); }
             setTimeout(() => { dropText.innerHTML = `📥 Drag & Drop Excel or <span style="color:#a78bfa;">Browse</span>`; }, 3000); event.target.value = ""; 
         };
         reader.readAsArrayBuffer(file);
