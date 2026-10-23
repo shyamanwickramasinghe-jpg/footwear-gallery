@@ -661,29 +661,44 @@
         } catch (e) { alert("Network Error: Make sure your GOOGLE_SCRIPT_URL is correct."); } finally { btn.innerText = originalText; btn.disabled = false; }
     }
 
-    async function emailAllocatedIE() {
+async function emailAllocatedIE() {
         const sampleName = document.getElementById("sampleName").value.trim();
         const processName = document.getElementById("processName").value.trim() || "N/A";
         const videoLink = document.getElementById("sampleVideoLink").value.trim() || "No external video attached";
         const plant = document.getElementById("targetPlant").value || "N/A";
         const ieEmail = document.getElementById("allocatedIE").value;
         const comments = document.getElementById("sampleComments").value.trim() || "None";
+
         if (!sampleName) return alert("Please enter a Sample Number first.");
         if (!ieEmail) return alert("Please select an Allocated IE Member from the dropdown first.");
 
+        // NEW: Look up the actual name of the selected IE member for the email greeting
+        let ieName = "Team Member";
+        if (plant !== "N/A" && ieData[plant]) {
+            let foundPerson = ieData[plant].find(p => p.email === ieEmail);
+            if (foundPerson) ieName = foundPerson.name;
+        }
+
         const btn = document.getElementById("btnEmailIE"); const originalText = btn.innerText; btn.innerText = "⏳ Saving & Preparing Email..."; btn.disabled = true;
+
         const payload = { 
-            id: sampleName.toLowerCase().replace(/\s+/g, '_'), date: new Date().toLocaleDateString(), 
+            id: sampleName.toLowerCase().replace(/\s+/g, '_'), 
+            date: new Date().toLocaleDateString(), 
             meta: { name: sampleName, process: processName, videoLink: document.getElementById("sampleVideoLink").value.trim(), comments: comments, plant: plant, ieMember: ieEmail, vids: sampleVideos, docs: detailsSheet }, 
             ops: operationsData, imgs: sampleImages 
         };
+
         try { await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "save", payload: payload }) }); } catch (e) {}
+
         btn.innerText = originalText; btn.disabled = false;
 
         const safeId = sampleName.toLowerCase().replace(/\s+/g, '_');
         const systemLink = `https://shyamanwickramasinghe-jpg.github.io/footwear-gallery/operation-bulletin.html?load=${safeId}`;
         const subject = encodeURIComponent("Action Required: Complete Operation Bulletin for " + sampleName);
-	const body = encodeURIComponent("Hello,\n\nA new operation bulletin has been assigned to you for SMV calculation.\n\nItem / Sample: " + sampleName + "\nTarget Plant: " + plant + "\nProcess: " + processName + "\nVideo Link: " + videoLink + "\nNotes / Comments: " + comments + "\n\n*** INSTRUCTIONS ***\n1. Click the System Link below to open the Operation Bulletin tool.\n2. Click the orange '📥 Load Assigned Task' button at the top of the screen and type in this Sample Number: " + sampleName + ".\n3. Analyze the downloaded media.\n4. Type the Operations and SMVs into an Excel file, then upload it into the 'Drag & Drop Excel' box.\n5. Click 'Save to Cloud' to upload your completed bulletin.\n\nSystem Link: " + systemLink + "\n\nBest regards,\nCentral IE Team");
+        
+        // NEW: Email body with dynamic "Dear [Name]" and updated professional wording
+        const body = encodeURIComponent("Dear " + ieName + ",\n\nKindly formulate the Operation Breakdown and SMVs for the new item detailed below.\n\nItem / Sample: " + sampleName + "\nTarget Plant: " + plant + "\nProcess: " + processName + "\nVideo Link: " + videoLink + "\nNotes / Comments: " + comments + "\n\n*** INSTRUCTIONS ***\n1. Click the System Link below to open the Operation Bulletin tool.\n2. Click the orange '📥 Load Assigned Task' button at the top of the screen and type in this Sample Number: " + sampleName + ".\n3. Analyze the downloaded media.\n4. Type the Operations and SMVs into an Excel file, then upload it into the 'Drag & Drop Excel' box.\n5. Click 'Save to Cloud' to upload your completed bulletin.\n\nSystem Link: " + systemLink + "\n\nBest regards,\nCentral IE Team");
+
         window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${ieEmail}&su=${subject}&body=${body}`, '_blank');
     }
 
