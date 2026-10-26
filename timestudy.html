@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
     <title>DSI FOOTTECH — AI & Interactive Time Study</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -545,12 +547,13 @@
             </div>
 
 <!-- CLIP EDITING TOOLBAR -->
-            <div class="clip-toolbar">
+<div class="clip-toolbar">
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">
                     <button type="button" class="btn-tool" onclick="markClipAtCurrentVideoTime()">✂️ Split Clip at Video Time</button>
                     <button type="button" class="btn-tool" id="btnUndoTable" onclick="undoLastAction()" disabled>🔙 Undo Edit</button>
                     
-                    <!-- NEW: Add Custom Manual Element Button -->
+                    <!-- THE TWO MANUAL ADD BUTTONS -->
+                    <button type="button" class="btn-tool" onclick="addManualRow()" style="background:#2563eb; color:#fff; border-color:#1d4ed8;">➕ Add Manual Row</button>
                     <button type="button" class="btn-tool" onclick="addManualElement()" style="background:#8b5cf6; color:#fff; border-color:#7c3aed;">➕ Add Custom Element</button>
                 </div>
                 <button type="button" class="btn-tool" onclick="autoResetDefault4Clips()" title="Reset table to 4 standard clips across cycle">⚡ Auto 4-Clip Split</button>
@@ -1345,7 +1348,7 @@ function updateClipCategory(idx, newCat) {
     }
 
     // --- NEW: Add completely custom rows manually ---
-    function addManualElement() {
+function addManualElement() {
         const customName = prompt("Enter Custom Element Name (e.g., Bundling):");
         if (!customName) return;
         
@@ -1385,6 +1388,28 @@ function updateClipCategory(idx, newCat) {
         document.getElementById("tlStatus").innerText = `✅ Manually added "${customName}" (${dur}s).`;
     }
 
+    // --- NEW: Add a standard row manually without playing the video ---
+    function addManualRow() {
+        saveStateForUndo();
+        const lastEnd = aiTimeline.length > 0 ? aiTimeline[aiTimeline.length - 1].end : 0;
+        
+        aiTimeline.push({
+            start: lastEnd,
+            end: lastEnd + 1.0, // Defaults to 1 second duration
+            category: 'pickup',
+            label: CATEGORY_META['pickup'].label
+        });
+
+        // Expand the timeline bar if needed
+        if (lastEnd + 1.0 > recordedDuration) {
+            recordedDuration = lastEnd + 1.0;
+        }
+
+        renderTimelineBar();
+        renderClipsTable();
+        updateCalculations();
+        document.getElementById("tlStatus").innerText = `✅ Manual row added. Edit the dropdown and time boxes below!`;
+    }
     function updateClipTimes(idx, field, val) {
         const num = parseFloat(val);
         if (isNaN(num) || num < 0) return;
@@ -1631,7 +1656,38 @@ function saveCycleToMasterLog() {
             stats: JSON.parse(JSON.stringify(window.finalStudyData))
         });
 
-        alert(`✅ Cycle ${masterCyclesLog.length} saved!\n\nYou can now reset the cycle or load a new video to record Cycle ${masterCyclesLog.length + 1}.`);
+        // Show a quick, non-blocking toast message instead of an annoying alert box
+        document.getElementById("tlStatus").innerText = `✅ Cycle ${masterCyclesLog.length} saved successfully! Table cleared for the next cycle.`;
+        
+        // Flash the background green to visually confirm the save
+        const tbl = document.querySelector('.table-container');
+        tbl.style.transition = 'background 0.3s';
+        tbl.style.background = '#166534'; // Dark green flash
+        setTimeout(() => { tbl.style.background = '#000'; }, 600);
+
+        // --- NEW: Automatically reset the table for the next cycle ---
+        stopOverlayPlayback();
+        isStudying = false;
+        aiTimeline = [];
+        historyStack = [];
+        updateUndoButtons();
+        window.finalStudyData = null;
+
+        // Reset the UI components
+        document.getElementById("kpiCycle").innerText = "0.00s";
+        document.getElementById("kpiVaRatio").innerText = "VA: --% | Muda: --%";
+        document.getElementById("kpiSmv").innerText = "--";
+        document.getElementById("kpiCurrentTarget").innerText = "-- / hr";
+        document.getElementById("kpiTarget").innerText = "--";
+        document.getElementById("kpiKaizenSmv").innerText = "R.SMV: -- min";
+        
+        document.getElementById("timelineBar").innerHTML = `<div class="drag-tooltip" id="dragTooltip">0.00s</div><div class="playhead" id="playhead"></div>`;
+        document.getElementById("elementsTableBody").innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color:#64748b;">Ready for Cycle ${masterCyclesLog.length + 1}. Press 'Start Cycle Study' or 'Add Manual Row'.</td></tr>`;
+
+        // If watching a video, rewind it slightly so you are ready to hit play again
+        if (pbVid.src) {
+            pbVid.currentTime = Math.max(0, pbVid.currentTime - 1);
+        }
     }
 
     async function exportOfficialDSIExcel() {
@@ -1640,6 +1696,124 @@ function saveCycleToMasterLog() {
             if (!window.finalStudyData || aiTimeline.length === 0) return alert("Please complete at least one cycle study first.");
             saveCycleToMasterLog(); 
         }
+
+        const wb = new ExcelJS.Workbook();
+        const ws = wb.addWorksheet("TIME AND MOTION");
+
+        const product = document.getElementById("mProduct").value.trim() || 'N/A';
+        const operation = document.getElementById("mOperation").value.trim() || 'N/A';
+        const isSingleShoe = document.getElementById("mIsSingleShoe").checked;
+        const mcObj = dsiMachines[document.getElementById("mMachine").value];
+        const dateStr = new Date().toLocaleDateString();
+        const comments = document.getElementById("mComments").value.trim() || '';
+
+        // DSI Standard Column Widths
+        ws.columns = [
+            { width: 12 }, { width: 12 }, { width: 12 }, { width: 12 }, 
+            { width: 12 }, { width: 15 }, { width: 25 }, { width: 15 }, 
+            { width: 15 }, { width: 35 }, { width: 15 }, { width: 15 }, 
+            { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, 
+            { width: 15 }, { width: 15 }, { width: 15 }, { width: 25 }, 
+            { width: 15 }, { width: 15 }, { width: 15 }
+        ];
+
+        // --- Build Top Header Section (Rows 1-10) ---
+        ws.getCell('A1').value = "IE DEPT";
+        ws.getCell('I1').value = "TIME AND MOTION ANALYSIS SHEET";
+        ws.getCell('I1').font = { bold: true, size: 14 };
+
+        ws.getCell('A3').value = product; // Sample/Product
+        ws.getCell('I3').value = "Product:";
+        ws.getCell('S3').value = dateStr; // Date
+
+        ws.getCell('A4').value = "Plant: BP"; // Defaulting to BP based on your screenshot
+        ws.getCell('I4').value = `Operation: ${operation}`;
+        ws.getCell('S4').value = isSingleShoe ? 10 : 20; // Example PRS count based on single/pair
+
+        ws.getCell('A6').value = "READINGS (strokes)";
+        ws.getCell('A6').font = { bold: true };
+        
+        ws.getCell('S6').value = "Operator";
+        ws.getCell('S7').value = "Time study by";
+        ws.getCell('S8').value = "Material";
+        ws.getCell('T8').value = comments; // Injecting comments into the Material block
+
+        // --- Build Elements (Columns D, E, F...) ---
+        const baseTimeline = masterCyclesLog[0].timeline;
+        let colIndex = 4; // Start at column D
+        baseTimeline.forEach(clip => {
+            ws.getCell(6, colIndex).value = clip.label.replace(/[^a-zA-Z &+]/g, "").trim().toUpperCase();
+            ws.getCell(6, colIndex).alignment = { wrapText: true, horizontal: 'center' };
+            colIndex += 2; // DSI format spaces them out
+        });
+
+        // --- Build Cycles (Rows 12-21) ---
+        let rowStart = 12;
+        let totalsPerElement = new Array(baseTimeline.length).fill(0);
+
+        masterCyclesLog.forEach((cycle, index) => {
+            ws.getCell(rowStart + index, 1).value = index + 1; // Cycle number 1, 2, 3...
+            
+            let cIdx = 4;
+            cycle.timeline.forEach((clip, cCounter) => {
+                const dur = Math.max(0, clip.end - clip.start);
+                ws.getCell(rowStart + index, cIdx).value = Number(dur.toFixed(2));
+                totalsPerElement[cCounter] += dur;
+                cIdx += 2;
+            });
+        });
+
+        // --- Build Bottom Calculations (Row 32+) ---
+        let calcRow = rowStart + masterCyclesLog.length + 1;
+        const totalCycles = masterCyclesLog.length;
+
+        ws.getCell(calcRow, 1).value = "Total mm:ss/mm";
+        ws.getCell(calcRow + 1, 1).value = "Average mmm";
+        ws.getCell(calcRow + 2, 1).value = "Ratings";
+        ws.getCell(calcRow + 3, 1).value = "B.Time";
+        ws.getCell(calcRow + 4, 1).value = "Occ";
+        ws.getCell(calcRow + 5, 1).value = "100% Times 100";
+
+        // Get final stats from the last run for the summary block
+        const finalStats = masterCyclesLog[masterCyclesLog.length - 1].stats;
+        let cIdx2 = 4;
+        
+        baseTimeline.forEach((clip, i) => {
+            const totDur = totalsPerElement[i];
+            const avgDur = totDur / totalCycles;
+            const rating = finalStats.ratingPct;
+            const basicTime = (avgDur / 60) * (rating / 100);
+
+            ws.getCell(calcRow, cIdx2).value = Number(totDur.toFixed(2));
+            ws.getCell(calcRow + 1, cIdx2).value = Number(avgDur.toFixed(3));
+            ws.getCell(calcRow + 2, cIdx2).value = rating;
+            ws.getCell(calcRow + 3, cIdx2).value = Number(basicTime.toFixed(4));
+            ws.getCell(calcRow + 4, cIdx2).value = 100;
+            ws.getCell(calcRow + 5, cIdx2).value = Number((basicTime * 100).toFixed(4));
+            
+            cIdx2 += 2;
+        });
+
+        // --- Bottom Right Target Summary ---
+        const summaryRow = calcRow + 10;
+        ws.getCell(summaryRow, 1).value = "STITCHING / MAIN";
+        ws.getCell(summaryRow, 4).value = Number((finalStats.smv - (finalStats.smv * 0.1)).toFixed(4)); // Approximation splitting
+        
+        ws.getCell(summaryRow + 1, 1).value = "HANDLING";
+        ws.getCell(summaryRow + 1, 4).value = Number((finalStats.smv * 0.1).toFixed(4));
+
+        ws.getCell(summaryRow + 2, 1).value = "TOTAL";
+        ws.getCell(summaryRow + 2, 1).font = { bold: true };
+        ws.getCell(summaryRow + 2, 4).value = Number(finalStats.smv.toFixed(4));
+        ws.getCell(summaryRow + 2, 4).font = { bold: true };
+
+        ws.getCell(summaryRow, 14).value = "Target / Hrs 100%";
+        ws.getCell(summaryRow, 17).value = finalStats.currentTargetHr;
+
+        // Generate and download
+        const buffer = await wb.xlsx.writeBuffer();
+        saveAs(new Blob([buffer], { type: "application/octet-stream" }), `DSI_TimeStudy_${product}_${operation.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
+    }
 
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet("TIME AND MOTION");
