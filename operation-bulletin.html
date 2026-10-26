@@ -256,8 +256,12 @@
                         <span class="drop-zone-text">📂 Drag & Drop Photos, Videos, or Details Sheet, or press <span>Ctrl+V</span></span>
                     </div>
                 </div>
+
+		<div id="cloudVideoContainer"></div>
+
             </div>
         </div>
+
 
         <div class="table-panel">
             <div class="tab-bar">
@@ -569,20 +573,22 @@ function renderMediaGallery() {
         if (detailsSheet) { const linkHref = detailsSheet.data ? detailsSheet.data : '#'; html += `<div class="media-preview-box"><a href="${linkHref}" download="${detailsSheet.name}" style="text-decoration:none;"><div class="file-thumb" title="${detailsSheet.name}">📄<br><span style="font-size:0.7em; color:#10b981;">Details Sheet</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline; margin-top:4px;">Click to DL</span></div></a><button onclick="removeMedia('doc', 0)" class="btn-del-media" title="Delete Sheet">✖</button></div>`; }
         gal.innerHTML = html;
 
-        // --- NEW: Dynamic Cloud Video Button ---
+        // --- NEW: Dynamic Cloud Video Button (Bulletproof Method) ---
         const videoLink = document.getElementById("sampleVideoLink").value.trim();
-        const existingBtn = document.getElementById("cloudVideoBtnArea");
-        if (existingBtn) existingBtn.remove(); // Remove old button so they don't stack
-    
-        if (videoLink && gal) {
-            gal.insertAdjacentHTML('afterend', `
-                <div id="cloudVideoBtnArea" style="width: 100%; margin-top: 15px; text-align: center; padding: 15px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; border: 1px dashed #3b82f6;">
-                    <a href="${videoLink}" target="_blank" style="display: inline-block; background: #ef4444; color: white; padding: 10px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 1.1em; box-shadow: 0 4px 6px rgba(0,0,0,0.3); cursor: pointer;">
-                        ▶️ Play Attached Cloud Video
-                    </a>
-                    <p style="color: #9ca3af; font-size: 0.85em; margin-top: 8px; margin-bottom: 0;">(Opens securely in a new tab due to Microsoft OneDrive security)</p>
-                </div>
-            `);
+        const videoContainer = document.getElementById("cloudVideoContainer");
+        if (videoContainer) {
+            if (videoLink) {
+                videoContainer.innerHTML = `
+                    <div style="width: 100%; margin-top: 15px; text-align: center; padding: 15px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; border: 1px dashed #3b82f6;">
+                        <a href="${videoLink}" target="_blank" style="display: inline-block; background: #ef4444; color: white; padding: 10px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 1.1em; box-shadow: 0 4px 6px rgba(0,0,0,0.3); cursor: pointer;">
+                            ▶️ Play Attached Cloud Video
+                        </a>
+                        <p style="color: #9ca3af; font-size: 0.85em; margin-top: 8px; margin-bottom: 0;">(Opens securely in a new tab due to Microsoft OneDrive security)</p>
+                    </div>
+                `;
+            } else {
+                videoContainer.innerHTML = "";
+            }
         }
     }
     
