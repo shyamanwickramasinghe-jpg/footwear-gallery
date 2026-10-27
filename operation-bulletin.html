@@ -438,19 +438,44 @@
         setupDropZone('ocrUpload', 'ocrDropZone'); 
 
 document.addEventListener('paste', function (e) {
-            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            for (let i = 0; i < items.length; i++) {
-                const item = items[i];
-                // Safely check if it's a file AND if the type exists before reading it
-                if (item.kind === 'file' && item.type && item.type.startsWith('image/')) {
-                    const file = item.getAsFile();
-                    const aiTab = document.getElementById('tabAIContent');
-                    if (aiTab && aiTab.classList.contains('active')) processOcrFile(file);
-                    else processMediaFile(file);
+            // Ignore if the user is just pasting text into an input box
+            if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+            let fileFound = false;
+            const files = (e.clipboardData || window.clipboardData).files;
+            
+            // Method 1: Check the standard 'files' array (Works for Snipping Tool & File Explorer)
+            if (files && files.length > 0) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (file.type.startsWith('image/')) {
+                        e.preventDefault();
+                        fileFound = true;
+                        const aiTab = document.getElementById('tabAIContent');
+                        if (aiTab && aiTab.classList.contains('active')) processOcrFile(file);
+                        else processMediaFile(file);
+                    }
+                }
+            }
+            
+            // Method 2: Fallback for 'items' array (Works for images copied from websites)
+            if (!fileFound) {
+                const items = (e.clipboardData || window.clipboardData).items;
+                if (items) {
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].kind === 'file' && items[i].type.startsWith('image/')) {
+                            e.preventDefault();
+                            const file = items[i].getAsFile();
+                            if (file) {
+                                const aiTab = document.getElementById('tabAIContent');
+                                if (aiTab && aiTab.classList.contains('active')) processOcrFile(file);
+                                else processMediaFile(file);
+                            }
+                        }
+                    }
                 }
             }
         });
-
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 if(typeof closeImagePopup === 'function') closeImagePopup();
