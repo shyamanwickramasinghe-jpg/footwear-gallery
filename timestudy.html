@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
     <title>DSI FOOTTECH — AI & Interactive Time Study</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
     <style>
         * { box-sizing: border-box; }
         body {
@@ -20,375 +22,96 @@
             overflow: hidden;
         }
 
-        /* --- TOP HEADER --- */
         .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #0f172a;
-            border-bottom: 1px solid #1e293b;
-            padding: 8px 18px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
+            background: #0f172a; border-bottom: 1px solid #1e293b; padding: 8px 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 100;
         }
         .brand { display: flex; align-items: center; gap: 12px; }
         .brand h2 { margin: 0; font-size: 1.15em; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px; }
         .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
         .btn-top { background: #334155; color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85em; transition: 0.15s; }
-        .btn-top:hover { opacity: 0.9; }
-        .btn-top:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-top:hover { opacity: 0.9; } .btn-top:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* --- SIMPLIFIED METADATA BAR --- */
         .meta-bar {
-            display: flex;
-            gap: 12px;
-            padding: 10px 18px;
-            background: #1e293b;
-            border-bottom: 1px solid #334155;
-            flex-wrap: wrap;
+            display: flex; gap: 12px; padding: 10px 18px; background: #1e293b; border-bottom: 1px solid #334155; flex-wrap: wrap;
         }
         .input-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
         .input-group label { font-size: 0.7em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .input-group input, .input-group select { 
-            background: #0f172a; border: 1px solid #475569; color: #fff; padding: 7px 8px; border-radius: 6px; font-size: 0.88em; 
-        }
+        .input-group input, .input-group select { background: #0f172a; border: 1px solid #475569; color: #fff; padding: 7px 8px; border-radius: 6px; font-size: 0.88em; }
         .input-group input:focus, .input-group select:focus { outline: none; border-color: #38bdf8; }
         .comments-group { flex: 1.6; min-width: 220px; }
 
-        /* --- MAIN WORKSPACE --- */
-        .workspace {
-            display: flex;
-            flex: 1;
-            padding: 12px 18px;
-            gap: 18px;
-            overflow: hidden;
-        }
+        .workspace { display: flex; flex: 1; padding: 12px 18px; gap: 18px; overflow: hidden; }
 
-        /* LEFT: VIDEO & CLIP TAGGING ENGINE */
-        .video-section {
-            flex: 1.25;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-height: 0;
-        }
-        .video-container {
-            position: relative;
-            flex: 1;
-            background: #000;
-            border-radius: 10px;
-            border: 2px solid #334155;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            min-height: 200px;
-        }
+        .video-section { flex: 1.25; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+        .video-container { position: relative; flex: 1; background: #000; border-radius: 10px; border: 2px solid #334155; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); min-height: 200px; }
         video { width: 100%; height: 100%; object-fit: contain; background: #000; }
         
-        .ai-overlay {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            border: 6px solid transparent; pointer-events: none; transition: border-color 0.15s; z-index: 8;
-        }
-        
-        .hud-banner-top {
-            position: absolute; top: 0; left: 0; right: 0;
-            background: rgba(0,0,0,0.82); color: #fff;
-            padding: 8px 14px; font-weight: bold; font-size: 1em;
-            display: none; justify-content: space-between; align-items: center; z-index: 10;
-            pointer-events: none;
-        }
-        
-        .hud-banner-bottom {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            background: rgba(10, 15, 24, 0.9); border-top: 2px solid #334155; color: #fff;
-            padding: 8px 14px; font-size: 0.9em;
-            display: none; justify-content: space-between; align-items: center; z-index: 10;
-            pointer-events: none;
-        }
+        .ai-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 6px solid transparent; pointer-events: none; transition: border-color 0.15s; z-index: 8; }
+        .hud-banner-top { position: absolute; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.82); color: #fff; padding: 8px 14px; font-weight: bold; font-size: 1em; display: none; justify-content: space-between; align-items: center; z-index: 10; pointer-events: none; }
+        .hud-banner-bottom { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(10, 15, 24, 0.9); border-top: 2px solid #334155; color: #fff; padding: 8px 14px; font-size: 0.9em; display: none; justify-content: space-between; align-items: center; z-index: 10; pointer-events: none; }
+        .muda-flash { color: #ef4444; font-weight: 900; animation: pulseRed 0.5s infinite; }
 
-        .muda-flash {
-            color: #ef4444; font-weight: 900; animation: pulseRed 0.5s infinite;
-        }
+        .speed-bar { display: flex; align-items: center; gap: 4px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 5px 10px; flex-wrap: wrap; }
+        .speed-label { font-size: 0.75em; font-weight: 800; color: #38bdf8; text-transform: uppercase; margin-right: 6px; white-space: nowrap; }
+        .speed-btn { flex: 1; min-width: 38px; background: #1e293b; color: #cbd5e1; border: 1px solid #475569; border-radius: 5px; padding: 5px 4px; font-size: 0.78em; font-weight: bold; cursor: pointer; text-align: center; transition: all 0.15s; }
+        .speed-btn:hover { background: #334155; color: #fff; }
+        .speed-btn.active-speed { background: #0284c7; color: #fff; border-color: #38bdf8; box-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
 
-        /* SLOW MOTION SPEED BAR (0.1x to 1.0x) */
-        .speed-bar {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 5px 10px;
-            flex-wrap: wrap;
-        }
-        .speed-label {
-            font-size: 0.75em;
-            font-weight: 800;
-            color: #38bdf8;
-            text-transform: uppercase;
-            margin-right: 6px;
-            white-space: nowrap;
-        }
-        .speed-btn {
-            flex: 1;
-            min-width: 38px;
-            background: #1e293b;
-            color: #cbd5e1;
-            border: 1px solid #475569;
-            border-radius: 5px;
-            padding: 5px 4px;
-            font-size: 0.78em;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.15s;
-        }
-        .speed-btn:hover {
-            background: #334155;
-            color: #fff;
-        }
-        .speed-btn.active-speed {
-            background: #0284c7;
-            color: #fff;
-            border-color: #38bdf8;
-            box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
-        }
-
-        /* VISUAL TIMELINE BAR WITH DRAGGABLE HANDLES */
-        .timeline-wrapper {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 8px 12px 10px;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        .timeline-header {
-            display: flex; justify-content: space-between; align-items: center; font-size: 0.75em; color: #94a3b8; margin-bottom: 6px; font-weight: bold; gap: 8px; flex-wrap: wrap;
-        }
-        .timeline-bar {
-            position: relative;
-            height: 30px;
-            background: #1e293b;
-            border-radius: 6px;
-            display: flex;
-            cursor: pointer;
-            touch-action: none;
-            border: 1px solid #475569;
-        }
-        .timeline-seg {
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.74em;
-            font-weight: 800;
-            color: #fff;
-            overflow: hidden;
-            white-space: nowrap;
-            pointer-events: none;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-        }
+        .timeline-wrapper { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px 10px; user-select: none; -webkit-user-select: none; }
+        .timeline-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.75em; color: #94a3b8; margin-bottom: 6px; font-weight: bold; gap: 8px; flex-wrap: wrap; }
+        .timeline-bar { position: relative; height: 30px; background: #1e293b; border-radius: 6px; display: flex; cursor: pointer; touch-action: none; border: 1px solid #475569; }
+        .timeline-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.74em; font-weight: 800; color: #fff; overflow: hidden; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
         .timeline-seg:first-child { border-radius: 5px 0 0 5px; }
-        
-        /* Draggable Divider Handle Between Clips */
-        .clip-handle {
-            position: absolute;
-            top: -4px;
-            bottom: -4px;
-            width: 14px;
-            transform: translateX(-50%);
-            cursor: ew-resize;
-            z-index: 15;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: none;
-        }
-        .clip-handle::before {
-            content: "⇔";
-            font-size: 10px;
-            font-weight: 900;
-            color: #000;
-            background: #fde047;
-            border: 1px solid #000;
-            border-radius: 4px;
-            padding: 4px 2px;
-            line-height: 1;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.7);
-            transition: transform 0.1s, background 0.1s;
-        }
-        .clip-handle:hover::before, .clip-handle.dragging::before {
-            background: #fff;
-            transform: scale(1.2);
-            box-shadow: 0 0 10px #fde047;
-        }
+        .clip-handle { position: absolute; top: -4px; bottom: -4px; width: 14px; transform: translateX(-50%); cursor: ew-resize; z-index: 15; display: flex; align-items: center; justify-content: center; touch-action: none; }
+        .clip-handle::before { content: "⇔"; font-size: 10px; font-weight: 900; color: #000; background: #fde047; border: 1px solid #000; border-radius: 4px; padding: 4px 2px; line-height: 1; box-shadow: 0 2px 6px rgba(0,0,0,0.7); transition: transform 0.1s, background 0.1s; }
+        .clip-handle:hover::before, .clip-handle.dragging::before { background: #fff; transform: scale(1.2); box-shadow: 0 0 10px #fde047; }
+        .drag-tooltip { position: absolute; top: -30px; transform: translateX(-50%); background: #fde047; color: #000; font-weight: 900; font-size: 0.75em; padding: 3px 7px; border-radius: 4px; pointer-events: none; z-index: 30; display: none; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.8); }
+        .playhead { position: absolute; top: -5px; bottom: -5px; width: 4px; background: #fff; box-shadow: 0 0 8px #38bdf8; z-index: 12; left: 0%; transform: translateX(-50%); cursor: ew-resize; }
+        .playhead::after { content: "▼"; position: absolute; top: -8px; left: 50%; transform: translateX(-50%); color: #38bdf8; font-size: 10px; text-shadow: 0 1px 3px #000; }
 
-        /* Floating Tooltip During Dragging */
-        .drag-tooltip {
-            position: absolute;
-            top: -30px;
-            transform: translateX(-50%);
-            background: #fde047;
-            color: #000;
-            font-weight: 900;
-            font-size: 0.75em;
-            padding: 3px 7px;
-            border-radius: 4px;
-            pointer-events: none;
-            z-index: 30;
-            display: none;
-            white-space: nowrap;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.8);
-        }
+        .tagger-bar { display: none; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+        .tag-btn { padding: 9px 4px; border-radius: 8px; font-weight: 800; font-size: 0.78em; border: 2px solid transparent; cursor: pointer; color: #fff; text-align: center; transition: transform 0.1s, box-shadow 0.15s; }
+        .tag-btn:active { transform: scale(0.96); } .tag-btn.active-tag { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.6); }
+        .tag-pickup { background: #0284c7; } .tag-va { background: #16a34a; } .tag-muda { background: #dc2626; } .tag-dispose { background: #ca8a04; } .tag-undo { background: #475569; border: 1px dashed #cbd5e1; }
 
-        /* Draggable Playhead */
-        .playhead {
-            position: absolute;
-            top: -5px;
-            bottom: -5px;
-            width: 4px;
-            background: #fff;
-            box-shadow: 0 0 8px #38bdf8;
-            z-index: 12;
-            left: 0%;
-            transform: translateX(-50%);
-            cursor: ew-resize;
-        }
-        .playhead::after {
-            content: "▼";
-            position: absolute;
-            top: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #38bdf8;
-            font-size: 10px;
-            text-shadow: 0 1px 3px #000;
-        }
-
-        /* LIVE ELEMENT TAGGER BUTTONS */
-        .tagger-bar {
-            display: none;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-        }
-        .tag-btn {
-            padding: 9px 4px;
-            border-radius: 8px;
-            font-weight: 800;
-            font-size: 0.78em;
-            border: 2px solid transparent;
-            cursor: pointer;
-            color: #fff;
-            text-align: center;
-            transition: transform 0.1s, box-shadow 0.15s;
-        }
-        .tag-btn:active { transform: scale(0.96); }
-        .tag-btn.active-tag { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.6); }
-        .tag-pickup { background: #0284c7; }
-        .tag-va { background: #16a34a; }
-        .tag-muda { background: #dc2626; }
-        .tag-dispose { background: #ca8a04; }
-        .tag-undo { background: #475569; border: 1px dashed #cbd5e1; }
-
-        /* Control Buttons */
         .video-controls { display: flex; gap: 8px; flex-wrap: wrap; }
-        .btn-action { 
-            flex: 1; min-width: 130px; padding: 11px 10px; border-radius: 8px; font-size: 0.92em; font-weight: bold; border: none; cursor: pointer; transition: 0.2s;
-        }
-        .btn-start { background: #2563eb; color: white; }
-        .btn-start:hover { background: #1d4ed8; }
-        .btn-stop { background: #ef4444; color: white; display: none; }
-        .btn-stop:hover { background: #b91c1c; }
-        .btn-audit { background: #f59e0b; color: #000; display: none; }
-        .btn-audit:hover { background: #d97706; color: #fff; }
-        .btn-improve { background: #10b981; color: #000; display: none; box-shadow: 0 0 15px rgba(16,185,129,0.4); }
-        .btn-improve:hover { background: #059669; color: #fff; }
+        .btn-action { flex: 1; min-width: 130px; padding: 11px 10px; border-radius: 8px; font-size: 0.92em; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-start { background: #2563eb; color: white; } .btn-start:hover { background: #1d4ed8; }
+        .btn-stop { background: #ef4444; color: white; display: none; } .btn-stop:hover { background: #b91c1c; }
+        .btn-audit { background: #f59e0b; color: #000; display: none; } .btn-audit:hover { background: #d97706; color: #fff; }
+        .btn-improve { background: #10b981; color: #000; display: none; box-shadow: 0 0 15px rgba(16,185,129,0.4); } .btn-improve:hover { background: #059669; color: #fff; }
         .btn-normal-mode { background: #475569; color: #fff; display: none; flex: 0 0 auto; }
 
-        /* RIGHT: DATA & SMV RESULTS */
-        .data-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 14px;
-            min-height: 0;
-        }
-
-        /* KPI Dashboard */
+        .data-section { flex: 1; display: flex; flex-direction: column; gap: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 14px; min-height: 0; }
         .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         .kpi-box { background: #1e293b; padding: 10px; border-radius: 8px; text-align: center; border-left: 4px solid #38bdf8; }
         .kpi-box h4 { margin: 0 0 4px 0; font-size: 0.72em; color: #94a3b8; text-transform: uppercase; }
-        .kpi-box .val { font-size: 1.45em; font-weight: 900; color: #fff; }
-        .kpi-box .sub-val { font-size: 0.8em; color: #94a3b8; margin-top: 3px; font-weight: bold; }
-        .kpi-box.highlight { border-left-color: #22c55e; background: rgba(34,197,94,0.1); }
-        .kpi-box.highlight .val { color: #22c55e; }
+        .kpi-box .val { font-size: 1.45em; font-weight: 900; color: #fff; } .kpi-box .sub-val { font-size: 0.8em; color: #94a3b8; margin-top: 3px; font-weight: bold; }
+        .kpi-box.highlight { border-left-color: #22c55e; background: rgba(34,197,94,0.1); } .kpi-box.highlight .val { color: #22c55e; }
 
-        /* Toolbar above table */
-        .clip-toolbar {
-            display: flex; gap: 6px; flex-wrap: wrap; justify-content: space-between; align-items: center;
-        }
-        .btn-tool {
-            background: #1e293b; color: #cbd5e1; border: 1px solid #475569; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; font-weight: bold; cursor: pointer;
-        }
-        .btn-tool:hover { background: #334155; color: #fff; }
-        .btn-tool:disabled { opacity: 0.4; cursor: not-allowed; }
+        .clip-toolbar { display: flex; gap: 6px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+        .btn-tool { background: #1e293b; color: #cbd5e1; border: 1px solid #475569; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; font-weight: bold; cursor: pointer; }
+        .btn-tool:hover { background: #334155; color: #fff; } .btn-tool:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* Clips Table */
         .table-container { flex: 1; overflow-y: auto; border: 1px solid #334155; border-radius: 8px; background: #000; min-height: 140px; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.82em; }
         th { background: #1e293b; color: #94a3b8; padding: 8px 6px; position: sticky; top: 0; z-index: 5; }
         td { padding: 6px; border-bottom: 1px solid #1e293b; color: #cbd5e1; vertical-align: middle; }
-        tr:hover { background: rgba(255,255,255,0.04); }
-        tr.playing-clip { background: rgba(56,189,248,0.22) !important; }
+        tr:hover { background: rgba(255,255,255,0.04); } tr.playing-clip { background: rgba(56,189,248,0.22) !important; }
+        .clip-type-select { background: #0f172a; color: #fff; border: 1px solid #475569; padding: 4px; border-radius: 4px; font-size: 0.9em; font-weight: bold; width: 100%; }
+        .time-edit { width: 50px; background: #0f172a; color: #38bdf8; border: 1px solid #334155; border-radius: 4px; padding: 3px; font-size: 0.9em; text-align: center; font-weight: bold; }
+        .btn-row-icon { background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 4px; padding: 3px 6px; cursor: pointer; font-weight: bold; font-size: 0.85em; }
+        .btn-row-del { border-color: #ef4444; color: #ef4444; margin-left: 3px; } .btn-row-del:hover { background: #ef4444; color: #fff; }
 
-        .clip-type-select {
-            background: #0f172a; color: #fff; border: 1px solid #475569; padding: 4px; border-radius: 4px; font-size: 0.9em; font-weight: bold; width: 100%;
-        }
-        .time-edit {
-            width: 50px; background: #0f172a; color: #38bdf8; border: 1px solid #334155; border-radius: 4px; padding: 3px; font-size: 0.9em; text-align: center; font-weight: bold;
-        }
-        .btn-row-icon {
-            background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 4px; padding: 3px 6px; cursor: pointer; font-weight: bold; font-size: 0.85em;
-        }
-        .btn-row-del { border-color: #ef4444; color: #ef4444; margin-left: 3px; }
-        .btn-row-del:hover { background: #ef4444; color: #fff; }
-
-        /* Bottom Actions */
         .bottom-actions { display: flex; gap: 8px; flex-wrap: wrap; }
         .bottom-actions button { flex: 1; min-width: 110px; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; border: none; font-size: 0.88em; }
-        .btn-pdf { background: #f59e0b; color: #000; }
-        .btn-reset-clips { background: #334155; color: #f8fafc; border: 1px solid #64748b !important; }
-        .btn-clear-all { background: #7f1d1d; color: #fecaca; border: 1px solid #ef4444 !important; }
         
         @keyframes pulseRed { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         
-        /* Official PDF hidden area */
         #printArea { display: none; }
-        @media print {
-            body { background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; }
-            .top-bar, .meta-bar, .workspace { display: none !important; }
-            #printArea { display: block !important; }
-        }
-
-        /* --- MOBILE PHONE FIXES --- */
-        @media (max-width: 768px) {
-            body { height: auto; min-height: 100vh; overflow-y: auto; }
-            .top-bar { flex-wrap: wrap; gap: 8px; padding: 10px; }
-            .meta-bar { padding: 10px; gap: 8px; }
-            .workspace { flex-direction: column; overflow-y: visible; padding: 10px; }
-            .video-container { min-height: 260px; }
-            .speed-bar { gap: 3px; padding: 5px 6px; }
-            .speed-btn { min-width: 32px; font-size: 0.72em; padding: 5px 2px; }
-            .tagger-bar { grid-template-columns: repeat(2, 1fr); }
-            .hud-banner-top { font-size: 0.8em; flex-direction: column; align-items: flex-start; }
-            .hud-banner-bottom { font-size: 0.78em; flex-direction: column; align-items: flex-start; }
-            .kpi-grid { grid-template-columns: 1fr 1fr; }
-            .kpi-box .val { font-size: 1.25em; }
-        }
+        @media print { body { background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; } .top-bar, .meta-bar, .workspace { display: none !important; } #printArea { display: block !important; } }
+        @media (max-width: 768px) { body { height: auto; min-height: 100vh; overflow-y: auto; } .top-bar { flex-wrap: wrap; gap: 8px; padding: 10px; } .meta-bar { padding: 10px; gap: 8px; } .workspace { flex-direction: column; overflow-y: visible; padding: 10px; } .video-container { min-height: 260px; } .speed-bar { gap: 3px; padding: 5px 6px; } .speed-btn { min-width: 32px; font-size: 0.72em; padding: 5px 2px; } .tagger-bar { grid-template-columns: repeat(2, 1fr); } .hud-banner-top { font-size: 0.8em; flex-direction: column; align-items: flex-start; } .hud-banner-bottom { font-size: 0.78em; flex-direction: column; align-items: flex-start; } .kpi-grid { grid-template-columns: 1fr 1fr; } .kpi-box .val { font-size: 1.25em; } }
     </style>
 </head>
 <body>
@@ -425,9 +148,7 @@
         </div>
         <div class="input-group">
             <label>DSI Machine (Auto MA% & P&F%)</label>
-            <select id="mMachine" onchange="applyMachineAllowances()">
-                <!-- Populated automatically by JS -->
-            </select>
+            <select id="mMachine" onchange="applyMachineAllowances()"></select>
         </div>
         <div class="input-group" style="max-width: 110px;">
             <label>P&F Allow %</label>
@@ -445,27 +166,15 @@
 
     <!-- MAIN WORKSPACE -->
     <div class="workspace">
-        
-        <!-- LEFT: VIDEO & INTERACTIVE CLIP TAGGER -->
         <div class="video-section">
             <div class="video-container">
                 <video id="liveCam" autoplay muted playsinline style="display:none;"></video>
                 <video id="playbackVid" controls playsinline></video>
-                
                 <div class="ai-overlay" id="aiOverlay"></div>
-                
-                <div class="hud-banner-top" id="hudTop">
-                    <span id="hudTopTitle">AI AUDIT MODE</span>
-                    <span id="hudTopState" style="color:#22c55e;">STATE: VA</span>
-                </div>
-
-                <div class="hud-banner-bottom" id="hudBottom">
-                    <span id="hudBottomLeft">Obs SMV: --</span>
-                    <span id="hudBottomRight" class="muda-flash">!! WASTE DETECTED !!</span>
-                </div>
+                <div class="hud-banner-top" id="hudTop"><span id="hudTopTitle">AI AUDIT MODE</span><span id="hudTopState" style="color:#22c55e;">STATE: VA</span></div>
+                <div class="hud-banner-bottom" id="hudBottom"><span id="hudBottomLeft">Obs SMV: --</span><span id="hudBottomRight" class="muda-flash">!! WASTE DETECTED !!</span></div>
             </div>
 
-            <!-- SLOW-MOTION SPEED CONTROL BAR (0.1x to 1.0x) -->
             <div class="speed-bar" id="speedBar">
                 <span class="speed-label">🐢 Motion Speed:</span>
                 <button type="button" class="speed-btn" onclick="setVideoSpeed(0.1, this)">0.1x</button>
@@ -480,7 +189,6 @@
                 <button type="button" class="speed-btn active-speed" id="defaultSpeedBtn" onclick="setVideoSpeed(1.0, this)">1.0x</button>
             </div>
 
-            <!-- VISUAL TIMELINE SCRUBBER WITH DRAGGABLE HANDLES -->
             <div class="timeline-wrapper">
                 <div class="timeline-header">
                     <span id="tlStatus">📌 Tip: Drag the yellow ⇔ handles between clips to adjust element times while watching the video!</span>
@@ -492,26 +200,14 @@
                 </div>
             </div>
 
-            <!-- LIVE ONE-TAP ELEMENT TAGGING BUTTONS (DURING STUDY) -->
             <div class="tagger-bar" id="taggerBar">
-                <button type="button" class="tag-btn tag-pickup active-tag" id="tagBtn0" onclick="switchClipPhase('pickup', this)">
-                    1️⃣ Pickup / Align<br><span style="font-size:0.75em; font-weight:normal;">(Value Added)</span>
-                </button>
-                <button type="button" class="tag-btn tag-va" id="tagBtn1" onclick="switchClipPhase('va_machine', this)">
-                    2️⃣ Main Process<br><span style="font-size:0.75em; font-weight:normal;">(VA + Machine %)</span>
-                </button>
-                <button type="button" class="tag-btn tag-muda" id="tagBtn2" onclick="switchClipPhase('muda', this)">
-                    3️⃣ Waste / Muda<br><span style="font-size:0.75em; font-weight:normal;">(Trim in Kaizen)</span>
-                </button>
-                <button type="button" class="tag-btn tag-dispose" id="tagBtn3" onclick="switchClipPhase('dispose', this)">
-                    4️⃣ Dispose Part<br><span style="font-size:0.75em; font-weight:normal;">(Value Added)</span>
-                </button>
-                <button type="button" class="tag-btn tag-undo" onclick="undoLastLiveTag()" title="Remove last accidental tap">
-                    🔙 Undo Tap<br><span style="font-size:0.75em; font-weight:normal;">(Merge Back)</span>
-                </button>
+                <button type="button" class="tag-btn tag-pickup active-tag" id="tagBtn0" onclick="switchClipPhase('pickup', this)">1️⃣ Pickup / Align<br><span style="font-size:0.75em; font-weight:normal;">(Value Added)</span></button>
+                <button type="button" class="tag-btn tag-va" id="tagBtn1" onclick="switchClipPhase('va_machine', this)">2️⃣ Main Process<br><span style="font-size:0.75em; font-weight:normal;">(VA + Machine %)</span></button>
+                <button type="button" class="tag-btn tag-muda" id="tagBtn2" onclick="switchClipPhase('muda', this)">3️⃣ Waste / Muda<br><span style="font-size:0.75em; font-weight:normal;">(Trim in Kaizen)</span></button>
+                <button type="button" class="tag-btn tag-dispose" id="tagBtn3" onclick="switchClipPhase('dispose', this)">4️⃣ Dispose Part<br><span style="font-size:0.75em; font-weight:normal;">(Value Added)</span></button>
+                <button type="button" class="tag-btn tag-undo" onclick="undoLastLiveTag()" title="Remove last accidental tap">🔙 Undo Tap<br><span style="font-size:0.75em; font-weight:normal;">(Merge Back)</span></button>
             </div>
             
-            <!-- MAIN CONTROL BUTTONS -->
             <div class="video-controls">
                 <button type="button" class="btn-action btn-start" id="btnStart" onclick="startAiStudy()" style="display:none;">🔴 Start Cycle Study (Tag Clips Live)</button>
                 <button type="button" class="btn-action btn-stop" id="btnStop" onclick="stopAiStudy()">⏹️ Stop Cycle End & Calculate SMV</button>
@@ -521,54 +217,28 @@
             </div>
         </div>
 
-        <!-- RIGHT: LIVE DATA & EDITABLE CLIPS -->
         <div class="data-section">
             <div class="kpi-grid">
-                <div class="kpi-box">
-                    <h4>Cycle Time (Sec)</h4>
-                    <div class="val" id="kpiCycle" style="color:#fcd34d;">0.00s</div>
-                    <div class="sub-val" id="kpiVaRatio">VA: --% | Muda: --%</div>
-                </div>
-                <div class="kpi-box">
-                    <h4>Perf. Rating & MA%</h4>
-                    <div class="val" id="kpiRating" style="color:#c084fc;">90%</div>
-                    <div class="sub-val" id="kpiMaDisplay">MA: 7% | P&F: 8%</div>
-                </div>
-                <div class="kpi-box">
-                    <h4>Current SMV / Prs</h4>
-                    <div class="val" id="kpiSmv">--</div>
-                    <div class="sub-val" id="kpiCurrentTarget">-- / hr</div>
-                </div>
-                <div class="kpi-box highlight">
-                    <h4>Kaizen Target / Hr</h4>
-                    <div class="val" id="kpiTarget">--</div>
-                    <div class="sub-val" id="kpiKaizenSmv" style="color:#22c55e;">R.SMV: -- min</div>
-                </div>
+                <div class="kpi-box"><h4>Cycle Time (Sec)</h4><div class="val" id="kpiCycle" style="color:#fcd34d;">0.00s</div><div class="sub-val" id="kpiVaRatio">VA: --% | Muda: --%</div></div>
+                <div class="kpi-box"><h4>Perf. Rating & MA%</h4><div class="val" id="kpiRating" style="color:#c084fc;">90%</div><div class="sub-val" id="kpiMaDisplay">MA: 7% | P&F: 8%</div></div>
+                <div class="kpi-box"><h4>Current SMV / Prs</h4><div class="val" id="kpiSmv">--</div><div class="sub-val" id="kpiCurrentTarget">-- / hr</div></div>
+                <div class="kpi-box highlight"><h4>Kaizen Target / Hr</h4><div class="val" id="kpiTarget">--</div><div class="sub-val" id="kpiKaizenSmv" style="color:#22c55e;">R.SMV: -- min</div></div>
             </div>
 
-<!-- CLIP EDITING TOOLBAR -->
-<div class="clip-toolbar">
+            <div class="clip-toolbar">
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">
                     <button type="button" class="btn-tool" onclick="markClipAtCurrentVideoTime()">✂️ Split Clip at Video Time</button>
                     <button type="button" class="btn-tool" id="btnUndoTable" onclick="undoLastAction()" disabled>🔙 Undo Edit</button>
-                    
-                    <!-- THE TWO MANUAL ADD BUTTONS -->
                     <button type="button" class="btn-tool" onclick="addManualRow()" style="background:#2563eb; color:#fff; border-color:#1d4ed8;">➕ Add Manual Row</button>
                     <button type="button" class="btn-tool" onclick="addManualElement()" style="background:#8b5cf6; color:#fff; border-color:#7c3aed;">➕ Add Custom Element</button>
                 </div>
                 <button type="button" class="btn-tool" onclick="autoResetDefault4Clips()" title="Reset table to 4 standard clips across cycle">⚡ Auto 4-Clip Split</button>
             </div>
 
-<div class="table-container">
+            <div class="table-container">
                 <table>
                     <thead>
-                        <tr>
-                            <th width="10%">Clip</th>
-                            <th width="36%">Element Type (Editable)</th>
-                            <th width="28%">Start ➔ End (s)</th>
-                            <th width="11%">Dur</th>
-                            <th width="15%">Action</th>
-                        </tr>
+                        <tr><th width="10%">Clip</th><th width="36%">Element Type (Editable)</th><th width="28%">Start ➔ End (s)</th><th width="11%">Dur</th><th width="15%">Action</th></tr>
                     </thead>
                     <tbody id="elementsTableBody">
                         <tr><td colspan="5" style="text-align:center; padding: 20px; color:#64748b;">Load a video or open camera, then click <b>Start Cycle Study</b>.</td></tr>
@@ -576,16 +246,15 @@
                 </table>
             </div>
 
-            <!-- ONLY ONE BOTTOM ACTIONS BLOCK HERE -->
             <div class="bottom-actions">
-                <button type="button" class="btn-reset-clips" onclick="resetCurrentStudy()">🔄 Reset Current Cycle</button>
-                <button type="button" class="btn-clear-all" onclick="clearAllStudy()">🗑️ Clear All</button>
+                <button type="button" class="btn-reset-clips" onclick="resetCurrentStudy()" style="background: #334155; color: #fff; border: 1px solid #475569;">🔄 Reset Current Cycle</button>
+                <button type="button" class="btn-clear-all" onclick="clearAllStudy()" style="background: #7f1d1d; color: #fff; border: 1px solid #dc2626;">🗑️ Clear All</button>
                 <button type="button" class="btn-pdf" onclick="saveCycleToMasterLog()" style="background: #3b82f6; color: #fff; border: none;">💾 Save Cycle & Next</button>
-                <button type="button" class="btn-pdf" onclick="exportOfficialDSIExcel()" style="background: #10b981; color: #000;">📊 Export Official Time Study (Excel)</button>
+                <button type="button" class="btn-pdf" onclick="exportOfficialDSIExcel()" style="background: #10b981; color: #000; border: none;">📊 Export Official Time Study (Excel)</button>
             </div>
         </div>
     </div>
-    <!-- PDF PRINT AREA -->
+    
     <div id="printArea"></div>
 
 <script>
@@ -598,18 +267,14 @@
     let studyStartVideoTime = 0;
     let recordedDuration = 0;
     let playbackRAF = null;
-    let currentMode = 'idle'; // 'idle', 'studying', 'audit', 'improved'
+    let currentMode = 'idle';
     let isSeeking = false;
     let selectedPlaybackSpeed = 1.0;
-
-    // Interactive Drag State for Timeline Boundary Handles & Playhead
-    let dragState = null; // { type: 'handle' | 'playhead', boundaryIdx: number }
-
-    // Each clip: { start: 0, end: 2.5, category: 'pickup'|'va_machine'|'muda'|'dispose', label: '...' }
+    let dragState = null; 
     let aiTimeline = [];
     let historyStack = [];
     let activeClipCategory = 'pickup';
-    let masterCyclesLog = []; // Stores all completed 5-10 cycles
+    let masterCyclesLog = []; 
 
     const CATEGORY_META = {
         pickup:     { label: 'Ⓐ Pickup & Align (VA)',   color: '#0284c7', isMuda: false, hasMa: false },
@@ -618,71 +283,25 @@
         dispose:    { label: 'Ⓓ Dispose Part (VA)',     color: '#ca8a04', isMuda: false, hasMa: false }
     };
 
-    // DSI Official Finalized Allowance Database
     const dsiMachines = [
-        {"name": "Travelling head Die cutter", "ma": 4.0, "ph": 11.0},
-        {"name": "Hydraulic Die cutter", "ma": 4.0, "ph": 11.0},
-        {"name": "Clicker cutter Die cutter", "ma": 3.0, "ph": 11.0},
-        {"name": "Programe cutter Cutter", "ma": 8.0, "ph": 11.0},
-        {"name": "Strap Cutter Cutter", "ma": 2.0, "ph": 8.0},
-        {"name": "Strap Folding Folding", "ma": 2.0, "ph": 8.0},
-        {"name": "Combine Combining", "ma": 7.0, "ph": 11.0},
-        {"name": "Skiving", "ma": 2.5, "ph": 8.0},
-        {"name": "Toe Gum", "ma": 3.0, "ph": 8.0},
-        {"name": "Welding", "ma": 9.0, "ph": 8.0},
-        {"name": "SNLS FB", "ma": 5.0, "ph": 8.0},
-        {"name": "DNLS FB", "ma": 7.0, "ph": 8.0},
-        {"name": "SNLS PB", "ma": 5.0, "ph": 8.0},
-        {"name": "DNLS PB", "ma": 7.0, "ph": 8.0},
-        {"name": "SNLS BINDING", "ma": 5.5, "ph": 8.0},
-        {"name": "DNCS", "ma": 7.0, "ph": 8.0},
-        {"name": "ZZ FB", "ma": 5.0, "ph": 8.0},
-        {"name": "SEAM OPENER", "ma": 3.0, "ph": 8.0},
-        {"name": "PUNCHING", "ma": 3.0, "ph": 8.0},
-        {"name": "EYELET", "ma": 4.0, "ph": 8.0},
-        {"name": "Pattern Sewer", "ma": 5.0, "ph": 8.0},
-        {"name": "Hammering", "ma": 2.0, "ph": 8.0},
-        {"name": "Stroble", "ma": 4.0, "ph": 8.0},
-        {"name": "EDGE CUT", "ma": 2.0, "ph": 8.0},
-        {"name": "Strap Auto", "ma": 4.0, "ph": 11.0},
-        {"name": "Strap Manual", "ma": 2.0, "ph": 8.0},
-        {"name": "BTK", "ma": 5.0, "ph": 8.0},
-        {"name": "Folding", "ma": 2.0, "ph": 8.0},
-        {"name": "Lacing 2 thread", "ma": 5.5, "ph": 8.0},
-        {"name": "Heat Sealing", "ma": 2.5, "ph": 11.0},
-        {"name": "Thread trimmer", "ma": 2.0, "ph": 8.0},
-        {"name": "Toe Foaming", "ma": 2.0, "ph": 11.0},
-        {"name": "Manual Table / Bench Work", "ma": 0.0, "ph": 11.0}
+        {"name": "Travelling head Die cutter", "ma": 4.0, "ph": 11.0}, {"name": "Hydraulic Die cutter", "ma": 4.0, "ph": 11.0}, {"name": "Clicker cutter Die cutter", "ma": 3.0, "ph": 11.0}, {"name": "Programe cutter Cutter", "ma": 8.0, "ph": 11.0}, {"name": "Strap Cutter Cutter", "ma": 2.0, "ph": 8.0}, {"name": "Strap Folding Folding", "ma": 2.0, "ph": 8.0}, {"name": "Combine Combining", "ma": 7.0, "ph": 11.0}, {"name": "Skiving", "ma": 2.5, "ph": 8.0}, {"name": "Toe Gum", "ma": 3.0, "ph": 8.0}, {"name": "Welding", "ma": 9.0, "ph": 8.0}, {"name": "SNLS FB", "ma": 5.0, "ph": 8.0}, {"name": "DNLS FB", "ma": 7.0, "ph": 8.0}, {"name": "SNLS PB", "ma": 5.0, "ph": 8.0}, {"name": "DNLS PB", "ma": 7.0, "ph": 8.0}, {"name": "SNLS BINDING", "ma": 5.5, "ph": 8.0}, {"name": "DNCS", "ma": 7.0, "ph": 8.0}, {"name": "ZZ FB", "ma": 5.0, "ph": 8.0}, {"name": "SEAM OPENER", "ma": 3.0, "ph": 8.0}, {"name": "PUNCHING", "ma": 3.0, "ph": 8.0}, {"name": "EYELET", "ma": 4.0, "ph": 8.0}, {"name": "Pattern Sewer", "ma": 5.0, "ph": 8.0}, {"name": "Hammering", "ma": 2.0, "ph": 8.0}, {"name": "Stroble", "ma": 4.0, "ph": 8.0}, {"name": "EDGE CUT", "ma": 2.0, "ph": 8.0}, {"name": "Strap Auto", "ma": 4.0, "ph": 11.0}, {"name": "Strap Manual", "ma": 2.0, "ph": 8.0}, {"name": "BTK", "ma": 5.0, "ph": 8.0}, {"name": "Folding", "ma": 2.0, "ph": 8.0}, {"name": "Lacing 2 thread", "ma": 5.5, "ph": 8.0}, {"name": "Heat Sealing", "ma": 2.5, "ph": 11.0}, {"name": "Thread trimmer", "ma": 2.0, "ph": 8.0}, {"name": "Toe Foaming", "ma": 2.0, "ph": 11.0}, {"name": "Manual Table / Bench Work", "ma": 0.0, "ph": 11.0}
     ];
 
     const pbVid = document.getElementById("playbackVid");
     const liveCam = document.getElementById("liveCam");
+    pbVid.addEventListener('seeking', () => isSeeking = true); pbVid.addEventListener('seeked', () => isSeeking = false); pbVid.addEventListener('timeupdate', updatePlayheadPosition);
 
-    pbVid.addEventListener('seeking', () => isSeeking = true);
-    pbVid.addEventListener('seeked', () => isSeeking = false);
-    pbVid.addEventListener('timeupdate', updatePlayheadPosition);
-
-    // --- SLOW MOTION SPEED CONTROLLER (0.1x to 1.0x) ---
     function setVideoSpeed(rate, btnEl) {
         selectedPlaybackSpeed = rate;
         document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active-speed'));
         if (btnEl) btnEl.classList.add('active-speed');
-
-        if (currentMode !== 'improved') {
-            pbVid.playbackRate = rate;
-        }
+        if (currentMode !== 'improved') { pbVid.playbackRate = rate; }
         document.getElementById("tlStatus").innerText = `🐢 Playback speed set to ${rate.toFixed(1)}x (True video timestamps are preserved for SMV math).`;
     }
 
-    // Keyboard shortcuts: 1, 2, 3, 4 for live tagging, Ctrl+Z for Undo
     document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-            e.preventDefault();
-            undoLastAction();
-            return;
-        }
-        if (!isStudying) return;
-        if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undoLastAction(); return; }
+        if (!isStudying || ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
         if (e.key === '1') document.getElementById('tagBtn0').click();
         if (e.key === '2') document.getElementById('tagBtn1').click();
         if (e.key === '3') document.getElementById('tagBtn2').click();
@@ -692,70 +311,76 @@
     document.addEventListener("DOMContentLoaded", () => {
         const mcSelect = document.getElementById("mMachine");
         if (mcSelect) {
-            mcSelect.innerHTML = dsiMachines.map((m, i) => 
-                `<option value="${i}">${m.name} (${m.ma}% MA, ${m.ph}% P&F)</option>`
-            ).join("");
-            mcSelect.selectedIndex = 11; // DNLS FB default
-            applyMachineAllowances();
+            mcSelect.innerHTML = dsiMachines.map((m, i) => `<option value="${i}">${m.name} (${m.ma}% MA, ${m.ph}% P&F)</option>`).join("");
+            mcSelect.selectedIndex = 11; applyMachineAllowances();
         }
     });
 
-    // --- UNDO / HISTORY MANAGEMENT ---
-    function saveStateForUndo() {
-        historyStack.push(JSON.parse(JSON.stringify(aiTimeline)));
-        if (historyStack.length > 25) historyStack.shift();
-        updateUndoButtons();
-    }
-
+    function saveStateForUndo() { historyStack.push(JSON.parse(JSON.stringify(aiTimeline))); if (historyStack.length > 25) historyStack.shift(); updateUndoButtons(); }
     function updateUndoButtons() {
-        const count = historyStack.length;
-        const topBtn = document.getElementById("btnUndoTop");
-        const tblBtn = document.getElementById("btnUndoTable");
-        if (topBtn) {
-            topBtn.disabled = count === 0;
-            topBtn.innerText = `🔙 Undo (${count})`;
-        }
-        if (tblBtn) {
-            tblBtn.disabled = count === 0;
-            tblBtn.innerText = `🔙 Undo Edit (${count})`;
-        }
+        const count = historyStack.length; const topBtn = document.getElementById("btnUndoTop"); const tblBtn = document.getElementById("btnUndoTable");
+        if (topBtn) { topBtn.disabled = count === 0; topBtn.innerText = `🔙 Undo (${count})`; }
+        if (tblBtn) { tblBtn.disabled = count === 0; tblBtn.innerText = `🔙 Undo Edit (${count})`; }
     }
-
     function undoLastAction() {
-        if (isStudying) {
-            undoLastLiveTag();
-            return;
-        }
-        if (historyStack.length === 0) return;
-        aiTimeline = historyStack.pop();
-        updateUndoButtons();
-        renderTimelineBar();
-        renderClipsTable();
-        updateCalculations();
+        if (isStudying) { undoLastLiveTag(); return; }
+        if (historyStack.length === 0) return; aiTimeline = historyStack.pop();
+        updateUndoButtons(); renderTimelineBar(); renderClipsTable(); updateCalculations();
         document.getElementById("tlStatus").innerText = "🔙 Reverted to previous clip state.";
     }
-
     function undoLastLiveTag() {
         if (!isStudying || aiTimeline.length <= 1) return;
-        aiTimeline.pop();
-        const currentLast = aiTimeline[aiTimeline.length - 1];
-        activeClipCategory = currentLast.category;
-        renderTimelineBar();
-        renderClipsTable();
-        document.getElementById("tlStatus").innerText = "🔙 Removed last live tap — continuing previous clip.";
+        aiTimeline.pop(); activeClipCategory = aiTimeline[aiTimeline.length - 1].category;
+        renderTimelineBar(); renderClipsTable(); document.getElementById("tlStatus").innerText = "🔙 Removed last live tap — continuing previous clip.";
     }
 
-    // --- RESET & CLEAR FUNCTIONS ---
     function stopOverlayPlayback() {
-        currentMode = 'idle';
-        cancelAnimationFrame(playbackRAF);
-        pbVid.pause();
-        pbVid.playbackRate = selectedPlaybackSpeed;
-        document.getElementById("hudTop").style.display = "none";
-        document.getElementById("hudBottom").style.display = "none";
-        document.getElementById("aiOverlay").style.borderColor = "transparent";
-        document.getElementById("btnStopOverlay").style.display = "none";
+        currentMode = 'idle'; cancelAnimationFrame(playbackRAF); pbVid.pause(); pbVid.playbackRate = selectedPlaybackSpeed;
+        document.getElementById("hudTop").style.display = "none"; document.getElementById("hudBottom").style.display = "none";
+        document.getElementById("aiOverlay").style.borderColor = "transparent"; document.getElementById("btnStopOverlay").style.display = "none";
         document.querySelectorAll('#elementsTableBody tr').forEach(r => r.classList.remove('playing-clip'));
+    }
+
+    async function startCamera() {
+        isLiveCamMode = true; liveCam.style.display = "block"; pbVid.style.display = "none"; resetCurrentStudy();
+        try {
+            if (camStream) camStream.getTracks().forEach(t => t.stop());
+            camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+            liveCam.srcObject = camStream; document.getElementById("btnStart").style.display = "block";
+            document.getElementById("tlStatus").innerText = "📷 Live Camera Ready. Click 'Start Cycle Study' to record and tag elements.";
+        } catch (e) { alert("Camera blocked or unavailable. Please use 'Load Video'."); }
+    }
+
+    function handleVideoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const ext = file.name.toLowerCase();
+        if (ext.endsWith('.avi') || ext.endsWith('.wmv')) {
+            alert("⚠️ Warning: Web browsers usually cannot play AVI or WMV files. If the video stays black, please convert it to .MP4");
+        }
+
+        isLiveCamMode = false;
+        if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+
+        liveCam.style.display = "none";
+        pbVid.style.display = "block";
+        pbVid.src = URL.createObjectURL(file);
+        pbVid.loop = false;
+
+        pbVid.onerror = () => alert("Error: Cannot read this video format. Please use MP4.");
+        
+        resetCurrentStudy();
+
+        pbVid.onloadedmetadata = () => {
+            pbVid.currentTime = 0; // Safe here
+            recordedDuration = pbVid.duration || 15;
+            pbVid.playbackRate = selectedPlaybackSpeed;
+            document.getElementById("btnStart").style.display = "block";
+            document.getElementById("tlStatus").innerText = `📁 Video Loaded (${recordedDuration.toFixed(1)}s). Pick a Slow-Mo speed and click 'Start Cycle Study'!`;
+            document.getElementById("tlTimeDisplay").innerText = `0.00s / ${recordedDuration.toFixed(2)}s`;
+        };
+        event.target.value = '';
     }
 
     function resetCurrentStudy() {
@@ -773,7 +398,7 @@
         if (pbVid.src || liveCam.srcObject) {
             document.getElementById("btnStart").style.display = "block";
             if (!isLiveCamMode) {
-                pbVid.currentTime = 0;
+                if (pbVid.readyState >= 1) { pbVid.currentTime = 0; } // SAFEGUARD
                 pbVid.playbackRate = selectedPlaybackSpeed;
             }
         }
@@ -791,1222 +416,390 @@
     }
 
     function clearAllStudy() {
-        resetCurrentStudy();
-        if (camStream) {
-            camStream.getTracks().forEach(t => t.stop());
-            camStream = null;
-        }
-        liveCam.srcObject = null;
-        liveCam.style.display = "none";
-        pbVid.removeAttribute('src');
-        pbVid.load();
-        document.getElementById("videoUploadInput").value = "";
-        document.getElementById("mProduct").value = "";
-        document.getElementById("mOperation").value = "";
-        document.getElementById("mComments").value = "";
-        document.getElementById("btnStart").style.display = "none";
-        document.getElementById("tlTimeDisplay").innerText = "0.00s / 0.00s";
+        resetCurrentStudy(); masterCyclesLog = [];
+        if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+        liveCam.srcObject = null; liveCam.style.display = "none"; pbVid.removeAttribute('src'); pbVid.load();
+        document.getElementById("videoUploadInput").value = ""; document.getElementById("mProduct").value = ""; document.getElementById("mOperation").value = ""; document.getElementById("mComments").value = "";
+        document.getElementById("btnStart").style.display = "none"; document.getElementById("tlTimeDisplay").innerText = "0.00s / 0.00s";
         document.getElementById("tlStatus").innerText = "🧹 All cleared! Load a video or open camera to begin.";
     }
 
     function autoResetDefault4Clips() {
         if (!recordedDuration || recordedDuration <= 0.5) return alert("Please record or study a video cycle first.");
         saveStateForUndo();
-        const startSec = aiTimeline.length > 0 ? aiTimeline[0].start : 0;
-        const endSec = aiTimeline.length > 0 ? aiTimeline[aiTimeline.length - 1].end : recordedDuration;
-        const totalDur = Math.max(1.0, endSec - startSec);
-
+        const startSec = aiTimeline.length > 0 ? aiTimeline[0].start : 0; const endSec = aiTimeline.length > 0 ? aiTimeline[aiTimeline.length - 1].end : recordedDuration; const totalDur = Math.max(1.0, endSec - startSec);
         aiTimeline = [
-            { start: startSec,                    end: startSec + totalDur * 0.14, category: 'pickup',     label: CATEGORY_META.pickup.label },
-            { start: startSec + totalDur * 0.14,  end: startSec + totalDur * 0.72, category: 'va_machine', label: CATEGORY_META.va_machine.label },
-            { start: startSec + totalDur * 0.72,  end: startSec + totalDur * 0.88, category: 'muda',       label: CATEGORY_META.muda.label },
-            { start: startSec + totalDur * 0.88,  end: endSec,                     category: 'dispose',    label: CATEGORY_META.dispose.label }
+            { start: startSec, end: startSec + totalDur * 0.14, category: 'pickup', label: CATEGORY_META.pickup.label },
+            { start: startSec + totalDur * 0.14, end: startSec + totalDur * 0.72, category: 'va_machine', label: CATEGORY_META.va_machine.label },
+            { start: startSec + totalDur * 0.72, end: startSec + totalDur * 0.88, category: 'muda', label: CATEGORY_META.muda.label },
+            { start: startSec + totalDur * 0.88, end: endSec, category: 'dispose', label: CATEGORY_META.dispose.label }
         ];
-        renderTimelineBar();
-        renderClipsTable();
-        updateCalculations();
-        document.getElementById("tlStatus").innerText = "⚡ Reset to 4 standard clips! Drag the yellow ⇔ handles to fine-tune each element.";
+        renderTimelineBar(); renderClipsTable(); updateCalculations(); document.getElementById("tlStatus").innerText = "⚡ Reset to 4 standard clips! Drag the yellow ⇔ handles to fine-tune element boundaries.";
     }
 
-    function applyMachineAllowances() {
-        const idx = document.getElementById("mMachine").value;
-        const machine = dsiMachines[idx];
-        if (machine) {
-            document.getElementById("mPnf").value = machine.ph;
-        }
-        updateCalculations();
-    }
+    function applyMachineAllowances() { const idx = document.getElementById("mMachine").value; const machine = dsiMachines[idx]; if (machine) { document.getElementById("mPnf").value = machine.ph; } updateCalculations(); }
 
-    async function startCamera() {
-        isLiveCamMode = true;
-        liveCam.style.display = "block";
-        pbVid.style.display = "none";
-        resetCurrentStudy();
-        
-        try {
-            if (camStream) camStream.getTracks().forEach(t => t.stop());
-            camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-            liveCam.srcObject = camStream;
-            document.getElementById("btnStart").style.display = "block";
-            document.getElementById("tlStatus").innerText = "📷 Live Camera Ready. Click 'Start Cycle Study' to record and tag elements.";
-        } catch (e) {
-            alert("Camera blocked or unavailable. Please use 'Load Video'.");
-        }
-    }
-
-function handleVideoUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        const ext = file.name.toLowerCase();
-        if (ext.endsWith('.avi') || ext.endsWith('.wmv')) {
-            alert("⚠️ Warning: Web browsers usually cannot play AVI or WMV files. If the video stays black, please convert it to .MP4");
-        }
-
-        isLiveCamMode = false;
-        if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
-        
-        liveCam.style.display = "none";
-        pbVid.style.display = "block";
-        pbVid.src = URL.createObjectURL(file);
-        pbVid.loop = false;
-        
-        // DELETED the dangerous currentTime reset here so the browser doesn't crash!
-
-        pbVid.onerror = () => alert("Error: Your browser cannot read this video format. Please use an MP4 file.");
-        resetCurrentStudy();
-        
-        // We safely rewind the video ONLY once the browser says it is fully loaded
-        pbVid.onloadedmetadata = () => {
-            pbVid.currentTime = 0; 
-            recordedDuration = pbVid.duration || 15;
-            pbVid.playbackRate = selectedPlaybackSpeed;
-            document.getElementById("btnStart").style.display = "block";
-            document.getElementById("tlStatus").innerText = `📁 Video Loaded (${recordedDuration.toFixed(1)}s). Pick a Slow-Mo speed (0.1x–1.0x) and click 'Start Cycle Study'!`;
-            document.getElementById("tlTimeDisplay").innerText = `0.00s / ${recordedDuration.toFixed(2)}s`;
-        };
-        event.target.value = '';
-    }
-
-    function getCurrentStudyElapsedSec() {
-        if (isLiveCamMode) {
-            return Math.max(0, (performance.now() - studyStartWallTime) / 1000);
-        } else {
-            return Math.max(0, pbVid.currentTime - studyStartVideoTime);
-        }
-    }
+    function getCurrentStudyElapsedSec() { if (isLiveCamMode) { return Math.max(0, (performance.now() - studyStartWallTime) / 1000); } else { return Math.max(0, pbVid.currentTime - studyStartVideoTime); } }
 
     function startAiStudy() {
-        if (isStudying) return;
-        stopOverlayPlayback();
-        isStudying = true;
-        currentMode = 'studying';
-        aiTimeline = [];
-        historyStack = [];
-        updateUndoButtons();
-        
-        document.getElementById("btnStart").style.display = "none";
-        document.getElementById("btnStop").style.display = "block";
-        document.getElementById("btnAudit").style.display = "none";
-        document.getElementById("btnImprove").style.display = "none";
-        document.getElementById("taggerBar").style.display = "grid";
-
-        activeClipCategory = 'pickup';
-        document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active-tag'));
-        document.getElementById('tagBtn0').classList.add('active-tag');
-
+        if (isStudying) return; stopOverlayPlayback(); isStudying = true; currentMode = 'studying'; aiTimeline = []; historyStack = []; updateUndoButtons();
+        document.getElementById("btnStart").style.display = "none"; document.getElementById("btnStop").style.display = "block"; document.getElementById("btnAudit").style.display = "none"; document.getElementById("btnImprove").style.display = "none"; document.getElementById("taggerBar").style.display = "grid";
+        activeClipCategory = 'pickup'; document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active-tag')); document.getElementById('tagBtn0').classList.add('active-tag');
         if (isLiveCamMode && liveCam.srcObject) {
-            recordedChunks = [];
-            try { mediaRecorder = new MediaRecorder(liveCam.srcObject, { mimeType: 'video/webm' }); } 
-            catch (err) { mediaRecorder = new MediaRecorder(liveCam.srcObject); }
+            recordedChunks = []; try { mediaRecorder = new MediaRecorder(liveCam.srcObject, { mimeType: 'video/webm' }); } catch (err) { mediaRecorder = new MediaRecorder(liveCam.srcObject); }
             mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-            mediaRecorder.start();
-            studyStartWallTime = performance.now();
-            studyStartVideoTime = 0;
+            mediaRecorder.start(); studyStartWallTime = performance.now(); studyStartVideoTime = 0;
         } else {
-            if (pbVid.duration && pbVid.currentTime >= pbVid.duration - 1) {
-                pbVid.currentTime = 0;
-            }
-            studyStartVideoTime = pbVid.currentTime || 0;
-            studyStartWallTime = performance.now();
-            pbVid.playbackRate = selectedPlaybackSpeed;
-            pbVid.play();
-            pbVid.onended = () => {
-                if (isStudying) stopAiStudy();
-            };
+            if (pbVid.duration && pbVid.currentTime >= pbVid.duration - 1) { pbVid.currentTime = 0; }
+            studyStartVideoTime = pbVid.currentTime || 0; studyStartWallTime = performance.now(); pbVid.playbackRate = selectedPlaybackSpeed; pbVid.play();
+            pbVid.onended = () => { if (isStudying) stopAiStudy(); };
         }
-
         const startSec = isLiveCamMode ? 0 : studyStartVideoTime;
-        aiTimeline.push({
-            start: startSec,
-            end: startSec + 0.05,
-            category: activeClipCategory,
-            label: CATEGORY_META[activeClipCategory].label
-        });
-
+        aiTimeline.push({ start: startSec, end: startSec + 0.05, category: activeClipCategory, label: CATEGORY_META[activeClipCategory].label });
         document.getElementById("tlStatus").innerText = `🔴 Studying at ${selectedPlaybackSpeed.toFixed(1)}x speed: Tap buttons 1️⃣ 2️⃣ 3️⃣ 4️⃣ below as the operator switches motion!`;
         studyLoop();
     }
 
     function switchClipPhase(categoryKey, btnEl) {
-        if (!isStudying) return;
-        const nowVidSec = isLiveCamMode ? getCurrentStudyElapsedSec() : pbVid.currentTime;
-
-        const lastClip = aiTimeline[aiTimeline.length - 1];
+        if (!isStudying) return; const nowVidSec = isLiveCamMode ? getCurrentStudyElapsedSec() : pbVid.currentTime; const lastClip = aiTimeline[aiTimeline.length - 1];
         if (lastClip) {
             const minClipGap = isLiveCamMode ? 0.25 : Math.max(0.04, 0.20 * selectedPlaybackSpeed);
-            if (nowVidSec - lastClip.start < minClipGap) {
-                lastClip.category = categoryKey;
-                lastClip.label = CATEGORY_META[categoryKey].label;
-            } else {
-                lastClip.end = nowVidSec;
-                aiTimeline.push({
-                    start: nowVidSec,
-                    end: nowVidSec + 0.05,
-                    category: categoryKey,
-                    label: CATEGORY_META[categoryKey].label
-                });
-            }
+            if (nowVidSec - lastClip.start < minClipGap) { lastClip.category = categoryKey; lastClip.label = CATEGORY_META[categoryKey].label; } 
+            else { lastClip.end = nowVidSec; aiTimeline.push({ start: nowVidSec, end: nowVidSec + 0.05, category: categoryKey, label: CATEGORY_META[categoryKey].label }); }
         }
-
-        activeClipCategory = categoryKey;
-        document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active-tag'));
-        if (btnEl) btnEl.classList.add('active-tag');
-
-        renderTimelineBar();
-        renderClipsTable();
+        activeClipCategory = categoryKey; document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active-tag')); if (btnEl) btnEl.classList.add('active-tag');
+        renderTimelineBar(); renderClipsTable();
     }
 
     function studyLoop() {
-        if (!isStudying) return;
-        const elapsed = getCurrentStudyElapsedSec();
-        const nowVidSec = isLiveCamMode ? elapsed : pbVid.currentTime;
-
-        if (aiTimeline.length > 0) {
-            aiTimeline[aiTimeline.length - 1].end = Math.max(aiTimeline[aiTimeline.length - 1].start + 0.02, nowVidSec);
-        }
-
-        document.getElementById("kpiCycle").innerText = elapsed.toFixed(2) + "s";
-        renderTimelineBar();
-        playbackRAF = requestAnimationFrame(studyLoop);
+        if (!isStudying) return; const elapsed = getCurrentStudyElapsedSec(); const nowVidSec = isLiveCamMode ? elapsed : pbVid.currentTime;
+        if (aiTimeline.length > 0) { aiTimeline[aiTimeline.length - 1].end = Math.max(aiTimeline[aiTimeline.length - 1].start + 0.02, nowVidSec); }
+        document.getElementById("kpiCycle").innerText = elapsed.toFixed(2) + "s"; renderTimelineBar(); playbackRAF = requestAnimationFrame(studyLoop);
     }
 
     function stopAiStudy() {
-        if (!isStudying) return;
-        isStudying = false;
-        currentMode = 'idle';
-        cancelAnimationFrame(playbackRAF);
-
-        const wallElapsed = (performance.now() - studyStartWallTime) / 1000;
-        const vidElapsed = !isLiveCamMode ? (pbVid.currentTime - studyStartVideoTime) : wallElapsed;
-        const finalCycleDuration = Math.max(0.5, !isLiveCamMode ? vidElapsed : wallElapsed);
-
-        document.getElementById("btnStop").style.display = "none";
-        document.getElementById("taggerBar").style.display = "none";
-        document.getElementById("btnStart").style.display = "block";
-        document.getElementById("btnAudit").style.display = "block";
-        document.getElementById("btnImprove").style.display = "block";
-
+        if (!isStudying) return; isStudying = false; currentMode = 'idle'; cancelAnimationFrame(playbackRAF);
+        const wallElapsed = (performance.now() - studyStartWallTime) / 1000; const vidElapsed = !isLiveCamMode ? (pbVid.currentTime - studyStartVideoTime) : wallElapsed; const finalCycleDuration = Math.max(0.5, !isLiveCamMode ? vidElapsed : wallElapsed);
+        document.getElementById("btnStop").style.display = "none"; document.getElementById("taggerBar").style.display = "none"; document.getElementById("btnStart").style.display = "block"; document.getElementById("btnAudit").style.display = "block"; document.getElementById("btnImprove").style.display = "block";
         if (isLiveCamMode && mediaRecorder && mediaRecorder.state !== "inactive") {
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                liveCam.style.display = "none";
-                pbVid.style.display = "block";
-                pbVid.src = URL.createObjectURL(blob);
-                isLiveCamMode = false;
-                FinalizeStudyClips(0, finalCycleDuration);
-            };
+            mediaRecorder.onstop = () => { const blob = new Blob(recordedChunks, { type: 'video/webm' }); liveCam.style.display = "none"; pbVid.style.display = "block"; pbVid.src = URL.createObjectURL(blob); isLiveCamMode = false; FinalizeStudyClips(0, finalCycleDuration); };
             mediaRecorder.stop();
         } else {
-            pbVid.pause();
-            const endSec = Math.max(studyStartVideoTime + 0.5, pbVid.currentTime || (studyStartVideoTime + finalCycleDuration));
-            FinalizeStudyClips(studyStartVideoTime, endSec);
+            pbVid.pause(); const endSec = Math.max(studyStartVideoTime + 0.5, pbVid.currentTime || (studyStartVideoTime + finalCycleDuration)); FinalizeStudyClips(studyStartVideoTime, endSec);
         }
     }
 
     function FinalizeStudyClips(startSec, endSec) {
-        recordedDuration = endSec;
-        const totalDur = Math.max(0.5, endSec - startSec);
-
+        recordedDuration = endSec; const totalDur = Math.max(0.5, endSec - startSec);
         if (aiTimeline.length <= 1) {
             aiTimeline = [
-                { start: startSec,                    end: startSec + totalDur * 0.14, category: 'pickup',     label: CATEGORY_META.pickup.label },
-                { start: startSec + totalDur * 0.14,  end: startSec + totalDur * 0.72, category: 'va_machine', label: CATEGORY_META.va_machine.label },
-                { start: startSec + totalDur * 0.72,  end: startSec + totalDur * 0.88, category: 'muda',       label: CATEGORY_META.muda.label },
-                { start: startSec + totalDur * 0.88,  end: endSec,                     category: 'dispose',    label: CATEGORY_META.dispose.label }
+                { start: startSec, end: startSec + totalDur * 0.14, category: 'pickup', label: CATEGORY_META.pickup.label },
+                { start: startSec + totalDur * 0.14, end: startSec + totalDur * 0.72, category: 'va_machine', label: CATEGORY_META.va_machine.label },
+                { start: startSec + totalDur * 0.72, end: startSec + totalDur * 0.88, category: 'muda', label: CATEGORY_META.muda.label },
+                { start: startSec + totalDur * 0.88, end: endSec, category: 'dispose', label: CATEGORY_META.dispose.label }
             ];
             document.getElementById("tlStatus").innerText = "✅ Cycle Ended! Drag the yellow ⇔ handles on the bar to adjust element boundaries while watching the video!";
         } else {
-            aiTimeline[aiTimeline.length - 1].end = endSec;
-            document.getElementById("tlStatus").innerText = `✅ Cycle Ended (${aiTimeline.length} clips)! Drag the yellow ⇔ handles on the bar to fine-tune each element.`;
+            aiTimeline[aiTimeline.length - 1].end = endSec; document.getElementById("tlStatus").innerText = `✅ Cycle Ended (${aiTimeline.length} clips)! Drag the yellow ⇔ handles on the bar to fine-tune each element.`;
         }
-
-        renderTimelineBar();
-        renderClipsTable();
-        updateCalculations();
+        renderTimelineBar(); renderClipsTable(); updateCalculations();
     }
 
     function markClipAtCurrentVideoTime() {
-        if (aiTimeline.length === 0) return alert("Run or load a cycle first.");
-        const t = pbVid.currentTime;
-        const idx = aiTimeline.findIndex(c => t > c.start + 0.1 && t < c.end - 0.1);
-        if (idx === -1) {
-            return alert("Move the white playhead inside a clip (at least 0.1s from its edges) to split it.");
-        }
-        saveStateForUndo();
-        const orig = aiTimeline[idx];
-        const secondHalf = {
-            start: Number(t.toFixed(2)),
-            end: Number(orig.end.toFixed(2)),
-            category: 'muda',
-            label: CATEGORY_META.muda.label
-        };
-        orig.end = Number(t.toFixed(2));
-        aiTimeline.splice(idx + 1, 0, secondHalf);
-        renderTimelineBar();
-        renderClipsTable();
-        updateCalculations();
+        if (aiTimeline.length === 0) return alert("Run or load a cycle first."); const t = pbVid.currentTime; const idx = aiTimeline.findIndex(c => t > c.start + 0.1 && t < c.end - 0.1);
+        if (idx === -1) return alert("Move the white playhead inside a clip (at least 0.1s from its edges) to split it.");
+        saveStateForUndo(); const orig = aiTimeline[idx]; const secondHalf = { start: Number(t.toFixed(2)), end: Number(orig.end.toFixed(2)), category: 'muda', label: CATEGORY_META.muda.label };
+        orig.end = Number(t.toFixed(2)); aiTimeline.splice(idx + 1, 0, secondHalf); renderTimelineBar(); renderClipsTable(); updateCalculations();
         document.getElementById("tlStatus").innerText = `✂️ Split Clip #${idx + 1} at ${t.toFixed(2)}s! Drag the new ⇔ handle to adjust.`;
     }
 
-    // Double-click anywhere on the timeline bar to split a clip right at that spot
-    function splitClipOnDoubleClick(event) {
-        if (isStudying || aiTimeline.length === 0) return;
-        const t = getTimestampFromPointerEvent(event);
-        pbVid.currentTime = t;
-        markClipAtCurrentVideoTime();
-    }
+    function splitClipOnDoubleClick(event) { if (isStudying || aiTimeline.length === 0) return; const t = getTimestampFromPointerEvent(event); pbVid.currentTime = t; markClipAtCurrentVideoTime(); }
 
     function deleteClipRow(idx) {
         if (aiTimeline.length <= 1) return alert("You must keep at least 1 clip in the cycle.");
-        saveStateForUndo();
-        const removed = aiTimeline.splice(idx, 1)[0];
-        if (idx > 0) {
-            aiTimeline[idx - 1].end = removed.end;
-        } else if (aiTimeline.length > 0) {
-            aiTimeline[0].start = removed.start;
-        }
-        renderTimelineBar();
-        renderClipsTable();
-        updateCalculations();
+        saveStateForUndo(); const removed = aiTimeline.splice(idx, 1)[0];
+        if (idx > 0) { aiTimeline[idx - 1].end = removed.end; } else if (aiTimeline.length > 0) { aiTimeline[0].start = removed.start; }
+        renderTimelineBar(); renderClipsTable(); updateCalculations();
     }
 
-    // --- RENDER TIMELINE BAR WITH DRAGGABLE HANDLES (⇔) ---
     function renderTimelineBar() {
-        const bar = document.getElementById("timelineBar");
-        if (!bar || aiTimeline.length === 0) return;
-
-        const minStart = aiTimeline[0].start;
-        const maxEnd = aiTimeline[aiTimeline.length - 1].end;
-        const span = Math.max(0.1, maxEnd - minStart);
-
+        const bar = document.getElementById("timelineBar"); if (!bar || aiTimeline.length === 0) return;
+        const minStart = aiTimeline[0].start; const maxEnd = aiTimeline[aiTimeline.length - 1].end; const span = Math.max(0.1, maxEnd - minStart);
         const segsHtml = aiTimeline.map((seg, i) => {
-            const widthPct = Math.max(0.5, ((seg.end - seg.start) / span) * 100);
-            const meta = CATEGORY_META[seg.category] || CATEGORY_META.pickup;
-            const dur = (seg.end - seg.start).toFixed(1);
-            return `<div class="timeline-seg" id="tlSeg-${i}" style="width:${widthPct}%; background:${meta.color};" title="Clip ${i+1}: ${meta.label} (${dur}s)">
-                ${widthPct > 8 ? `C${i+1} (${dur}s)` : ''}
-            </div>`;
+            const widthPct = Math.max(0.5, ((seg.end - seg.start) / span) * 100); const meta = CATEGORY_META[seg.category] || CATEGORY_META.pickup; const dur = (seg.end - seg.start).toFixed(1);
+            return `<div class="timeline-seg" id="tlSeg-${i}" style="width:${widthPct}%; background:${meta.color};" title="Clip ${i+1}: ${meta.label} (${dur}s)">${widthPct > 8 ? `C${i+1} (${dur}s)` : ''}</div>`;
         }).join("");
-
-        // Create draggable handles between adjacent clips (Clip i and Clip i+1)
         let handlesHtml = "";
         if (!isStudying && aiTimeline.length > 1) {
             for (let i = 0; i < aiTimeline.length - 1; i++) {
-                const boundarySec = aiTimeline[i].end;
-                const leftPct = Math.min(100, Math.max(0, ((boundarySec - minStart) / span) * 100));
+                const boundarySec = aiTimeline[i].end; const leftPct = Math.min(100, Math.max(0, ((boundarySec - minStart) / span) * 100));
                 handlesHtml += `<div class="clip-handle" id="clipHandle-${i}" style="left:${leftPct}%;" title="Drag left/right to adjust Clip #${i+1} / Clip #${i+2} boundary (${boundarySec.toFixed(2)}s)" onmousedown="startHandleDrag(event, ${i})" ontouchstart="startHandleDrag(event, ${i})"></div>`;
             }
         }
-
         const playheadPct = Math.min(100, Math.max(0, ((pbVid.currentTime - minStart) / span) * 100));
-
-        bar.innerHTML = `
-            ${segsHtml}
-            ${handlesHtml}
-            <div class="drag-tooltip" id="dragTooltip">0.00s</div>
-            <div class="playhead" id="playhead" style="left:${playheadPct}%;"></div>
-        `;
+        bar.innerHTML = `${segsHtml}${handlesHtml}<div class="drag-tooltip" id="dragTooltip">0.00s</div><div class="playhead" id="playhead" style="left:${playheadPct}%;"></div>`;
     }
 
-    // --- INTERACTIVE DRAG ENGINE FOR HANDLES & PLAYHEAD SCRUBBING ---
-    function getClientX(e) {
-        return (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
-    }
-
-    function getTimestampFromPointerEvent(e) {
-        const bar = document.getElementById("timelineBar");
-        const rect = bar.getBoundingClientRect();
-        const clientX = getClientX(e);
-        const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / Math.max(1, rect.width)));
-        const minStart = aiTimeline.length > 0 ? aiTimeline[0].start : 0;
-        const maxEnd = aiTimeline.length > 0 ? aiTimeline[aiTimeline.length - 1].end : (recordedDuration || 10);
-        return minStart + ratio * (maxEnd - minStart);
-    }
+    function getClientX(e) { return (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX; }
+    function getTimestampFromPointerEvent(e) { const bar = document.getElementById("timelineBar"); const rect = bar.getBoundingClientRect(); const clientX = getClientX(e); const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / Math.max(1, rect.width))); const minStart = aiTimeline.length > 0 ? aiTimeline[0].start : 0; const maxEnd = aiTimeline.length > 0 ? aiTimeline[aiTimeline.length - 1].end : (recordedDuration || 10); return minStart + ratio * (maxEnd - minStart); }
 
     function startHandleDrag(event, boundaryIdx) {
-        event.stopPropagation();
-        if (event.cancelable) event.preventDefault();
-        if (isStudying || !aiTimeline[boundaryIdx] || !aiTimeline[boundaryIdx + 1]) return;
-
-        stopOverlayPlayback();
-        saveStateForUndo(); // Save state once when user starts dragging
-
-        dragState = {
-            type: 'handle',
-            boundaryIdx: boundaryIdx
-        };
-
-        const handleEl = document.getElementById(`clipHandle-${boundaryIdx}`);
-        if (handleEl) handleEl.classList.add('dragging');
-
-        document.addEventListener('mousemove', onGlobalDragMove);
-        document.addEventListener('mouseup', onGlobalDragEnd);
-        document.addEventListener('touchmove', onGlobalDragMove, { passive: false });
-        document.addEventListener('touchend', onGlobalDragEnd);
+        event.stopPropagation(); if (event.cancelable) event.preventDefault(); if (isStudying || !aiTimeline[boundaryIdx] || !aiTimeline[boundaryIdx + 1]) return;
+        stopOverlayPlayback(); saveStateForUndo(); dragState = { type: 'handle', boundaryIdx: boundaryIdx };
+        const handleEl = document.getElementById(`clipHandle-${boundaryIdx}`); if (handleEl) handleEl.classList.add('dragging');
+        document.addEventListener('mousemove', onGlobalDragMove); document.addEventListener('mouseup', onGlobalDragEnd); document.addEventListener('touchmove', onGlobalDragMove, { passive: false }); document.addEventListener('touchend', onGlobalDragEnd);
     }
 
     function startTimelineScrub(event) {
-        if (isStudying || aiTimeline.length === 0) return;
-        // Ignore if user clicked directly on a clip-handle (handled by startHandleDrag)
-        if (event.target && event.target.classList && event.target.classList.contains('clip-handle')) return;
-
-        stopOverlayPlayback();
-        dragState = { type: 'playhead' };
-        onGlobalDragMove(event);
-
-        document.addEventListener('mousemove', onGlobalDragMove);
-        document.addEventListener('mouseup', onGlobalDragEnd);
-        document.addEventListener('touchmove', onGlobalDragMove, { passive: false });
-        document.addEventListener('touchend', onGlobalDragEnd);
+        if (isStudying || aiTimeline.length === 0) return; if (event.target && event.target.classList && event.target.classList.contains('clip-handle')) return;
+        stopOverlayPlayback(); dragState = { type: 'playhead' }; onGlobalDragMove(event);
+        document.addEventListener('mousemove', onGlobalDragMove); document.addEventListener('mouseup', onGlobalDragEnd); document.addEventListener('touchmove', onGlobalDragMove, { passive: false }); document.addEventListener('touchend', onGlobalDragEnd);
     }
 
     function onGlobalDragMove(event) {
-        if (!dragState || aiTimeline.length === 0) return;
-        if (event.cancelable) event.preventDefault();
-
-        const minStart = aiTimeline[0].start;
-        const maxEnd = aiTimeline[aiTimeline.length - 1].end;
-        const span = Math.max(0.1, maxEnd - minStart);
-        let pointerSec = getTimestampFromPointerEvent(event);
-
-        const tooltip = document.getElementById("dragTooltip");
-
+        if (!dragState || aiTimeline.length === 0) return; if (event.cancelable) event.preventDefault();
+        const minStart = aiTimeline[0].start; const maxEnd = aiTimeline[aiTimeline.length - 1].end; const span = Math.max(0.1, maxEnd - minStart);
+        let pointerSec = getTimestampFromPointerEvent(event); const tooltip = document.getElementById("dragTooltip");
         if (dragState.type === 'handle') {
-            const idx = dragState.boundaryIdx;
-            const leftClip = aiTimeline[idx];
-            const rightClip = aiTimeline[idx + 1];
+            const idx = dragState.boundaryIdx; const leftClip = aiTimeline[idx]; const rightClip = aiTimeline[idx + 1];
+            const minAllowed = leftClip.start + 0.10; const maxAllowed = rightClip.end - 0.10; const clampedSec = Math.min(maxAllowed, Math.max(minAllowed, pointerSec));
+            leftClip.end = Number(clampedSec.toFixed(2)); rightClip.start = Number(clampedSec.toFixed(2));
+            if (pbVid.readyState >= 1) pbVid.currentTime = clampedSec;
 
-            // Clamp so neither clip shrinks below 0.10 seconds
-            const minAllowed = leftClip.start + 0.10;
-            const maxAllowed = rightClip.end - 0.10;
-            const clampedSec = Math.min(maxAllowed, Math.max(minAllowed, pointerSec));
-
-            leftClip.end = Number(clampedSec.toFixed(2));
-            rightClip.start = Number(clampedSec.toFixed(2));
-
-            // Scrub video live to the exact frame being dragged!
-            pbVid.currentTime = clampedSec;
-
-            // Update visual widths and handle position smoothly without destroying DOM nodes
-            const leftWidthPct = ((leftClip.end - leftClip.start) / span) * 100;
-            const rightWidthPct = ((rightClip.end - rightClip.start) / span) * 100;
-            const handlePct = ((clampedSec - minStart) / span) * 100;
-
-            const segLeftEl = document.getElementById(`tlSeg-${idx}`);
-            const segRightEl = document.getElementById(`tlSeg-${idx + 1}`);
-            const handleEl = document.getElementById(`clipHandle-${idx}`);
-            const phEl = document.getElementById("playhead");
-
-            if (segLeftEl) {
-                const durL = (leftClip.end - leftClip.start).toFixed(1);
-                segLeftEl.style.width = leftWidthPct + "%";
-                segLeftEl.innerText = leftWidthPct > 8 ? `C${idx+1} (${durL}s)` : '';
-            }
-            if (segRightEl) {
-                const durR = (rightClip.end - rightClip.start).toFixed(1);
-                segRightEl.style.width = rightWidthPct + "%";
-                segRightEl.innerText = rightWidthPct > 8 ? `C${idx+2} (${durR}s)` : '';
-            }
-            if (handleEl) handleEl.style.left = handlePct + "%";
-            if (phEl) phEl.style.left = handlePct + "%";
-
-            if (tooltip) {
-                tooltip.style.display = "block";
-                tooltip.style.left = handlePct + "%";
-                tooltip.innerText = `C${idx+1}➔C${idx+2}: ${clampedSec.toFixed(2)}s`;
-            }
-
+            const leftWidthPct = ((leftClip.end - leftClip.start) / span) * 100; const rightWidthPct = ((rightClip.end - rightClip.start) / span) * 100; const handlePct = ((clampedSec - minStart) / span) * 100;
+            const segLeftEl = document.getElementById(`tlSeg-${idx}`); const segRightEl = document.getElementById(`tlSeg-${idx + 1}`); const handleEl = document.getElementById(`clipHandle-${idx}`); const phEl = document.getElementById("playhead");
+            if (segLeftEl) { const durL = (leftClip.end - leftClip.start).toFixed(1); segLeftEl.style.width = leftWidthPct + "%"; segLeftEl.innerText = leftWidthPct > 8 ? `C${idx+1} (${durL}s)` : ''; }
+            if (segRightEl) { const durR = (rightClip.end - rightClip.start).toFixed(1); segRightEl.style.width = rightWidthPct + "%"; segRightEl.innerText = rightWidthPct > 8 ? `C${idx+2} (${durR}s)` : ''; }
+            if (handleEl) handleEl.style.left = handlePct + "%"; if (phEl) phEl.style.left = handlePct + "%";
+            if (tooltip) { tooltip.style.display = "block"; tooltip.style.left = handlePct + "%"; tooltip.innerText = `C${idx+1}➔C${idx+2}: ${clampedSec.toFixed(2)}s`; }
             document.getElementById("tlStatus").innerText = `⇔ Dragging C${idx+1}/C${idx+2} split at ${clampedSec.toFixed(2)}s — Video frame synced live!`;
             updateCalculations();
         } else if (dragState.type === 'playhead') {
-            const clampedSec = Math.min(maxEnd, Math.max(minStart, pointerSec));
-            pbVid.currentTime = clampedSec;
+            const clampedSec = Math.min(maxEnd, Math.max(minStart, pointerSec)); 
+            if (pbVid.readyState >= 1) pbVid.currentTime = clampedSec; 
             const pct = ((clampedSec - minStart) / span) * 100;
-            const phEl = document.getElementById("playhead");
-            if (phEl) phEl.style.left = pct + "%";
-            if (tooltip) {
-                tooltip.style.display = "block";
-                tooltip.style.left = pct + "%";
-                tooltip.innerText = `${clampedSec.toFixed(2)}s`;
-            }
+            const phEl = document.getElementById("playhead"); if (phEl) phEl.style.left = pct + "%";
+            if (tooltip) { tooltip.style.display = "block"; tooltip.style.left = pct + "%"; tooltip.innerText = `${clampedSec.toFixed(2)}s`; }
         }
     }
 
     function onGlobalDragEnd() {
-        if (!dragState) return;
-        const wasHandle = dragState.type === 'handle';
-        dragState = null;
-
-        document.removeEventListener('mousemove', onGlobalDragMove);
-        document.removeEventListener('mouseup', onGlobalDragEnd);
-        document.removeEventListener('touchmove', onGlobalDragMove);
-        document.removeEventListener('touchend', onGlobalDragEnd);
-
-        const tooltip = document.getElementById("dragTooltip");
-        if (tooltip) tooltip.style.display = "none";
-
-        renderTimelineBar();
-        if (wasHandle) {
-            renderClipsTable();
-            updateCalculations();
-        }
+        if (!dragState) return; const wasHandle = dragState.type === 'handle'; dragState = null;
+        document.removeEventListener('mousemove', onGlobalDragMove); document.removeEventListener('mouseup', onGlobalDragEnd); document.removeEventListener('touchmove', onGlobalDragMove); document.removeEventListener('touchend', onGlobalDragEnd);
+        const tooltip = document.getElementById("dragTooltip"); if (tooltip) tooltip.style.display = "none";
+        renderTimelineBar(); if (wasHandle) { renderClipsTable(); updateCalculations(); }
     }
 
     function updatePlayheadPosition() {
-        if (aiTimeline.length === 0) return;
-        const minStart = aiTimeline[0].start;
-        const maxEnd = aiTimeline[aiTimeline.length - 1].end;
-        const span = Math.max(0.1, maxEnd - minStart);
-        const pct = Math.min(100, Math.max(0, ((pbVid.currentTime - minStart) / span) * 100));
-        const ph = document.getElementById("playhead");
-        if (ph) ph.style.left = pct + "%";
+        if (aiTimeline.length === 0) return; const minStart = aiTimeline[0].start; const maxEnd = aiTimeline[aiTimeline.length - 1].end; const span = Math.max(0.1, maxEnd - minStart);
+        const pct = Math.min(100, Math.max(0, ((pbVid.currentTime - minStart) / span) * 100)); const ph = document.getElementById("playhead"); if (ph) ph.style.left = pct + "%";
         document.getElementById("tlTimeDisplay").innerText = `${pbVid.currentTime.toFixed(2)}s / ${maxEnd.toFixed(2)}s`;
     }
 
-function renderClipsTable() {
-        const tbody = document.getElementById("elementsTableBody");
-        if (aiTimeline.length === 0) return;
-
+    function renderClipsTable() {
+        const tbody = document.getElementById("elementsTableBody"); if (aiTimeline.length === 0) return;
         tbody.innerHTML = aiTimeline.map((seg, i) => {
             const dur = Math.max(0, seg.end - seg.start);
-            
-            // Generate dropdown options, preserving any custom names the user typed
-            let optionsHtml = `
-                <option value="pickup" ${seg.category === 'pickup' ? 'selected' : ''}>Ⓐ Pickup & Align (VA)</option>
-                <option value="va_machine" ${seg.category === 'va_machine' ? 'selected' : ''}>Ⓑ Main Process (VA + MA%)</option>
-                <option value="muda" ${seg.category === 'muda' ? 'selected' : ''}>❌ Waste / Muda (Trim)</option>
-                <option value="dispose" ${seg.category === 'dispose' ? 'selected' : ''}>Ⓓ Dispose Part (VA)</option>
-            `;
-            if (seg.category.startsWith('custom_')) {
-                optionsHtml += `<option value="${seg.category}" selected>${seg.label}</option>`;
-            }
+            let optionsHtml = `<option value="pickup" ${seg.category === 'pickup' ? 'selected' : ''}>Ⓐ Pickup & Align (VA)</option><option value="va_machine" ${seg.category === 'va_machine' ? 'selected' : ''}>Ⓑ Main Process (VA + MA%)</option><option value="muda" ${seg.category === 'muda' ? 'selected' : ''}>❌ Waste / Muda (Trim)</option><option value="dispose" ${seg.category === 'dispose' ? 'selected' : ''}>Ⓓ Dispose Part (VA)</option>`;
+            if (seg.category.startsWith('custom_')) { optionsHtml += `<option value="${seg.category}" selected>${seg.label}</option>`; }
             optionsHtml += `<option value="custom">✏️ Custom / Other...</option>`;
-
-            // Check if the current element is marked as waste for coloring
             const isMuda = CATEGORY_META[seg.category] ? CATEGORY_META[seg.category].isMuda : false;
-
-            return `
-                <tr id="clipRow-${i}">
-                    <td style="font-weight:bold; color:#38bdf8;">#${i + 1}</td>
-                    <td>
-                        <select class="clip-type-select" onchange="updateClipCategory(${i}, this.value)">
-                            ${optionsHtml}
-                        </select>
-                    </td>
-                    <td>
-                        <input type="number" step="0.1" class="time-edit" value="${seg.start.toFixed(2)}" onchange="updateClipTimes(${i}, 'start', this.value)">
-                        ➔
-                        <input type="number" step="0.1" class="time-edit" value="${seg.end.toFixed(2)}" onchange="updateClipTimes(${i}, 'end', this.value)">
-                    </td>
+            return `<tr id="clipRow-${i}"><td style="font-weight:bold; color:#38bdf8;">#${i + 1}</td>
+                    <td><select class="clip-type-select" onchange="updateClipCategory(${i}, this.value)">${optionsHtml}</select></td>
+                    <td><input type="number" step="0.1" class="time-edit" value="${seg.start.toFixed(2)}" onchange="updateClipTimes(${i}, 'start', this.value)"> ➔ 
+                        <input type="number" step="0.1" class="time-edit" value="${seg.end.toFixed(2)}" onchange="updateClipTimes(${i}, 'end', this.value)"></td>
                     <td style="font-weight:bold; color:${isMuda ? '#ef4444' : '#22c55e'};">${dur.toFixed(2)}s</td>
-                    <td>
-                        <button type="button" class="btn-row-icon" onclick="previewSingleClip(${i})" title="Preview Clip at Selected Speed">▶</button>
-                        <button type="button" class="btn-row-icon btn-row-del" onclick="deleteClipRow(${i})" title="Delete Clip & Merge">✖</button>
-                    </td>
-                </tr>
-            `;
+                    <td><button type="button" class="btn-row-icon" onclick="previewSingleClip(${i})" title="Preview Clip at Selected Speed">▶</button>
+                        <button type="button" class="btn-row-icon btn-row-del" onclick="deleteClipRow(${i})" title="Delete Clip & Merge">✖</button></td></tr>`;
         }).join("");
     }
 
-function updateClipCategory(idx, newCat) {
-        if (!aiTimeline[idx]) return;
-        saveStateForUndo();
-
+    function updateClipCategory(idx, newCat) {
+        if (!aiTimeline[idx]) return; saveStateForUndo();
         if (newCat === 'custom') {
             const customName = prompt("Enter Custom Element Name (e.g. Bundling, Manual Marking):");
-            if (!customName) {
-                renderClipsTable(); // Revert visual change if user cancels
-                return;
-            }
+            if (!customName) { renderClipsTable(); return; }
             const isWaste = confirm("Is this a Waste/Muda element?\n\nClick OK for Yes (Waste).\nClick Cancel for No (Value-Added).");
-            
-            const catKey = 'custom_' + Date.now();
-            CATEGORY_META[catKey] = {
-                label: `📝 ${customName}`,
-                color: isWaste ? '#f97316' : '#8b5cf6', // Orange for waste, Purple for VA
-                isMuda: isWaste,
-                hasMa: false // Custom manual elements do not get machine allowances
-            };
-            newCat = catKey;
+            const catKey = 'custom_' + Date.now(); CATEGORY_META[catKey] = { label: `📝 ${customName}`, color: isWaste ? '#f97316' : '#8b5cf6', isMuda: isWaste, hasMa: false }; newCat = catKey;
         }
-
-        aiTimeline[idx].category = newCat;
-        aiTimeline[idx].label = CATEGORY_META[newCat].label;
-        renderTimelineBar();
-        renderClipsTable();
-        updateCalculations();
+        aiTimeline[idx].category = newCat; aiTimeline[idx].label = CATEGORY_META[newCat].label;
+        renderTimelineBar(); renderClipsTable(); updateCalculations();
     }
 
-    // --- NEW: Add completely custom rows manually ---
-function addManualElement() {
-        const customName = prompt("Enter Custom Element Name (e.g., Bundling):");
-        if (!customName) return;
-        
-        const durInput = prompt(`Enter duration in seconds for "${customName}":\n(e.g., 5.5)`);
-        const dur = parseFloat(durInput);
-        if (isNaN(dur) || dur < 0) return alert("Invalid duration. Please enter a valid number of seconds.");
-
+    function addManualElement() {
+        const customName = prompt("Enter Custom Element Name (e.g., Bundling):"); if (!customName) return;
+        const durInput = prompt(`Enter duration in seconds for "${customName}":\n(e.g., 5.5)`); const dur = parseFloat(durInput); if (isNaN(dur) || dur < 0) return alert("Invalid duration.");
         const isWaste = confirm("Is this a Waste/Muda element?\n\nClick OK for Yes (Waste).\nClick Cancel for No (Value-Added).");
-
-        saveStateForUndo();
-
-        const catKey = 'custom_' + Date.now();
-        CATEGORY_META[catKey] = {
-            label: `📝 ${customName}`,
-            color: isWaste ? '#f97316' : '#8b5cf6',
-            isMuda: isWaste,
-            hasMa: false 
-        };
-
+        saveStateForUndo(); const catKey = 'custom_' + Date.now(); CATEGORY_META[catKey] = { label: `📝 ${customName}`, color: isWaste ? '#f97316' : '#8b5cf6', isMuda: isWaste, hasMa: false };
         const lastEnd = aiTimeline.length > 0 ? aiTimeline[aiTimeline.length - 1].end : 0;
-        
-        aiTimeline.push({
-            start: lastEnd,
-            end: lastEnd + dur,
-            category: catKey,
-            label: CATEGORY_META[catKey].label
-        });
-
-        // Expand the maximum video duration tracker so the timeline bar draws correctly
-        if (lastEnd + dur > recordedDuration) {
-            recordedDuration = lastEnd + dur;
-        }
-
-        renderTimelineBar();
-        renderClipsTable();
-        updateCalculations();
-        document.getElementById("tlStatus").innerText = `✅ Manually added "${customName}" (${dur}s).`;
+        aiTimeline.push({ start: lastEnd, end: lastEnd + dur, category: catKey, label: CATEGORY_META[catKey].label });
+        if (lastEnd + dur > recordedDuration) { recordedDuration = lastEnd + dur; }
+        renderTimelineBar(); renderClipsTable(); updateCalculations(); document.getElementById("tlStatus").innerText = `✅ Manually added "${customName}" (${dur}s).`;
     }
 
-    // --- NEW: Add a standard row manually without playing the video ---
     function addManualRow() {
-        saveStateForUndo();
-        const lastEnd = aiTimeline.length > 0 ? aiTimeline[aiTimeline.length - 1].end : 0;
-        
-        aiTimeline.push({
-            start: lastEnd,
-            end: lastEnd + 1.0, // Defaults to 1 second duration
-            category: 'pickup',
-            label: CATEGORY_META['pickup'].label
-        });
-
-        // Expand the timeline bar if needed
-        if (lastEnd + 1.0 > recordedDuration) {
-            recordedDuration = lastEnd + 1.0;
-        }
-
-        renderTimelineBar();
-        renderClipsTable();
-        updateCalculations();
-        document.getElementById("tlStatus").innerText = `✅ Manual row added. Edit the dropdown and time boxes below!`;
+        saveStateForUndo(); const lastEnd = aiTimeline.length > 0 ? aiTimeline[aiTimeline.length - 1].end : 0;
+        aiTimeline.push({ start: lastEnd, end: lastEnd + 1.0, category: 'pickup', label: CATEGORY_META['pickup'].label });
+        if (lastEnd + 1.0 > recordedDuration) { recordedDuration = lastEnd + 1.0; }
+        renderTimelineBar(); renderClipsTable(); updateCalculations(); document.getElementById("tlStatus").innerText = `✅ Manual row added. Edit the dropdown and time boxes below!`;
     }
+
     function updateClipTimes(idx, field, val) {
-        const num = parseFloat(val);
-        if (isNaN(num) || num < 0) return;
-        saveStateForUndo();
-        if (field === 'start') {
-            aiTimeline[idx].start = num;
-            if (idx > 0) aiTimeline[idx - 1].end = num;
-            pbVid.currentTime = num;
-        } else {
-            aiTimeline[idx].end = num;
-            if (idx < aiTimeline.length - 1) aiTimeline[idx + 1].start = num;
-            pbVid.currentTime = num;
-        }
-        renderTimelineBar();
-        renderClipsTable();
-        updateCalculations();
+        const num = parseFloat(val); if (isNaN(num) || num < 0) return; saveStateForUndo();
+        if (field === 'start') { aiTimeline[idx].start = num; if (idx > 0) aiTimeline[idx - 1].end = num; if (pbVid.readyState >= 1) pbVid.currentTime = num; } 
+        else { aiTimeline[idx].end = num; if (idx < aiTimeline.length - 1) aiTimeline[idx + 1].start = num; if (pbVid.readyState >= 1) pbVid.currentTime = num; }
+        renderTimelineBar(); renderClipsTable(); updateCalculations();
     }
 
     function previewSingleClip(idx) {
-        const seg = aiTimeline[idx];
-        if (!seg) return;
-        stopOverlayPlayback();
+        const seg = aiTimeline[idx]; if (!seg) return; stopOverlayPlayback();
         document.querySelectorAll('#elementsTableBody tr').forEach(r => r.classList.remove('playing-clip'));
-        const row = document.getElementById(`clipRow-${idx}`);
-        if (row) row.classList.add('playing-clip');
-
-        pbVid.playbackRate = selectedPlaybackSpeed;
-        pbVid.currentTime = seg.start;
-        pbVid.play();
-
-        const checkEnd = () => {
-            if (currentMode !== 'idle') return;
-            if (pbVid.currentTime >= seg.end) {
-                pbVid.pause();
-                if (row) row.classList.remove('playing-clip');
-            } else if (!pbVid.paused) {
-                requestAnimationFrame(checkEnd);
-            }
-        };
+        const row = document.getElementById(`clipRow-${idx}`); if (row) row.classList.add('playing-clip');
+        pbVid.playbackRate = selectedPlaybackSpeed; if (pbVid.readyState >= 1) pbVid.currentTime = seg.start; pbVid.play();
+        const checkEnd = () => { if (currentMode !== 'idle') return; if (pbVid.currentTime >= seg.end) { pbVid.pause(); if (row) row.classList.remove('playing-clip'); } else if (!pbVid.paused) { requestAnimationFrame(checkEnd); } };
         requestAnimationFrame(checkEnd);
     }
 
     function updateCalculations() {
-        const machineIdx = document.getElementById("mMachine").value;
-        const maPct = dsiMachines[machineIdx] ? dsiMachines[machineIdx].ma : 0;
-        const pnfPct = parseFloat(document.getElementById("mPnf").value) || 8;
-        const ratingPct = parseFloat(document.getElementById("mRating").value) || 90;
-        const ratingFactor = ratingPct / 100;
-
-        document.getElementById("kpiRating").innerText = ratingPct + "%";
-        document.getElementById("kpiMaDisplay").innerText = `MA: ${maPct}% | P&F: ${pnfPct}%`;
-
+        const machineIdx = document.getElementById("mMachine").value; const maPct = dsiMachines[machineIdx] ? dsiMachines[machineIdx].ma : 0;
+        const pnfPct = parseFloat(document.getElementById("mPnf").value) || 8; const ratingPct = parseFloat(document.getElementById("mRating").value) || 90; const ratingFactor = ratingPct / 100;
+        document.getElementById("kpiRating").innerText = ratingPct + "%"; document.getElementById("kpiMaDisplay").innerText = `MA: ${maPct}% | P&F: ${pnfPct}%`;
         if (aiTimeline.length === 0) return;
-
-        const isSingleShoe = document.getElementById("mIsSingleShoe").checked;
-        const pairMult = isSingleShoe ? 2 : 1;
-
-        let totalSec = 0;
-        let vaSec = 0;
-        let mudaSec = 0;
-        let currentBaseMins = 0;
-        let kaizenBaseMins = 0;
-
+        const isSingleShoe = document.getElementById("mIsSingleShoe").checked; const pairMult = isSingleShoe ? 2 : 1;
+        let totalSec = 0; let vaSec = 0; let mudaSec = 0; let currentBaseMins = 0; let kaizenBaseMins = 0;
         aiTimeline.forEach(seg => {
-            const durSec = Math.max(0, seg.end - seg.start);
-            totalSec += durSec;
-            const meta = CATEGORY_META[seg.category] || CATEGORY_META.pickup;
-
-            let basicMin = (durSec / 60) * ratingFactor;
-            if (meta.hasMa) {
-                basicMin = basicMin * (1 + maPct / 100);
-            }
-
+            const durSec = Math.max(0, seg.end - seg.start); totalSec += durSec; const meta = CATEGORY_META[seg.category] || CATEGORY_META.pickup;
+            let basicMin = (durSec / 60) * ratingFactor; if (meta.hasMa) { basicMin = basicMin * (1 + maPct / 100); }
             currentBaseMins += basicMin;
-            if (meta.isMuda) {
-                mudaSec += durSec;
-            } else {
-                vaSec += durSec;
-                kaizenBaseMins += basicMin;
-            }
+            if (meta.isMuda) { mudaSec += durSec; } else { vaSec += durSec; kaizenBaseMins += basicMin; }
         });
-
-        const finalSmv = currentBaseMins * (1 + pnfPct / 100) * pairMult;
-        const currentTargetHr = finalSmv > 0 ? Math.round(60 / finalSmv) : 0;
-
-        let kaizenSmv = kaizenBaseMins * (1 + pnfPct / 100) * pairMult;
-        if (mudaSec < 0.05) {
-            kaizenSmv = finalSmv * 0.85;
-        }
-        const kaizenTargetHr = kaizenSmv > 0 ? Math.round(60 / kaizenSmv) : 0;
-
-        const vaRatio = totalSec > 0 ? Math.round((vaSec / totalSec) * 100) : 100;
-
-        document.getElementById("kpiCycle").innerText = totalSec.toFixed(2) + "s";
-        document.getElementById("kpiVaRatio").innerText = `VA: ${vaRatio}% | Muda: ${100 - vaRatio}%`;
-        document.getElementById("kpiSmv").innerText = finalSmv.toFixed(3);
-        document.getElementById("kpiCurrentTarget").innerText = `${currentTargetHr} prs / hr ${isSingleShoe ? '(Pair x2)' : ''}`;
-        document.getElementById("kpiTarget").innerText = kaizenTargetHr + " / hr";
-        document.getElementById("kpiKaizenSmv").innerText = `R.SMV: ${kaizenSmv.toFixed(3)} min`;
-
-        window.finalStudyData = {
-            totalSec, vaSec, mudaSec,
-            smv: finalSmv,
-            currentTargetHr,
-            kaizenSmv,
-            impTargetHr: kaizenTargetHr,
-            pairMult,
-            isSingleShoe,
-            ratingPct,
-            maPct,
-            pnfPct
-        };
+        const finalSmv = currentBaseMins * (1 + pnfPct / 100) * pairMult; const currentTargetHr = finalSmv > 0 ? Math.round(60 / finalSmv) : 0;
+        let kaizenSmv = kaizenBaseMins * (1 + pnfPct / 100) * pairMult; if (mudaSec < 0.05) { kaizenSmv = finalSmv * 0.85; }
+        const kaizenTargetHr = kaizenSmv > 0 ? Math.round(60 / kaizenSmv) : 0; const vaRatio = totalSec > 0 ? Math.round((vaSec / totalSec) * 100) : 100;
+        document.getElementById("kpiCycle").innerText = totalSec.toFixed(2) + "s"; document.getElementById("kpiVaRatio").innerText = `VA: ${vaRatio}% | Muda: ${100 - vaRatio}%`;
+        document.getElementById("kpiSmv").innerText = finalSmv.toFixed(3); document.getElementById("kpiCurrentTarget").innerText = `${currentTargetHr} prs / hr ${isSingleShoe ? '(Pair x2)' : ''}`;
+        document.getElementById("kpiTarget").innerText = kaizenTargetHr + " / hr"; document.getElementById("kpiKaizenSmv").innerText = `R.SMV: ${kaizenSmv.toFixed(3)} min`;
+        window.finalStudyData = { totalSec, vaSec, mudaSec, smv: finalSmv, currentTargetHr, kaizenSmv, impTargetHr: kaizenTargetHr, pairMult, isSingleShoe, ratingPct, maPct, pnfPct };
     }
-
-    // --- PLAYBACK ENGINES (AUDIT & IMPROVED KAIZEN) ---
 
     function playAuditVideo() {
         if (aiTimeline.length === 0) return alert("Please complete a study first.");
-        currentMode = 'audit';
-        cancelAnimationFrame(playbackRAF);
-
-        const hudT = document.getElementById("hudTop");
-        const hudB = document.getElementById("hudBottom");
-        const minStart = aiTimeline[0].start;
-
-        pbVid.playbackRate = selectedPlaybackSpeed;
-        pbVid.currentTime = minStart;
-        pbVid.play();
-
-        hudT.style.display = "flex";
-        hudB.style.display = "flex";
-        hudT.style.background = "rgba(0,0,0,0.82)";
-        document.getElementById("btnStopOverlay").style.display = "block";
-
-        const sd = window.finalStudyData;
-        document.getElementById("hudBottomLeft").innerText = `Obs SMV: ${sd.smv.toFixed(3)} (${sd.currentTargetHr}/hr) | Muda Lost: ${sd.mudaSec.toFixed(1)}s`;
-
+        currentMode = 'audit'; cancelAnimationFrame(playbackRAF); const hudT = document.getElementById("hudTop"); const hudB = document.getElementById("hudBottom"); const minStart = aiTimeline[0].start;
+        pbVid.playbackRate = selectedPlaybackSpeed; if (pbVid.readyState >= 1) pbVid.currentTime = minStart; pbVid.play();
+        hudT.style.display = "flex"; hudB.style.display = "flex"; hudT.style.background = "rgba(0,0,0,0.82)"; document.getElementById("btnStopOverlay").style.display = "block";
+        const sd = window.finalStudyData; document.getElementById("hudBottomLeft").innerText = `Obs SMV: ${sd.smv.toFixed(3)} (${sd.currentTargetHr}/hr) | Muda Lost: ${sd.mudaSec.toFixed(1)}s`;
         auditLoop();
     }
 
     function auditLoop() {
-        if (currentMode !== 'audit') return;
-        const t = pbVid.currentTime;
-        const minStart = aiTimeline[0].start;
-        const maxEnd = aiTimeline[aiTimeline.length - 1].end;
-
-        if (t >= maxEnd - 0.08) {
-            pbVid.currentTime = minStart;
-        }
-
+        if (currentMode !== 'audit') return; const t = pbVid.currentTime; const minStart = aiTimeline[0].start; const maxEnd = aiTimeline[aiTimeline.length - 1].end;
+        if (t >= maxEnd - 0.08) { if (pbVid.readyState >= 1) pbVid.currentTime = minStart; }
         const segIdx = aiTimeline.findIndex(s => t >= s.start && t < s.end);
-        document.querySelectorAll('#elementsTableBody tr').forEach((r, i) => {
-            r.classList.toggle('playing-clip', i === segIdx);
-        });
-
+        document.querySelectorAll('#elementsTableBody tr').forEach((r, i) => { r.classList.toggle('playing-clip', i === segIdx); });
         if (segIdx !== -1) {
-            const seg = aiTimeline[segIdx];
-            const meta = CATEGORY_META[seg.category] || CATEGORY_META.pickup;
-            document.getElementById("hudTopTitle").innerText = `AI AUDIT (${selectedPlaybackSpeed.toFixed(1)}x) — Clip #${segIdx + 1} (${t.toFixed(1)}s)`;
-            document.getElementById("hudTopState").innerText = meta.label;
-
-            const overlay = document.getElementById("aiOverlay");
-            const warnText = document.getElementById("hudBottomRight");
-
-            if (meta.isMuda) {
-                overlay.style.borderColor = "#ef4444";
-                document.getElementById("hudTopState").style.color = "#ef4444";
-                warnText.style.display = "block";
-            } else {
-                overlay.style.borderColor = "#22c55e";
-                document.getElementById("hudTopState").style.color = "#22c55e";
-                warnText.style.display = "none";
-            }
+            const seg = aiTimeline[segIdx]; const meta = CATEGORY_META[seg.category] || CATEGORY_META.pickup;
+            document.getElementById("hudTopTitle").innerText = `AI AUDIT (${selectedPlaybackSpeed.toFixed(1)}x) — Clip #${segIdx + 1} (${t.toFixed(1)}s)`; document.getElementById("hudTopState").innerText = meta.label;
+            const overlay = document.getElementById("aiOverlay"); const warnText = document.getElementById("hudBottomRight");
+            if (meta.isMuda) { overlay.style.borderColor = "#ef4444"; document.getElementById("hudTopState").style.color = "#ef4444"; warnText.style.display = "block"; } 
+            else { overlay.style.borderColor = "#22c55e"; document.getElementById("hudTopState").style.color = "#22c55e"; warnText.style.display = "none"; }
         }
-
         playbackRAF = requestAnimationFrame(auditLoop);
     }
 
     function playImprovedVideo() {
         if (aiTimeline.length === 0) return alert("Please complete a study first.");
-        const vaClips = aiTimeline.filter(s => !CATEGORY_META[s.category]?.isMuda);
-        if (vaClips.length === 0) return alert("All clips are marked as Waste/Muda! Keep at least one Value-Added clip.");
-
-        currentMode = 'improved';
-        cancelAnimationFrame(playbackRAF);
-
-        const hudT = document.getElementById("hudTop");
-        const hudB = document.getElementById("hudBottom");
-        const overlay = document.getElementById("aiOverlay");
-        const sd = window.finalStudyData;
-
-        const boost = 1.30; // 1.30x Kaizen Target Pace
-        pbVid.playbackRate = boost;
-        pbVid.currentTime = vaClips[0].start;
-        pbVid.play();
-
-        hudT.style.display = "flex";
-        hudB.style.display = "flex";
-        hudT.style.background = "rgba(15, 81, 50, 0.92)";
-        document.getElementById("btnStopOverlay").style.display = "block";
-
-        document.getElementById("hudTopTitle").innerText = `✨ IMPROVED KAIZEN METHOD — 1.30x Target Pace`;
-        document.getElementById("hudTopState").innerText = `Continuous Value-Added Flow (${sd.mudaSec.toFixed(1)}s Waste Trimmed)`;
-        document.getElementById("hudTopState").style.color = "#86efac";
-
-        document.getElementById("hudBottomLeft").innerText = `Obs SMV: ${sd.smv.toFixed(3)} (${sd.currentTargetHr}/hr) ➔ KAIZEN R.SMV: ${sd.kaizenSmv.toFixed(3)} (${sd.impTargetHr}/hr)`;
-        document.getElementById("hudBottomRight").style.display = "none";
-        overlay.style.borderColor = "#22c55e";
-
+        const vaClips = aiTimeline.filter(s => !CATEGORY_META[s.category]?.isMuda); if (vaClips.length === 0) return alert("All clips are marked as Waste/Muda! Keep at least one Value-Added clip.");
+        currentMode = 'improved'; cancelAnimationFrame(playbackRAF);
+        const hudT = document.getElementById("hudTop"); const hudB = document.getElementById("hudBottom"); const overlay = document.getElementById("aiOverlay"); const sd = window.finalStudyData;
+        const boost = 1.30; pbVid.playbackRate = boost; if (pbVid.readyState >= 1) pbVid.currentTime = vaClips[0].start; pbVid.play();
+        hudT.style.display = "flex"; hudB.style.display = "flex"; hudT.style.background = "rgba(15, 81, 50, 0.92)"; document.getElementById("btnStopOverlay").style.display = "block";
+        document.getElementById("hudTopTitle").innerText = `✨ IMPROVED KAIZEN METHOD — 1.30x Target Pace`; document.getElementById("hudTopState").innerText = `Continuous Value-Added Flow (${sd.mudaSec.toFixed(1)}s Waste Trimmed)`;
+        document.getElementById("hudTopState").style.color = "#86efac"; document.getElementById("hudBottomLeft").innerText = `Obs SMV: ${sd.smv.toFixed(3)} (${sd.currentTargetHr}/hr) ➔ KAIZEN R.SMV: ${sd.kaizenSmv.toFixed(3)} (${sd.impTargetHr}/hr)`;
+        document.getElementById("hudBottomRight").style.display = "none"; overlay.style.borderColor = "#22c55e";
         improvedLoop();
     }
 
     function improvedLoop() {
-        if (currentMode !== 'improved') return;
-        const t = pbVid.currentTime;
-        const vaClips = aiTimeline.filter(s => !CATEGORY_META[s.category]?.isMuda);
-        const lastVaEnd = vaClips[vaClips.length - 1].end;
-
+        if (currentMode !== 'improved') return; const t = pbVid.currentTime; const vaClips = aiTimeline.filter(s => !CATEGORY_META[s.category]?.isMuda); const lastVaEnd = vaClips[vaClips.length - 1].end;
         if (!isSeeking) {
-            if (t >= lastVaEnd - 0.08) {
-                pbVid.currentTime = vaClips[0].start;
-            } else {
+            if (t >= lastVaEnd - 0.08) { if (pbVid.readyState >= 1) pbVid.currentTime = vaClips[0].start; } 
+            else {
                 const currentSeg = aiTimeline.find(s => t >= s.start && t < s.end);
                 if (currentSeg && CATEGORY_META[currentSeg.category]?.isMuda) {
                     const nextVa = aiTimeline.find(s => s.start >= currentSeg.end - 0.05 && !CATEGORY_META[s.category]?.isMuda);
-                    pbVid.currentTime = nextVa ? nextVa.start : vaClips[0].start;
+                    if (pbVid.readyState >= 1) pbVid.currentTime = nextVa ? nextVa.start : vaClips[0].start;
                 }
             }
         }
-
         const segIdx = aiTimeline.findIndex(s => t >= s.start && t < s.end);
-        document.querySelectorAll('#elementsTableBody tr').forEach((r, i) => {
-            r.classList.toggle('playing-clip', i === segIdx);
-        });
-
+        document.querySelectorAll('#elementsTableBody tr').forEach((r, i) => { r.classList.toggle('playing-clip', i === segIdx); });
         playbackRAF = requestAnimationFrame(improvedLoop);
     }
-function saveCycleToMasterLog() {
+
+    function saveCycleToMasterLog() {
         if (!window.finalStudyData || aiTimeline.length === 0) return alert("Please complete a study first.");
-        
-        // Save the current state of the timeline and math into our master log
-        masterCyclesLog.push({
-            timeline: JSON.parse(JSON.stringify(aiTimeline)),
-            stats: JSON.parse(JSON.stringify(window.finalStudyData))
-        });
-
-        // Show a quick, non-blocking toast message instead of an annoying alert box
+        masterCyclesLog.push({ timeline: JSON.parse(JSON.stringify(aiTimeline)), stats: JSON.parse(JSON.stringify(window.finalStudyData)) });
         document.getElementById("tlStatus").innerText = `✅ Cycle ${masterCyclesLog.length} saved successfully! Table cleared for the next cycle.`;
-        
-        // Flash the background green to visually confirm the save
-        const tbl = document.querySelector('.table-container');
-        tbl.style.transition = 'background 0.3s';
-        tbl.style.background = '#166534'; // Dark green flash
-        setTimeout(() => { tbl.style.background = '#000'; }, 600);
-
-        // --- NEW: Automatically reset the table for the next cycle ---
-        stopOverlayPlayback();
-        isStudying = false;
-        aiTimeline = [];
-        historyStack = [];
-        updateUndoButtons();
-        window.finalStudyData = null;
-
-        // Reset the UI components
-        document.getElementById("kpiCycle").innerText = "0.00s";
-        document.getElementById("kpiVaRatio").innerText = "VA: --% | Muda: --%";
-        document.getElementById("kpiSmv").innerText = "--";
-        document.getElementById("kpiCurrentTarget").innerText = "-- / hr";
-        document.getElementById("kpiTarget").innerText = "--";
-        document.getElementById("kpiKaizenSmv").innerText = "R.SMV: -- min";
-        
+        const tbl = document.querySelector('.table-container'); tbl.style.transition = 'background 0.3s'; tbl.style.background = '#166534'; setTimeout(() => { tbl.style.background = '#000'; }, 600);
+        stopOverlayPlayback(); isStudying = false; aiTimeline = []; historyStack = []; updateUndoButtons(); window.finalStudyData = null;
+        document.getElementById("kpiCycle").innerText = "0.00s"; document.getElementById("kpiVaRatio").innerText = "VA: --% | Muda: --%";
+        document.getElementById("kpiSmv").innerText = "--"; document.getElementById("kpiCurrentTarget").innerText = "-- / hr";
+        document.getElementById("kpiTarget").innerText = "--"; document.getElementById("kpiKaizenSmv").innerText = "R.SMV: -- min";
         document.getElementById("timelineBar").innerHTML = `<div class="drag-tooltip" id="dragTooltip">0.00s</div><div class="playhead" id="playhead"></div>`;
         document.getElementById("elementsTableBody").innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color:#64748b;">Ready for Cycle ${masterCyclesLog.length + 1}. Press 'Start Cycle Study' or 'Add Manual Row'.</td></tr>`;
-
-        // If watching a video, rewind it slightly so you are ready to hit play again
-        if (pbVid.src) {
-            pbVid.currentTime = Math.max(0, pbVid.currentTime - 1);
-        }
+        if (pbVid.src && pbVid.readyState >= 1) { pbVid.currentTime = Math.max(0, pbVid.currentTime - 1); }
     }
 
-async function exportOfficialDSIExcel() {
-        // 1. Check if the Excel library loaded successfully
-        if (typeof ExcelJS === 'undefined') {
-            return alert("❌ Error: Excel libraries failed to load from the internet. Please refresh the page and ensure you are connected to Wi-Fi.");
-        }
-
-        if (masterCyclesLog.length === 0) {
-            if (!window.finalStudyData || aiTimeline.length === 0) return alert("Please complete at least one cycle study first.");
-            saveCycleToMasterLog(); 
-        }
-
-        const wb = new ExcelJS.Workbook();
-        const ws = wb.addWorksheet("TIME AND MOTION");
-
-        const product = document.getElementById("mProduct").value.trim() || 'N/A';
-        const operation = document.getElementById("mOperation").value.trim() || 'N/A';
-        const isSingleShoe = document.getElementById("mIsSingleShoe").checked;
-        const mcObj = dsiMachines[document.getElementById("mMachine").value];
-        const dateStr = new Date().toLocaleDateString();
-        const comments = document.getElementById("mComments").value.trim() || '';
-
-        ws.columns = [
-            { width: 12 }, { width: 12 }, { width: 12 }, { width: 12 }, 
-            { width: 12 }, { width: 15 }, { width: 25 }, { width: 15 }, 
-            { width: 15 }, { width: 35 }, { width: 15 }, { width: 15 }, 
-            { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, 
-            { width: 15 }, { width: 15 }, { width: 15 }, { width: 25 }, 
-            { width: 15 }, { width: 15 }, { width: 15 }
-        ];
-
-        ws.getCell('A1').value = "IE DEPT";
-        ws.getCell('I1').value = "TIME AND MOTION ANALYSIS SHEET";
-        ws.getCell('I1').font = { bold: true, size: 14 };
-        ws.getCell('A3').value = product; 
-        ws.getCell('I3').value = "Product:";
-        ws.getCell('S3').value = dateStr; 
-        ws.getCell('A4').value = "Plant: BP"; 
-        ws.getCell('I4').value = `Operation: ${operation}`;
-        ws.getCell('S4').value = isSingleShoe ? 10 : 20; 
-        ws.getCell('A6').value = "READINGS (strokes)";
-        ws.getCell('A6').font = { bold: true };
-        ws.getCell('S6').value = "Operator";
-        ws.getCell('S7').value = "Time study by";
-        ws.getCell('S8').value = "Material";
-        ws.getCell('T8').value = comments; 
-
-        const baseTimeline = masterCyclesLog[0].timeline;
-        let colIndex = 4; 
-        baseTimeline.forEach(clip => {
-            ws.getCell(6, colIndex).value = clip.label.replace(/[^a-zA-Z &+]/g, "").trim().toUpperCase();
-            ws.getCell(6, colIndex).alignment = { wrapText: true, horizontal: 'center' };
-            colIndex += 2; 
-        });
-
-        let rowStart = 12;
-        let totalsPerElement = new Array(baseTimeline.length).fill(0);
-
-        masterCyclesLog.forEach((cycle, index) => {
-            ws.getCell(rowStart + index, 1).value = index + 1; 
-            let cIdx = 4;
-            cycle.timeline.forEach((clip, cCounter) => {
-                // Safeguard against mismatched cycle lengths!
-                if (cCounter >= baseTimeline.length) return; 
-
-                const dur = Math.max(0, clip.end - clip.start);
-                ws.getCell(rowStart + index, cIdx).value = Number(dur.toFixed(2));
-                totalsPerElement[cCounter] += dur;
-                cIdx += 2;
-            });
-        });
-
-        let calcRow = rowStart + masterCyclesLog.length + 1;
-        const totalCycles = masterCyclesLog.length;
-
-        ws.getCell(calcRow, 1).value = "Total mm:ss/mm";
-        ws.getCell(calcRow + 1, 1).value = "Average mmm";
-        ws.getCell(calcRow + 2, 1).value = "Ratings";
-        ws.getCell(calcRow + 3, 1).value = "B.Time";
-        ws.getCell(calcRow + 4, 1).value = "Occ";
-        ws.getCell(calcRow + 5, 1).value = "100% Times 100";
-
-        const finalStats = masterCyclesLog[masterCyclesLog.length - 1].stats;
-        let cIdx2 = 4;
-        
-        baseTimeline.forEach((clip, i) => {
-            const totDur = totalsPerElement[i];
-            const avgDur = totDur / totalCycles;
-            const rating = finalStats.ratingPct;
-            const basicTime = (avgDur / 60) * (rating / 100);
-
-            ws.getCell(calcRow, cIdx2).value = Number(totDur.toFixed(2));
-            ws.getCell(calcRow + 1, cIdx2).value = Number(avgDur.toFixed(3));
-            ws.getCell(calcRow + 2, cIdx2).value = rating;
-            ws.getCell(calcRow + 3, cIdx2).value = Number(basicTime.toFixed(4));
-            ws.getCell(calcRow + 4, cIdx2).value = 100;
-            ws.getCell(calcRow + 5, cIdx2).value = Number((basicTime * 100).toFixed(4));
-            cIdx2 += 2;
-        });
-
-        const summaryRow = calcRow + 10;
-        ws.getCell(summaryRow, 1).value = "STITCHING / MAIN";
-        ws.getCell(summaryRow, 4).value = Number((finalStats.smv - (finalStats.smv * 0.1)).toFixed(4)); 
-        ws.getCell(summaryRow + 1, 1).value = "HANDLING";
-        ws.getCell(summaryRow + 1, 4).value = Number((finalStats.smv * 0.1).toFixed(4));
-        ws.getCell(summaryRow + 2, 1).value = "TOTAL";
-        ws.getCell(summaryRow + 2, 1).font = { bold: true };
-        ws.getCell(summaryRow + 2, 4).value = Number(finalStats.smv.toFixed(4));
-        ws.getCell(summaryRow + 2, 4).font = { bold: true };
-        ws.getCell(summaryRow, 14).value = "Target / Hrs 100%";
-        ws.getCell(summaryRow, 17).value = finalStats.currentTargetHr;
-
+    async function exportOfficialDSIExcel() {
+        if (typeof ExcelJS === 'undefined') { return alert("❌ Error: Excel libraries did not load. Please check your internet connection."); }
+        if (masterCyclesLog.length === 0) { if (!window.finalStudyData || aiTimeline.length === 0) return alert("Please complete at least one cycle study first."); saveCycleToMasterLog(); }
         try {
-            const buffer = await wb.xlsx.writeBuffer();
-            saveAs(new Blob([buffer], { type: "application/octet-stream" }), `DSI_TimeStudy_${product}_${operation.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
-        } catch (e) {
-            alert("❌ Download failed. Make sure your browser allows file downloads.");
-        }
-    }
+            const wb = new ExcelJS.Workbook(); const ws = wb.addWorksheet("TIME AND MOTION");
+            const product = document.getElementById("mProduct").value.trim() || 'N/A'; const operation = document.getElementById("mOperation").value.trim() || 'N/A'; const isSingleShoe = document.getElementById("mIsSingleShoe").checked;
+            const mSelect = document.getElementById("mMachine"); const mcObj = mSelect && dsiMachines[mSelect.value] ? dsiMachines[mSelect.value] : {name: "Unknown", ma: 0, ph: 8};
+            const dateStr = new Date().toLocaleDateString(); const comments = document.getElementById("mComments").value.trim() || '';
+            ws.columns = [{ width: 12 }, { width: 12 }, { width: 12 }, { width: 12 }, { width: 12 }, { width: 15 }, { width: 25 }, { width: 15 }, { width: 15 }, { width: 35 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 25 }, { width: 15 }, { width: 15 }, { width: 15 }];
+            ws.getCell('A1').value = "IE DEPT"; ws.getCell('I1').value = "TIME AND MOTION ANALYSIS SHEET"; ws.getCell('I1').font = { bold: true, size: 14 };
+            ws.getCell('A3').value = product; ws.getCell('I3').value = "Product:"; ws.getCell('S3').value = dateStr; ws.getCell('A4').value = "Plant: BP"; ws.getCell('I4').value = `Operation: ${operation}`; ws.getCell('S4').value = isSingleShoe ? 10 : 20; 
+            ws.getCell('A6').value = "READINGS (strokes)"; ws.getCell('A6').font = { bold: true }; ws.getCell('S6').value = "Operator"; ws.getCell('S7').value = "Time study by"; ws.getCell('S8').value = "Material"; ws.getCell('T8').value = comments; 
 
-        const wb = new ExcelJS.Workbook();
-        const ws = wb.addWorksheet("TIME AND MOTION");
-
-        const product = document.getElementById("mProduct").value.trim() || 'N/A';
-        const operation = document.getElementById("mOperation").value.trim() || 'N/A';
-        const isSingleShoe = document.getElementById("mIsSingleShoe").checked;
-        const mcObj = dsiMachines[document.getElementById("mMachine").value];
-        const dateStr = new Date().toLocaleDateString();
-        const comments = document.getElementById("mComments").value.trim() || '';
-
-        // DSI Standard Column Widths
-        ws.columns = [
-            { width: 12 }, { width: 12 }, { width: 12 }, { width: 12 }, 
-            { width: 12 }, { width: 15 }, { width: 25 }, { width: 15 }, 
-            { width: 15 }, { width: 35 }, { width: 15 }, { width: 15 }, 
-            { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, 
-            { width: 15 }, { width: 15 }, { width: 15 }, { width: 25 }, 
-            { width: 15 }, { width: 15 }, { width: 15 }
-        ];
-
-        // --- Build Top Header Section (Rows 1-10) ---
-        ws.getCell('A1').value = "IE DEPT";
-        ws.getCell('I1').value = "TIME AND MOTION ANALYSIS SHEET";
-        ws.getCell('I1').font = { bold: true, size: 14 };
-
-        ws.getCell('A3').value = product; // Sample/Product
-        ws.getCell('I3').value = "Product:";
-        ws.getCell('S3').value = dateStr; // Date
-
-        ws.getCell('A4').value = "Plant: BP"; // Defaulting to BP based on your screenshot
-        ws.getCell('I4').value = `Operation: ${operation}`;
-        ws.getCell('S4').value = isSingleShoe ? 10 : 20; // Example PRS count based on single/pair
-
-        ws.getCell('A6').value = "READINGS (strokes)";
-        ws.getCell('A6').font = { bold: true };
-        
-        ws.getCell('S6').value = "Operator";
-        ws.getCell('S7').value = "Time study by";
-        ws.getCell('S8').value = "Material";
-        ws.getCell('T8').value = comments; // Injecting comments into the Material block
-
-        // --- Build Elements (Columns D, E, F...) ---
-        // We use the first cycle in the log to determine the element names
-        const baseTimeline = masterCyclesLog[0].timeline;
-        let colIndex = 4; // Start at column D
-        baseTimeline.forEach(clip => {
-            ws.getCell(6, colIndex).value = clip.label.replace(/[^a-zA-Z &+]/g, "").trim().toUpperCase();
-            ws.getCell(6, colIndex).alignment = { wrapText: true, horizontal: 'center' };
-            colIndex += 2; // DSI format spaces them out
-        });
-
-        // --- Build Cycles (Rows 12-21) ---
-        let rowStart = 12;
-        let totalsPerElement = new Array(baseTimeline.length).fill(0);
-
-        masterCyclesLog.forEach((cycle, index) => {
-            ws.getCell(rowStart + index, 1).value = index + 1; // Cycle number 1, 2, 3...
-            
-            let cIdx = 4;
-            cycle.timeline.forEach((clip, cCounter) => {
-                const dur = Math.max(0, clip.end - clip.start);
-                ws.getCell(rowStart + index, cIdx).value = Number(dur.toFixed(2));
-                totalsPerElement[cCounter] += dur;
-                cIdx += 2;
+            const baseTimeline = masterCyclesLog[0].timeline; let colIndex = 4; 
+            baseTimeline.forEach(clip => { ws.getCell(6, colIndex).value = clip.label.replace(/[^a-zA-Z &+]/g, "").trim().toUpperCase(); ws.getCell(6, colIndex).alignment = { wrapText: true, horizontal: 'center' }; colIndex += 2; });
+            let rowStart = 12; let totalsPerElement = new Array(baseTimeline.length).fill(0);
+            masterCyclesLog.forEach((cycle, index) => {
+                ws.getCell(rowStart + index, 1).value = index + 1; let cIdx = 4;
+                cycle.timeline.forEach((clip, cCounter) => {
+                    if (cCounter >= baseTimeline.length) return; 
+                    const dur = Math.max(0, clip.end - clip.start); ws.getCell(rowStart + index, cIdx).value = Number(dur.toFixed(2)); totalsPerElement[cCounter] += dur; cIdx += 2;
+                });
             });
-        });
-
-        // --- Build Bottom Calculations (Row 32+) ---
-        let calcRow = rowStart + masterCyclesLog.length + 1;
-        const totalCycles = masterCyclesLog.length;
-
-        ws.getCell(calcRow, 1).value = "Total mm:ss/mm";
-        ws.getCell(calcRow + 1, 1).value = "Average mmm";
-        ws.getCell(calcRow + 2, 1).value = "Ratings";
-        ws.getCell(calcRow + 3, 1).value = "B.Time";
-        ws.getCell(calcRow + 4, 1).value = "Occ";
-        ws.getCell(calcRow + 5, 1).value = "100% Times 100";
-
-        // Get final stats from the last run for the summary block
-        const finalStats = masterCyclesLog[masterCyclesLog.length - 1].stats;
-        let cIdx2 = 4;
-        
-        baseTimeline.forEach((clip, i) => {
-            const totDur = totalsPerElement[i];
-            const avgDur = totDur / totalCycles;
-            const rating = finalStats.ratingPct;
-            const basicTime = (avgDur / 60) * (rating / 100);
-
-            ws.getCell(calcRow, cIdx2).value = Number(totDur.toFixed(2));
-            ws.getCell(calcRow + 1, cIdx2).value = Number(avgDur.toFixed(3));
-            ws.getCell(calcRow + 2, cIdx2).value = rating;
-            ws.getCell(calcRow + 3, cIdx2).value = Number(basicTime.toFixed(4));
-            ws.getCell(calcRow + 4, cIdx2).value = 100;
-            ws.getCell(calcRow + 5, cIdx2).value = Number((basicTime * 100).toFixed(4));
-            
-            cIdx2 += 2;
-        });
-
-        // --- Bottom Right Target Summary ---
-        const summaryRow = calcRow + 10;
-        ws.getCell(summaryRow, 1).value = "STITCHING / MAIN";
-        ws.getCell(summaryRow, 4).value = Number((finalStats.smv - (finalStats.smv * 0.1)).toFixed(4)); // Approximation splitting
-        
-        ws.getCell(summaryRow + 1, 1).value = "HANDLING";
-        ws.getCell(summaryRow + 1, 4).value = Number((finalStats.smv * 0.1).toFixed(4));
-
-        ws.getCell(summaryRow + 2, 1).value = "TOTAL";
-        ws.getCell(summaryRow + 2, 1).font = { bold: true };
-        ws.getCell(summaryRow + 2, 4).value = Number(finalStats.smv.toFixed(4));
-        ws.getCell(summaryRow + 2, 4).font = { bold: true };
-
-        ws.getCell(summaryRow, 14).value = "Target / Hrs 100%";
-        ws.getCell(summaryRow, 17).value = finalStats.currentTargetHr;
-
-        // Generate and download
-        const buffer = await wb.xlsx.writeBuffer();
-        saveAs(new Blob([buffer], { type: "application/octet-stream" }), `DSI_TimeStudy_${product}_${operation.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
+            let calcRow = rowStart + masterCyclesLog.length + 1; const totalCycles = masterCyclesLog.length;
+            ws.getCell(calcRow, 1).value = "Total mm:ss/mm"; ws.getCell(calcRow + 1, 1).value = "Average mmm"; ws.getCell(calcRow + 2, 1).value = "Ratings"; ws.getCell(calcRow + 3, 1).value = "B.Time"; ws.getCell(calcRow + 4, 1).value = "Occ"; ws.getCell(calcRow + 5, 1).value = "100% Times 100";
+            const finalStats = masterCyclesLog[masterCyclesLog.length - 1].stats; let cIdx2 = 4;
+            baseTimeline.forEach((clip, i) => {
+                const totDur = totalsPerElement[i]; const avgDur = totDur / totalCycles; const rating = finalStats.ratingPct; const basicTime = (avgDur / 60) * (rating / 100);
+                ws.getCell(calcRow, cIdx2).value = Number(totDur.toFixed(2)); ws.getCell(calcRow + 1, cIdx2).value = Number(avgDur.toFixed(3)); ws.getCell(calcRow + 2, cIdx2).value = rating; ws.getCell(calcRow + 3, cIdx2).value = Number(basicTime.toFixed(4)); ws.getCell(calcRow + 4, cIdx2).value = 100; ws.getCell(calcRow + 5, cIdx2).value = Number((basicTime * 100).toFixed(4)); cIdx2 += 2;
+            });
+            const summaryRow = calcRow + 10;
+            ws.getCell(summaryRow, 1).value = "STITCHING / MAIN"; ws.getCell(summaryRow, 4).value = Number((finalStats.smv - (finalStats.smv * 0.1)).toFixed(4)); 
+            ws.getCell(summaryRow + 1, 1).value = "HANDLING"; ws.getCell(summaryRow + 1, 4).value = Number((finalStats.smv * 0.1).toFixed(4));
+            ws.getCell(summaryRow + 2, 1).value = "TOTAL"; ws.getCell(summaryRow + 2, 1).font = { bold: true }; ws.getCell(summaryRow + 2, 4).value = Number(finalStats.smv.toFixed(4)); ws.getCell(summaryRow + 2, 4).font = { bold: true };
+            ws.getCell(summaryRow, 14).value = "Target / Hrs 100%"; ws.getCell(summaryRow, 17).value = finalStats.currentTargetHr;
+            const buffer = await wb.xlsx.writeBuffer(); saveAs(new Blob([buffer], { type: "application/octet-stream" }), `DSI_TimeStudy_${product}_${operation.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
+        } catch (error) { console.error(error); alert("❌ An error occurred while generating Excel. Ensure a cycle is saved first."); }
     }
 
     function printOfficialPDF() {
         if (!window.finalStudyData || aiTimeline.length === 0) return alert("Please complete a study first.");
-        const sd = window.finalStudyData;
-        const mcObj = dsiMachines[document.getElementById("mMachine").value];
-        
+        const sd = window.finalStudyData; const mcObj = dsiMachines[document.getElementById("mMachine").value];
         const rowsHtml = aiTimeline.map((seg, i) => {
-            const dur = Math.max(0, seg.end - seg.start);
-            const meta = CATEGORY_META[seg.category];
-            const basicMin = (dur / 60) * (sd.ratingPct / 100) * (meta.hasMa ? (1 + sd.maPct / 100) : 1);
-            return `
-                <tr>
-                    <td style="border: 1px solid #000; padding: 6px;">#${i + 1}</td>
-                    <td style="border: 1px solid #000; padding: 6px;">${meta.label}</td>
-                    <td style="border: 1px solid #000; padding: 6px;">${seg.start.toFixed(2)}s - ${seg.end.toFixed(2)}s (${dur.toFixed(2)}s)</td>
-                    <td style="border: 1px solid #000; padding: 6px;">${sd.ratingPct}%</td>
-                    <td style="border: 1px solid #000; padding: 6px;">${meta.isMuda ? '0.0000 (Muda Trimmed)' : basicMin.toFixed(4)}</td>
-                </tr>
-            `;
+            const dur = Math.max(0, seg.end - seg.start); const meta = CATEGORY_META[seg.category]; const basicMin = (dur / 60) * (sd.ratingPct / 100) * (meta.hasMa ? (1 + sd.maPct / 100) : 1);
+            return `<tr><td style="border: 1px solid #000; padding: 6px;">#${i + 1}</td><td style="border: 1px solid #000; padding: 6px;">${meta.label}</td><td style="border: 1px solid #000; padding: 6px;">${seg.start.toFixed(2)}s - ${seg.end.toFixed(2)}s (${dur.toFixed(2)}s)</td><td style="border: 1px solid #000; padding: 6px;">${sd.ratingPct}%</td><td style="border: 1px solid #000; padding: 6px;">${meta.isMuda ? '0.0000 (Muda Trimmed)' : basicMin.toFixed(4)}</td></tr>`;
         }).join("");
-
         const printDiv = document.getElementById("printArea");
-        printDiv.innerHTML = `
-            <div style="border: 2px solid #000; padding: 20px; font-family: Arial, sans-serif; color: #000; background: #fff;">
-                <h2 style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-top:0;">D. SAMSON INDUSTRIES (PVT) LTD — TIME & MOTION ANALYSIS SHEET</h2>
-                
-                <table style="width: 100%; margin-bottom: 15px; text-align: left; font-size: 13px;">
-                    <tr>
-                        <td><strong>Product / Style:</strong> ${document.getElementById("mProduct").value || 'N/A'}</td>
-                        <td><strong>Operation:</strong> ${document.getElementById("mOperation").value || 'N/A'}</td>
-                        <td><strong>Date:</strong> ${new Date().toLocaleDateString()}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Machine:</strong> ${mcObj ? mcObj.name : 'N/A'} (${sd.maPct}% MA)</td>
-                        <td><strong>P&F Allowance:</strong> ${sd.pnfPct}%</td>
-                        <td><strong>Cycle Type:</strong> ${sd.isSingleShoe ? 'Single Shoe (x2 for Pair)' : 'Full Pair'}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="3"><strong>Comments:</strong> ${document.getElementById("mComments").value || 'None'}</td>
-                    </tr>
-                </table>
-
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px;">
-                    <thead>
-                        <tr style="background: #eee;">
-                            <th style="border: 1px solid #000; padding: 6px;">Clip</th>
-                            <th style="border: 1px solid #000; padding: 6px;">Element / Motion Category</th>
-                            <th style="border: 1px solid #000; padding: 6px;">Observed Time (sec)</th>
-                            <th style="border: 1px solid #000; padding: 6px;">Rating</th>
-                            <th style="border: 1px solid #000; padding: 6px;">Kaizen Basic Time (min)</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rowsHtml}</tbody>
-                </table>
-
-                <div style="background: #f8f9fa; border: 1px solid #000; padding: 14px; border-radius: 5px; display:flex; justify-content:space-between;">
-                    <div>
-                        <h3 style="margin:0 0 6px 0; color:#d32f2f;">Current Observed SMV: ${sd.smv.toFixed(3)} min/pair</h3>
-                        <p style="margin:0;"><strong>Current Output Target:</strong> ${sd.currentTargetHr} pairs/hr</p>
-                    </div>
-                    <div>
-                        <h3 style="margin:0 0 6px 0; color:#2e7d32;">Kaizen Target R.SMV: ${sd.kaizenSmv.toFixed(3)} min/pair</h3>
-                        <p style="margin:0;"><strong>Kaizen Target Output:</strong> ${sd.impTargetHr} pairs/hr (Waste Trimmed: ${sd.mudaSec.toFixed(1)}s)</p>
-                    </div>
-                </div>
-            </div>
-        `;
+        printDiv.innerHTML = `<div style="border: 2px solid #000; padding: 20px; font-family: Arial, sans-serif; color: #000; background: #fff;"><h2 style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-top:0;">D. SAMSON INDUSTRIES (PVT) LTD — TIME & MOTION ANALYSIS SHEET</h2><table style="width: 100%; margin-bottom: 15px; text-align: left; font-size: 13px;"><tr><td><strong>Product / Style:</strong> ${document.getElementById("mProduct").value || 'N/A'}</td><td><strong>Operation:</strong> ${document.getElementById("mOperation").value || 'N/A'}</td><td><strong>Date:</strong> ${new Date().toLocaleDateString()}</td></tr><tr><td><strong>Machine:</strong> ${mcObj ? mcObj.name : 'N/A'} (${sd.maPct}% MA)</td><td><strong>P&F Allowance:</strong> ${sd.pnfPct}%</td><td><strong>Cycle Type:</strong> ${sd.isSingleShoe ? 'Single Shoe (x2 for Pair)' : 'Full Pair'}</td></tr><tr><td colspan="3"><strong>Comments:</strong> ${document.getElementById("mComments").value || 'None'}</td></tr></table><table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px;"><thead><tr style="background: #eee;"><th style="border: 1px solid #000; padding: 6px;">Clip</th><th style="border: 1px solid #000; padding: 6px;">Element / Motion Category</th><th style="border: 1px solid #000; padding: 6px;">Observed Time (sec)</th><th style="border: 1px solid #000; padding: 6px;">Rating</th><th style="border: 1px solid #000; padding: 6px;">Kaizen Basic Time (min)</th></tr></thead><tbody>${rowsHtml}</tbody></table><div style="background: #f8f9fa; border: 1px solid #000; padding: 14px; border-radius: 5px; display:flex; justify-content:space-between;"><div><h3 style="margin:0 0 6px 0; color:#d32f2f;">Current Observed SMV: ${sd.smv.toFixed(3)} min/pair</h3><p style="margin:0;"><strong>Current Output Target:</strong> ${sd.currentTargetHr} pairs/hr</p></div><div><h3 style="margin:0 0 6px 0; color:#2e7d32;">Kaizen Target R.SMV: ${sd.kaizenSmv.toFixed(3)} min/pair</h3><p style="margin:0;"><strong>Kaizen Target Output:</strong> ${sd.impTargetHr} pairs/hr (Waste Trimmed: ${sd.mudaSec.toFixed(1)}s)</p></div></div></div>`;
         window.print();
     }
 </script>
 </body>
-</html>
+</html> 
