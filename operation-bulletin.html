@@ -437,11 +437,12 @@
         setupDropZone('excelUpload', 'excelDropZone');
         setupDropZone('ocrUpload', 'ocrDropZone'); 
 
-        document.addEventListener('paste', function (e) {
+document.addEventListener('paste', function (e) {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            for (let index in items) {
-                const item = items[index];
-                if (item.kind === 'file' && item.type.startsWith('image/')) {
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                // Safely check if it's a file AND if the type exists before reading it
+                if (item.kind === 'file' && item.type && item.type.startsWith('image/')) {
                     const file = item.getAsFile();
                     const aiTab = document.getElementById('tabAIContent');
                     if (aiTab && aiTab.classList.contains('active')) processOcrFile(file);
