@@ -437,32 +437,27 @@
         setupDropZone('excelUpload', 'excelDropZone');
         setupDropZone('ocrUpload', 'ocrDropZone'); 
 
-window.addEventListener('paste', function (e) {
-        // Safely ignore if the user is typing inside a text box
-        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-            return;
-        }
+document.onpaste = function(e) {
+            // Safely ignore if you are typing in a text box or dropdown
+            if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
 
-        const clipboardData = e.clipboardData || window.clipboardData;
-        if (!clipboardData) return;
-
-        // Method 1: The standard 'items' array (Works for Snipping Tool & Web Copies)
-        if (clipboardData.items) {
-            for (let i = 0; i < clipboardData.items.length; i++) {
-                const item = clipboardData.items[i];
-                // Safely check if the type exists and is an image
-                if (item.type && item.type.indexOf('image') !== -1) {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf("image") !== -1) {
                     e.preventDefault();
-                    const file = item.getAsFile();
-                    if (file) {
-                        const aiTab = document.getElementById('tabAIContent');
-                        if (aiTab && aiTab.classList.contains('active')) processOcrFile(file);
-                        else processMediaFile(file);
-                        return; // Stop after successfully pasting the image
+                    const file = items[i].getAsFile();
+                    
+                    const aiTab = document.getElementById('tabAIContent');
+                    if (aiTab && aiTab.classList.contains('active')) {
+                        processOcrFile(file);
+                    } else {
+                        processMediaFile(file);
                     }
+                    return; // Stop immediately after finding the image
                 }
             }
-        }
+        };
         
         // Method 2: Fallback for older browsers reading 'files' directly
         if (clipboardData.files) {
