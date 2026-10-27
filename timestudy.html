@@ -750,7 +750,7 @@
         if (pbVid.src && pbVid.readyState >= 1) { pbVid.currentTime = Math.max(0, pbVid.currentTime - 1); }
     }
 
-    async function exportOfficialDSIExcel() {
+async function exportOfficialDSIExcel() {
         if (typeof ExcelJS === 'undefined') { return alert("❌ Error: Excel libraries did not load. Please check your internet connection."); }
         if (masterCyclesLog.length === 0) { if (!window.finalStudyData || aiTimeline.length === 0) return alert("Please complete at least one cycle study first."); saveCycleToMasterLog(); }
         try {
@@ -759,12 +759,15 @@
             const mSelect = document.getElementById("mMachine"); const mcObj = mSelect && dsiMachines[mSelect.value] ? dsiMachines[mSelect.value] : {name: "Unknown", ma: 0, ph: 8};
             const dateStr = new Date().toLocaleDateString(); const comments = document.getElementById("mComments").value.trim() || '';
             ws.columns = [{ width: 12 }, { width: 12 }, { width: 12 }, { width: 12 }, { width: 12 }, { width: 15 }, { width: 25 }, { width: 15 }, { width: 15 }, { width: 35 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 25 }, { width: 15 }, { width: 15 }, { width: 15 }];
+            
             ws.getCell('A1').value = "IE DEPT"; ws.getCell('I1').value = "TIME AND MOTION ANALYSIS SHEET"; ws.getCell('I1').font = { bold: true, size: 14 };
-            ws.getCell('A3').value = product; ws.getCell('I3').value = "Product:"; ws.getCell('S3').value = dateStr; ws.getCell('A4').value = "Plant: BP"; ws.getCell('I4').value = `Operation: ${operation}`; ws.getCell('S4').value = isSingleShoe ? 10 : 20; 
+            ws.getCell('A3').value = "N/A"; ws.getCell('I3').value = "Product:"; ws.getCell('J3').value = product; ws.getCell('S3').value = dateStr; 
+            ws.getCell('A4').value = "Plant: BP"; ws.getCell('I4').value = "Operation:"; ws.getCell('J4').value = operation; ws.getCell('S4').value = isSingleShoe ? 10 : 20; 
             ws.getCell('A6').value = "READINGS (strokes)"; ws.getCell('A6').font = { bold: true }; ws.getCell('S6').value = "Operator"; ws.getCell('S7').value = "Time study by"; ws.getCell('S8').value = "Material"; ws.getCell('T8').value = comments; 
 
             const baseTimeline = masterCyclesLog[0].timeline; let colIndex = 4; 
             baseTimeline.forEach(clip => { ws.getCell(6, colIndex).value = clip.label.replace(/[^a-zA-Z &+]/g, "").trim().toUpperCase(); ws.getCell(6, colIndex).alignment = { wrapText: true, horizontal: 'center' }; colIndex += 2; });
+            
             let rowStart = 12; let totalsPerElement = new Array(baseTimeline.length).fill(0);
             masterCyclesLog.forEach((cycle, index) => {
                 ws.getCell(rowStart + index, 1).value = index + 1; let cIdx = 4;
@@ -773,18 +776,50 @@
                     const dur = Math.max(0, clip.end - clip.start); ws.getCell(rowStart + index, cIdx).value = Number(dur.toFixed(2)); totalsPerElement[cCounter] += dur; cIdx += 2;
                 });
             });
+            
             let calcRow = rowStart + masterCyclesLog.length + 1; const totalCycles = masterCyclesLog.length;
             ws.getCell(calcRow, 1).value = "Total mm:ss/mm"; ws.getCell(calcRow + 1, 1).value = "Average mmm"; ws.getCell(calcRow + 2, 1).value = "Ratings"; ws.getCell(calcRow + 3, 1).value = "B.Time"; ws.getCell(calcRow + 4, 1).value = "Occ"; ws.getCell(calcRow + 5, 1).value = "100% Times 100";
-            const finalStats = masterCyclesLog[masterCyclesLog.length - 1].stats; let cIdx2 = 4;
+            
+            const finalStats = masterCyclesLog[masterCyclesLog.length - 1].stats; 
+            const rating = finalStats.ratingPct; const pnfPct = finalStats.pnfPct; const maPct = finalStats.maPct; const pairMult = finalStats.pairMult;
+            let cIdx2 = 4;
+            
+            // --- DYNAMIC STITCHING VS HANDLING LOGIC ---
+            let maxMachineBasicTime = 0; let maxMachineIndex = -1; let elementData = [];
+
             baseTimeline.forEach((clip, i) => {
-                const totDur = totalsPerElement[i]; const avgDur = totDur / totalCycles; const rating = finalStats.ratingPct; const basicTime = (avgDur / 60) * (rating / 100);
+                const totDur = totalsPerElement[i]; const avgDur = totDur / totalCycles; 
+                let basicTime = (avgDur / 60) * (rating / 100);
+                const meta = CATEGORY_META[clip.category] || CATEGORY_META.pickup;
+                if (meta.hasMa) { basicTime = basicTime * (1 + maPct / 100); }
+                elementData.push({ basicTime, isMuda: meta.isMuda, hasMa: meta.hasMa });
+                
+                // Finds the largest MA element to assign as STITCHING/MAIN
+                if (!meta.isMuda && meta.hasMa && basicTime > maxMachineBasicTime) { maxMachineBasicTime = basicTime; maxMachineIndex = i; }
+
                 ws.getCell(calcRow, cIdx2).value = Number(totDur.toFixed(2)); ws.getCell(calcRow + 1, cIdx2).value = Number(avgDur.toFixed(3)); ws.getCell(calcRow + 2, cIdx2).value = rating; ws.getCell(calcRow + 3, cIdx2).value = Number(basicTime.toFixed(4)); ws.getCell(calcRow + 4, cIdx2).value = 100; ws.getCell(calcRow + 5, cIdx2).value = Number((basicTime * 100).toFixed(4)); cIdx2 += 2;
             });
+            
+            let stitchingSMV = 0; let handlingSMV = 0;
+            elementData.forEach((el, i) => {
+                if (el.isMuda) return; // Excludes waste from final SMV calculation
+                let elSMV = el.basicTime * (1 + pnfPct / 100) * pairMult;
+                if (i === maxMachineIndex) { stitchingSMV += elSMV; } else { handlingSMV += elSMV; }
+            });
+
             const summaryRow = calcRow + 10;
-            ws.getCell(summaryRow, 1).value = "STITCHING / MAIN"; ws.getCell(summaryRow, 4).value = Number((finalStats.smv - (finalStats.smv * 0.1)).toFixed(4)); 
-            ws.getCell(summaryRow + 1, 1).value = "HANDLING"; ws.getCell(summaryRow + 1, 4).value = Number((finalStats.smv * 0.1).toFixed(4));
-            ws.getCell(summaryRow + 2, 1).value = "TOTAL"; ws.getCell(summaryRow + 2, 1).font = { bold: true }; ws.getCell(summaryRow + 2, 4).value = Number(finalStats.smv.toFixed(4)); ws.getCell(summaryRow + 2, 4).font = { bold: true };
-            ws.getCell(summaryRow, 14).value = "Target / Hrs 100%"; ws.getCell(summaryRow, 17).value = finalStats.currentTargetHr;
+            ws.getCell(summaryRow, 1).value = "STITCHING / MAIN"; ws.getCell(summaryRow, 4).value = Number(stitchingSMV.toFixed(4)); 
+            ws.getCell(summaryRow + 1, 1).value = "HANDLING"; ws.getCell(summaryRow + 1, 4).value = Number(handlingSMV.toFixed(4));
+            ws.getCell(summaryRow + 2, 1).value = "TOTAL (SMV)"; ws.getCell(summaryRow + 2, 1).font = { bold: true }; 
+            ws.getCell(summaryRow + 2, 4).value = Number((stitchingSMV + handlingSMV).toFixed(4)); ws.getCell(summaryRow + 2, 4).font = { bold: true };
+            
+            ws.getCell(summaryRow, 14).value = "Target / Hrs 100%"; ws.getCell(summaryRow, 17).value = finalStats.impTargetHr;
+            
+            // Excel Formula: =IF(((SMV/60) * TargetHr) <= 0.2, 0, 1)
+            ws.getCell(summaryRow + 2, 14).value = "Req. Operators:"; 
+            ws.getCell(summaryRow + 2, 17).value = { formula: `=IF(((D${summaryRow+2}/60)*Q${summaryRow})<=0.2, 0, 1)` };
+            ws.getCell(summaryRow + 2, 17).font = { bold: true, color: { argb: 'FF0000' } };
+
             const buffer = await wb.xlsx.writeBuffer(); saveAs(new Blob([buffer], { type: "application/octet-stream" }), `DSI_TimeStudy_${product}_${operation.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
         } catch (error) { console.error(error); alert("❌ An error occurred while generating Excel. Ensure a cycle is saved first."); }
     }
