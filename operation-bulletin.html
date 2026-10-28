@@ -44,8 +44,6 @@
         .drop-zone.dragover, .drop-zone:hover { border-color: #38bdf8 !important; }
         .drop-zone-text { font-weight: bold; pointer-events: auto; color: #94a3b8; margin: auto;}
         .drop-zone-text span { color: #10b981; }
-        
-        /* THIS WAS THE FIX: Display none stops the file input from intercepting your pastes! */
         .drop-zone-input { display: none; }
 
         .tab-bar { display: flex; width: 100%; border-bottom: 2px solid #334155; margin-bottom: 15px; }
@@ -248,7 +246,7 @@
                     <button class="btn-top" onclick="document.getElementById('mediaUpload').click()" style="padding: 4px 10px; font-size: 0.75em; background: #38bdf8; color: #000;">➕ Browse Files</button>
                 </div>
                 
-<div class="drop-zone" id="imgDropZone">
+                <div class="drop-zone" id="imgDropZone">
                     <input type="file" id="mediaUpload" accept="image/*, video/*, .pdf, .xls, .xlsx" multiple class="drop-zone-input" onchange="handleMediaUpload(event)">
                     <div id="mediaGallery" style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%; position: relative; z-index: 10; pointer-events: auto; justify-content: center;">
                         <span class="drop-zone-text">📂 Drag & Drop Photos/Videos, <label for="mediaUpload" style="color:#10b981; cursor:pointer; text-decoration:underline;">Browse</label>, or press <span>Ctrl+V</span></span>
@@ -282,7 +280,7 @@
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 5px;">
-<div class="drop-zone" id="excelDropZone" style="padding: 8px 15px; border-radius: 20px; border: 1px dashed #8b5cf6; background: rgba(139, 92, 246, 0.1); width: 250px; min-height: auto;">
+                        <div class="drop-zone" id="excelDropZone" style="padding: 8px 15px; border-radius: 20px; border: 1px dashed #8b5cf6; background: rgba(139, 92, 246, 0.1); width: 250px; min-height: auto;">
                             <input type="file" id="excelUpload" accept=".xlsx, .xls" class="drop-zone-input" onchange="handleExcelImport(event)">
                             <span class="drop-zone-text" id="excelDropText" style="font-size: 0.85em; color: #c4b5fd;">📥 Drag & Drop Excel, <label for="excelUpload" style="color:#a78bfa; cursor:pointer; text-decoration:underline;">Browse</label>, or Ctrl+V</span>
                         </div>
@@ -298,7 +296,7 @@
                             <h3 style="color: #ec4899; margin-bottom: 5px;">📷 AI Operation Scanner (Beta)</h3>
                             <p style="color: #94a3b8; font-size: 0.9em; margin: 0; line-height: 1.5;">Have a picture of a table with Operations and SMVs? The AI will read the text and automatically generate the rows below.</p>
                         </div>
-<div class="drop-zone" id="ocrDropZone" style="padding: 15px 20px; border-radius: 12px; border: 2px dashed #ec4899; background: rgba(236, 72, 153, 0.1); width: 380px; min-height: auto;">
+                        <div class="drop-zone" id="ocrDropZone" style="padding: 15px 20px; border-radius: 12px; border: 2px dashed #ec4899; background: rgba(236, 72, 153, 0.1); width: 380px; min-height: auto;">
                             <input type="file" id="ocrUpload" accept="image/*" class="drop-zone-input" onchange="handleOcrUpload(event)">
                             <span class="drop-zone-text" id="ocrDropText" style="font-size: 1.05em; color: #f9a8d4;">📥 Drop Image, <label for="ocrUpload" style="color:#ec4899; cursor:pointer; text-decoration:underline;">Browse</label>, or press <b>Ctrl+V</b></span>
                         </div>
