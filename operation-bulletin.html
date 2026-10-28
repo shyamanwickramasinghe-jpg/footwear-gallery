@@ -44,7 +44,9 @@
         .drop-zone.dragover, .drop-zone:hover { border-color: #38bdf8 !important; }
         .drop-zone-text { font-weight: bold; pointer-events: none; color: #94a3b8; margin: auto;}
         .drop-zone-text span { color: #10b981; }
-        .drop-zone-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 5;}
+        
+        /* THIS WAS THE FIX: Display none stops the file input from intercepting your pastes! */
+        .drop-zone-input { display: none; }
 
         .tab-bar { display: flex; width: 100%; border-bottom: 2px solid #334155; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 12px; background: transparent; color: #94a3b8; border: none; font-weight: bold; cursor: pointer; font-size: 1em; border-radius: 8px 8px 0 0; }
@@ -246,7 +248,7 @@
                     <button class="btn-top" onclick="document.getElementById('mediaUpload').click()" style="padding: 4px 10px; font-size: 0.75em; background: #38bdf8; color: #000;">➕ Browse Files</button>
                 </div>
                 
-                <div class="drop-zone" id="imgDropZone">
+                <div class="drop-zone" id="imgDropZone" onclick="document.getElementById('mediaUpload').click()">
                     <input type="file" id="mediaUpload" accept="image/*, video/*, .pdf, .xls, .xlsx" multiple class="drop-zone-input" onchange="handleMediaUpload(event)">
                     <div id="mediaGallery" style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%; position: relative; z-index: 10; pointer-events: none; justify-content: center;">
                         <span class="drop-zone-text">📂 Drag & Drop Photos, Videos, or Details Sheet, or press <span>Ctrl+V</span></span>
@@ -280,7 +282,7 @@
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 5px;">
-                        <div class="drop-zone" id="excelDropZone" style="padding: 8px 15px; border-radius: 20px; border: 1px dashed #8b5cf6; background: rgba(139, 92, 246, 0.1); width: 250px; min-height: auto;">
+                        <div class="drop-zone" id="excelDropZone" style="padding: 8px 15px; border-radius: 20px; border: 1px dashed #8b5cf6; background: rgba(139, 92, 246, 0.1); width: 250px; min-height: auto;" onclick="document.getElementById('excelUpload').click()">
                             <span class="drop-zone-text" id="excelDropText" style="font-size: 0.85em; color: #c4b5fd;">📥 Drag & Drop Excel or <span style="color:#a78bfa;">Browse</span></span>
                             <input type="file" id="excelUpload" accept=".xlsx, .xls" class="drop-zone-input" onchange="handleExcelImport(event)">
                         </div>
@@ -296,7 +298,7 @@
                             <h3 style="color: #ec4899; margin-bottom: 5px;">📷 AI Operation Scanner (Beta)</h3>
                             <p style="color: #94a3b8; font-size: 0.9em; margin: 0; line-height: 1.5;">Have a picture of a table with Operations and SMVs? The AI will read the text and automatically generate the rows below.</p>
                         </div>
-                        <div class="drop-zone" id="ocrDropZone" style="padding: 15px 20px; border-radius: 12px; border: 2px dashed #ec4899; background: rgba(236, 72, 153, 0.1); width: 380px; min-height: auto;">
+                        <div class="drop-zone" id="ocrDropZone" style="padding: 15px 20px; border-radius: 12px; border: 2px dashed #ec4899; background: rgba(236, 72, 153, 0.1); width: 380px; min-height: auto;" onclick="document.getElementById('ocrUpload').click()">
                             <span class="drop-zone-text" id="ocrDropText" style="font-size: 1.05em; color: #f9a8d4;">📥 Drop Image, <span style="color:#ec4899;">Browse</span>, or press <b>Ctrl+V</b></span>
                             <input type="file" id="ocrUpload" accept="image/*" class="drop-zone-input" onchange="handleOcrUpload(event)">
                         </div>
@@ -437,7 +439,7 @@
         setupDropZone('excelUpload', 'excelDropZone');
         setupDropZone('ocrUpload', 'ocrDropZone'); 
 
-window.addEventListener('paste', function(e) {
+        window.addEventListener('paste', function(e) {
             // ONLY block paste if the user is actively typing in a text box or textarea
             if (e.target) {
                 const tag = e.target.tagName;
@@ -488,6 +490,15 @@ window.addEventListener('paste', function(e) {
                 } else {
                     processMediaFile(file);
                 }
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                if(typeof closeImagePopup === 'function') closeImagePopup();
+                if(typeof closeOpsPopup === 'function') closeOpsPopup();
+                if(typeof closeLoadModal === 'function') closeLoadModal();
+                if(typeof closeGuideModal === 'function') closeGuideModal();
             }
         });
 
