@@ -437,7 +437,7 @@
         setupDropZone('excelUpload', 'excelDropZone');
         setupDropZone('ocrUpload', 'ocrDropZone'); 
 
-document.onpaste = function(e) {
+        document.onpaste = function(e) {
             // Safely ignore if you are typing in a text box or dropdown
             if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
 
@@ -458,21 +458,7 @@ document.onpaste = function(e) {
                 }
             }
         };
-        
-        // Method 2: Fallback for older browsers reading 'files' directly
-        if (clipboardData.files) {
-            for (let i = 0; i < clipboardData.files.length; i++) {
-                const file = clipboardData.files[i];
-                if (file.type && file.type.indexOf('image') !== -1) {
-                    e.preventDefault();
-                    const aiTab = document.getElementById('tabAIContent');
-                    if (aiTab && aiTab.classList.contains('active')) processOcrFile(file);
-                    else processMediaFile(file);
-                    return;
-                }
-            }
-        }
-    });
+
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 if(typeof closeImagePopup === 'function') closeImagePopup();
@@ -493,8 +479,7 @@ document.onpaste = function(e) {
         if (savedCustomMachines) dsiMachines = dsiMachines.concat(JSON.parse(savedCustomMachines));
         
         populateMachineDropdown();
-        loadCustomProcesses();
-
+        
         const savedOps = localStorage.getItem("dsi_costing_ops");
         const savedMeta = localStorage.getItem("dsi_costing_meta");
         const savedImgs = localStorage.getItem("dsi_costing_imgs");
