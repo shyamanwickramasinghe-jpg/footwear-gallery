@@ -975,29 +975,75 @@ async function processOcrFile(file) {
             }
             let isDarkMode = (totalBrightness / (canvas.width * canvas.height)) < 127;
 
-            // ULTIMATE BINARIZATION: Erases grid lines perfectly
+            // 1. PERFECT BINARIZATION: The exact mathematical sweet spot. 
+            // Erases green/dark backgrounds to white, keeps text thick and black.
             for (let i = 0; i < data.length; i += 4) { 
                 let r = data[i], g = data[i+1], b = data[i+2]; 
                 let gray = (r * 0.299) + (g * 0.587) + (b * 0.114); 
                 
-                if (isDarkMode) gray = 255 - gray; 
+                if (isDarkMode) {
+                    gray = 255 - gray; // Safely invert dark themes
+                }
                 
-                // If it is a faint grid line or a background color, force it to pure white
-                // If it is dark text, force it to pure black
-                let finalColor = gray > 140 ? 255 : 0; 
-
+                // Everything darker than 130 becomes Black (text). Everything lighter becomes White (green column/background).
+                let finalColor = gray < 130 ? 0 : 255; 
                 data[i] = data[i+1] = data[i+2] = finalColor;
+            }
+
+            // 2. MAGIC LINE ERASER (Deletes black Excel grid borders so they don't block the AI)
+            for (let y = 0; y < canvas.height; y++) {
+                let blackCount = 0; let startX = 0;
+                for (let x = 0; x < canvas.width; x++) {
+                    if (data[(y * canvas.width + x) * 4] === 0) {
+                        if (blackCount === 0) startX = x;
+                        blackCount++;
+                    } else {
+                        if (blackCount > 150) { 
+                            for (let k = startX; k < x; k++) {
+                                let idx = (y * canvas.width + k) * 4;
+                                data[idx] = data[idx+1] = data[idx+2] = 255;
+                            }
+                        }
+                        blackCount = 0;
+                    }
+                }
+                if (blackCount > 150) {
+                    for (let k = startX; k < canvas.width; k++) {
+                        let idx = (y * canvas.width + k) * 4;
+                        data[idx] = data[idx+1] = data[idx+2] = 255;
+                    }
+                }
+            }
+            for (let x = 0; x < canvas.width; x++) {
+                let blackCount = 0; let startY = 0;
+                for (let y = 0; y < canvas.height; y++) {
+                    if (data[(y * canvas.width + x) * 4] === 0) {
+                        if (blackCount === 0) startY = y;
+                        blackCount++;
+                    } else {
+                        if (blackCount > 80) { 
+                            for (let k = startY; k < y; k++) {
+                                let idx = (k * canvas.width + x) * 4;
+                                data[idx] = data[idx+1] = data[idx+2] = 255;
+                            }
+                        }
+                        blackCount = 0;
+                    }
+                }
+                if (blackCount > 80) {
+                    for (let k = startY; k < canvas.height; k++) {
+                        let idx = (k * canvas.width + x) * 4;
+                        data[idx] = data[idx+1] = data[idx+2] = 255;
+                    }
+                }
             }
             ctx.putImageData(imageData, 0, 0); 
             const processedImage = canvas.toDataURL('image/png');
             
             dropText.innerHTML = `⏳ Analyzing Image...`;
             
-            // PSM 6 COMMAND: Forces AI to read left-to-right horizontally, ignoring all columns!
-            const result = await Tesseract.recognize(processedImage, 'eng', {
-                tessedit_pageseg_mode: 6
-            }); 
-            
+            // PSM 6: Forces AI to read left-to-right, completely ignoring any remaining columns/borders
+            const result = await Tesseract.recognize(processedImage, 'eng', { tessedit_pageseg_mode: 6 }); 
             const lines = result.data.text.split('\n');
             let newOps = []; 
             let currentNo = operationsData.length > 0 ? Math.max(...operationsData.map(o => o.no)) + 1 : 1;
@@ -1006,14 +1052,21 @@ async function processOcrFile(file) {
                 let lineStr = line.trim(); if (!lineStr) return;
                 
                 lineStr = lineStr.replace(/[\[\]\|_!]/g, '');
-                lineStr = lineStr.replace(/(?:\b| )[Oo]\s*([.,]\s*\d+)\s*$/, ' 0$1').replace(/\b0\s+[.,]?\s*(\d+)\s*$/, '0.$1').replace(/(\d)[.,]\s+(\d+)\s*$/, '$1.$2');
-                
                 const parts = lineStr.split(/\s+/); if(parts.length < 2) return;
                 
                 let smvVal = NaN;
                 let smvIndex = -1;
                 for (let j = parts.length - 1; j >= 1; j--) {
-                    let possibleSMV = parts[j].replace(',', '.').replace(/[^0-9.]/g, '');
+                    let possibleSMV = parts[j].replace(',', '.').replace(/[Oo]/g, '0').replace(/[^0-9.]/g, '');
+                    
+                    // 3. DECIMAL AUTO-RESTORER: Puts the dot back if AI missed it
+                    if (possibleSMV.length >= 3 && !possibleSMV.includes('.')) {
+                        let rawNum = parseInt(possibleSMV, 10);
+                        if (rawNum > 50) { 
+                            possibleSMV = (rawNum / 10000).toString(); 
+                        }
+                    }
+                    
                     let parsed = parseFloat(possibleSMV);
                     if (!isNaN(parsed) && parsed > 0 && parsed < 100 && /\d/.test(parts[j])) {
                         smvVal = parsed;
@@ -1027,6 +1080,7 @@ async function processOcrFile(file) {
                     let opName = parts.slice(startIndex, smvIndex).join(' ').trim().replace(/[,.\]]+$/, '').trim(); 
                     
                     if (opName.toLowerCase().includes('operation') || opName.toLowerCase() === 'total' || opName === '') return;
+                    if (opName.toLowerCase().includes('sheet1') || opName.toLowerCase().includes('sheet2')) return;
                     
                     let targetVal = Math.round(60 / smvVal);
                     let extractedMachine = parts[smvIndex + 1] || '';
@@ -1053,7 +1107,6 @@ async function processOcrFile(file) {
             setTimeout(() => { dropText.innerHTML = originalText; }, 4000); 
         }
     }
-
     async function exportToExcel() {
         if (operationsData.length === 0) return alert("Table is empty.");
         const btn = document.getElementById("btnExport"); btn.innerText = "⏳ Generating Excel..."; btn.disabled = true;
