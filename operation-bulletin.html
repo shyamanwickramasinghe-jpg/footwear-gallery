@@ -437,34 +437,57 @@
         setupDropZone('excelUpload', 'excelDropZone');
         setupDropZone('ocrUpload', 'ocrDropZone'); 
 
-        document.onpaste = function(e) {
-            // Safely ignore if you are typing in a text box or dropdown
-            if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
-
-            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].type.indexOf("image") !== -1) {
-                    e.preventDefault();
-                    const file = items[i].getAsFile();
-                    
-                    const aiTab = document.getElementById('tabAIContent');
-                    if (aiTab && aiTab.classList.contains('active')) {
-                        processOcrFile(file);
-                    } else {
-                        processMediaFile(file);
-                    }
-                    return; // Stop immediately after finding the image
+window.addEventListener('paste', function(e) {
+            // ONLY block paste if the user is actively typing in a text box or textarea
+            if (e.target) {
+                const tag = e.target.tagName;
+                const type = e.target.type; 
+                // Allow paste if it's the invisible 'file' input over our drop zones
+                if (tag === 'TEXTAREA' || tag === 'SELECT' || (tag === 'INPUT' && type !== 'file')) {
+                    return; 
                 }
             }
-        };
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                if(typeof closeImagePopup === 'function') closeImagePopup();
-                if(typeof closeOpsPopup === 'function') closeOpsPopup();
-                if(typeof closeLoadModal === 'function') closeLoadModal();
-                if(typeof closeGuideModal === 'function') closeGuideModal();
+            const clipboardData = e.clipboardData || window.clipboardData;
+            if (!clipboardData) return;
+
+            let fileFound = false;
+
+            // Method 1: Check standard clipboard items (Snipping tool, Web copies)
+            if (clipboardData.items && clipboardData.items.length > 0) {
+                for (let i = 0; i < clipboardData.items.length; i++) {
+                    const item = clipboardData.items[i];
+                    if (item.type && item.type.indexOf("image") !== -1) {
+                        const file = item.getAsFile();
+                        if (file) {
+                            fileFound = true;
+                            routePastedFile(file, e);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Method 2: Fallback for browsers using the files array
+            if (!fileFound && clipboardData.files && clipboardData.files.length > 0) {
+                for (let i = 0; i < clipboardData.files.length; i++) {
+                    const file = clipboardData.files[i];
+                    if (file.type && file.type.indexOf("image") !== -1) {
+                        routePastedFile(file, e);
+                        break;
+                    }
+                }
+            }
+
+            function routePastedFile(file, event) {
+                event.preventDefault();
+                const aiTab = document.getElementById('tabAIContent');
+                // Check which tab is currently active to send the image to the right place
+                if (aiTab && aiTab.classList.contains('active')) {
+                    processOcrFile(file);
+                } else {
+                    processMediaFile(file);
+                }
             }
         });
 
