@@ -44,7 +44,7 @@
         .drop-zone.dragover, .drop-zone:hover { border-color: #38bdf8 !important; }
         .drop-zone-text { font-weight: bold; pointer-events: auto; color: #94a3b8; margin: auto;}
         .drop-zone-text span { color: #10b981; }
-        .drop-zone-input { display: none; }
+        .drop-zone-input { display: none; } /* HIDDEN INPUT FIX */
 
         .tab-bar { display: flex; width: 100%; border-bottom: 2px solid #334155; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 12px; background: transparent; color: #94a3b8; border: none; font-weight: bold; cursor: pointer; font-size: 1em; border-radius: 8px 8px 0 0; }
@@ -433,63 +433,66 @@
     let dsiMachines = [ {"name":"Travelling head Die cutter","ma":4.0}, {"name":"Hydraulic Die cutter","ma":4.0}, {"name":"Clicker cutter Die cutter","ma":3.0}, {"name":"Programe cutter Cutter","ma":8.0}, {"name":"Strap Cutter Cutter","ma":2.0}, {"name":"Strap Folding Folding","ma":2.0}, {"name":"Combine Combining","ma":7.0}, {"name":"Skiving","ma":2.5}, {"name":"Toe Gum","ma":3.0}, {"name":"Welding","ma":9.0}, {"name":"SNLS FB","ma":5.0}, {"name":"DNLS FB","ma":7.0}, {"name":"SNLS PB","ma":5.0}, {"name":"DNLS PB","ma":7.0}, {"name":"SNLS BINDING","ma":5.5}, {"name":"DNCS","ma":7.0}, {"name":"ZZ FB","ma":5.0}, {"name":"SEAM OPENER","ma":3.0}, {"name":"PUNCHING","ma":3.0}, {"name":"EYELET","ma":4.0}, {"name":"Pattern Sewer","ma":5.0}, {"name":"Hammering","ma":2.0}, {"name":"Stroble","ma":4.0}, {"name":"EDGE CUT","ma":2.0}, {"name":"Strap Auto","ma":4.0}, {"name":"Strap Manual","ma":2.0}, {"name":"BTK","ma":5.0}, {"name":"Folding","ma":2.0}, {"name":"Lacing 2 thread","ma":5.5}, {"name":"Heat Sealing","ma":2.5}, {"name":"Thread trimmer","ma":2.0}, {"name":"Toe Foaming","ma":2.0}, {"name":"Manual Table / Bench Work","ma":0.0} ];
 
     document.addEventListener("DOMContentLoaded", () => {
+        
+        // 1. BULLETPROOF DRAG & DROP: Catches files directly on the box, ignoring the hidden input
+        function setupDropZone(inputId, zoneId) {
+            const zone = document.getElementById(zoneId);
+            if (!zone) return;
+
+            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+            zone.addEventListener('dragleave', (e) => { e.preventDefault(); zone.classList.remove('dragover'); });
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    if (inputId === 'mediaUpload') {
+                        Array.from(e.dataTransfer.files).forEach(file => processMediaFile(file));
+                    } else if (inputId === 'excelUpload') {
+                        // Pass fake event to trick the excel handler into reading it
+                        handleExcelImport({ target: { files: e.dataTransfer.files, value: '' } });
+                    } else if (inputId === 'ocrUpload') {
+                        processOcrFile(e.dataTransfer.files[0]);
+                    }
+                }
+            });
+        }
+
         setupDropZone('mediaUpload', 'imgDropZone');
         setupDropZone('excelUpload', 'excelDropZone');
         setupDropZone('ocrUpload', 'ocrDropZone'); 
 
-        window.addEventListener('paste', function(e) {
-            // ONLY block paste if the user is actively typing in a text box or textarea
-            if (e.target) {
-                const tag = e.target.tagName;
-                const type = e.target.type; 
-                // Allow paste if it's the invisible 'file' input over our drop zones
-                if (tag === 'TEXTAREA' || tag === 'SELECT' || (tag === 'INPUT' && type !== 'file')) {
-                    return; 
-                }
-            }
-
+        // 2. BULLETPROOF PASTE: Globally catches any image on the clipboard
+        document.onpaste = function(e) {
+            // Ignore if you are actually typing in a text box
+            if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+            
             const clipboardData = e.clipboardData || window.clipboardData;
             if (!clipboardData) return;
 
-            let fileFound = false;
-
-            // Method 1: Check standard clipboard items (Snipping tool, Web copies)
-            if (clipboardData.items && clipboardData.items.length > 0) {
+            let imgFile = null;
+            if (clipboardData.items) {
                 for (let i = 0; i < clipboardData.items.length; i++) {
-                    const item = clipboardData.items[i];
-                    if (item.type && item.type.indexOf("image") !== -1) {
-                        const file = item.getAsFile();
-                        if (file) {
-                            fileFound = true;
-                            routePastedFile(file, e);
-                            break;
-                        }
+                    if (clipboardData.items[i].type.indexOf("image") !== -1) {
+                        imgFile = clipboardData.items[i].getAsFile(); break;
                     }
                 }
             }
-
-            // Method 2: Fallback for browsers using the files array
-            if (!fileFound && clipboardData.files && clipboardData.files.length > 0) {
+            if (!imgFile && clipboardData.files) {
                 for (let i = 0; i < clipboardData.files.length; i++) {
-                    const file = clipboardData.files[i];
-                    if (file.type && file.type.indexOf("image") !== -1) {
-                        routePastedFile(file, e);
-                        break;
+                    if (clipboardData.files[i].type.indexOf("image") !== -1) {
+                        imgFile = clipboardData.files[i]; break;
                     }
                 }
             }
 
-            function routePastedFile(file, event) {
-                event.preventDefault();
+            if (imgFile) {
+                e.preventDefault();
                 const aiTab = document.getElementById('tabAIContent');
-                // Check which tab is currently active to send the image to the right place
-                if (aiTab && aiTab.classList.contains('active')) {
-                    processOcrFile(file);
-                } else {
-                    processMediaFile(file);
-                }
+                if (aiTab && aiTab.classList.contains('active')) processOcrFile(imgFile);
+                else processMediaFile(imgFile);
             }
-        });
+        };
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
@@ -1114,4 +1117,4 @@ const file = event.target.files[0]; if (!file) return; const dropText = document
     }
 </script>
 </body>
-</html>
+</html> 
