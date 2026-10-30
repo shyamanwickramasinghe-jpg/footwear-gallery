@@ -3258,35 +3258,58 @@ function renderBulletinList() {
         });
     }
 
-    function openPreviewModal(index) {
-        const op = operations[index];
-        document.getElementById("modalTitle").innerText = op.name;
-        document.getElementById("previewModal").style.display = "flex";
-        
-        if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
-            document.getElementById("modalVideo").style.display = "none";
-            document.getElementById("modalYtWrapper").style.display = "block";
-            document.getElementById("modalYtWrapper").innerHTML = '<div id="modalYtPlayer"></div>';
-            modalYtAPI = new YT.Player('modalYtPlayer', {
-                videoId: getYouTubeID(op.file),
-                playerVars: { 'controls': 0, 'rel': 0, 'modestbranding': 1, 'autoplay': 1, 'playsinline': 1 },
-                events: { 'onReady': e => e.target.playVideo() }
-            });
-        } else {
-            document.getElementById("modalYtWrapper").style.display = "none";
-            const video = document.getElementById("modalVideo");
-            video.style.display = "block";
-            video.src = op.file;
-            video.play();
-        }
-    }
+function openPreviewModal(index) {
+    const op = operations[index];
+    document.getElementById("modalTitle").innerText = op.name;
+    document.getElementById("previewModal").style.display = "flex";
+    
+    const videoEl = document.getElementById("modalVideo");
+    const ytWrapper = document.getElementById("modalYtWrapper");
 
-    function closePreviewModal() {
-        document.getElementById("previewModal").style.display = "none";
-        document.getElementById("modalVideo").pause();
-        document.getElementById("modalVideo").src = "";
-        if (modalYtAPI) { modalYtAPI.destroy(); modalYtAPI = null; }
+    if (op.file.includes("youtube.com") || op.file.includes("youtu.be")) {
+        // Handle YouTube Video
+        videoEl.style.display = "none";
+        videoEl.pause();
+        
+        ytWrapper.style.display = "block";
+        const videoId = getYouTubeID(op.file);
+        
+        // Use a robust iframe instead of the fragile YT.Player JS API for the popup
+        ytWrapper.innerHTML = `<iframe width="100%" height="100%" style="border-radius: 8px; min-height: 40vh;" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        
+    } else {
+        // Handle Standard MP4 File (ImageKit, etc.)
+        ytWrapper.style.display = "none";
+        ytWrapper.innerHTML = ""; // Clear YouTube iframe
+        
+        videoEl.style.display = "block";
+        videoEl.src = op.file;
+        
+        // A slight delay prevents the browser "DOMException: play() request interrupted" error
+        setTimeout(() => {
+            videoEl.play().catch(e => console.warn("Autoplay prevented by browser:", e));
+        }, 150);
     }
+}
+
+function closePreviewModal() {
+    document.getElementById("previewModal").style.display = "none";
+    
+    // Safely stop and unload the standard MP4 video
+    const videoEl = document.getElementById("modalVideo");
+    videoEl.pause();
+    videoEl.removeAttribute('src'); // Unloads the video from memory
+    videoEl.load();
+    
+    // Safely destroy the YouTube iframe by wiping the inner HTML
+    document.getElementById("modalYtWrapper").innerHTML = ""; 
+    
+    // Fallback cleanup just in case an old API reference exists
+    if (typeof modalYtAPI !== 'undefined' && modalYtAPI) { 
+        try { modalYtAPI.destroy(); } catch(e){} 
+        modalYtAPI = null; 
+    }
+}
 
     function generateBulletinTable() {
         if (checkedBulletinIndices.size === 0) return alert("Please select at least one operation.");
