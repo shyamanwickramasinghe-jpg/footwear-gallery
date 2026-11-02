@@ -768,7 +768,7 @@ async function emailAllocatedIE() {
     }
     function closeLoadModal() { document.getElementById("dbModal").style.display = "none"; }
 
-    function renderDatabaseList() {
+function renderDatabaseList() {
         const query1 = document.getElementById("dbSearchInput").value.toLowerCase(); const query2 = document.getElementById("dbSearchOpInput").value.toLowerCase(); const container = document.getElementById("dbListContainer");
         const filtered = loadedCloudDB.filter(entry => {
             const m = entry.meta || {}; const match1 = (m.name || "").toLowerCase().includes(query1) || (m.process || m.cutting || m.assembly || "").toLowerCase().includes(query1) || (m.comments || "").toLowerCase().includes(query1);
@@ -784,12 +784,22 @@ async function emailAllocatedIE() {
             const ieBadge = `<span class="sec-badge" style="background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid #a855f7;" title="Allocated IE Member">👤 ${ieName}</span>`;
             const procBadge = `<span class="sec-badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444;" title="Process">⚙️ ${procText}</span>`;
             let cleanDate = entry.date ? entry.date.split("T")[0] : "";
+            
+            // --- NEW: Calculate Total SMV for the row ---
+            let totalSmv = 0;
+            if (entry.ops && entry.ops.length > 0) {
+                totalSmv = entry.ops.reduce((sum, op) => sum + (op.smv || 0), 0);
+            }
+            
             return `
             <div class="db-card">
                 <div class="db-card-content">
                     <span class="db-card-name" style="cursor: help; border-bottom: 1px dotted #10b981;" onmouseenter="openOpsPopup(event, '${entry.id}')" onmousemove="moveOpsPopup(event)" onmouseleave="closeOpsPopupDelay()">👟 ${entry.meta.name}</span>
                     <div class="db-badges">${plantBadge} ${ieBadge} ${procBadge}</div>
-                    <span class="db-meta-text">📅 ${cleanDate} &nbsp;|&nbsp; ⚙️ ${entry.ops ? entry.ops.length : 0} Ops</span>
+                    
+                    <!-- Added Total SMV to the meta text line below -->
+                    <span class="db-meta-text">📅 ${cleanDate} &nbsp;|&nbsp; ⚙️ ${entry.ops ? entry.ops.length : 0} Ops &nbsp;|&nbsp; ⏱️ ${totalSmv.toFixed(4)} SMV</span>
+                    
                     <div class="db-images">${imgHtml}</div>
                 </div>
                 <div class="db-actions">
