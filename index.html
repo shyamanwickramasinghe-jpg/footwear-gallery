@@ -3915,15 +3915,22 @@ let sNextPointNewPath = false;
 </div>
 </div>
 <!-- ========================================== -->
-<!-- 🤖 DSI AI AGENT (FLOATING CHAT BOT)        -->
+<!-- 🤖 DSI AI AGENT (VOICE + CLOUD MEMORY)     -->
 <!-- ========================================== -->
 <button id="aiChatToggle" onclick="toggleAiChat()" title="Open DSI AI Assistant" style="position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #10b981, #0284c7); color: white; border: 2px solid #fff; border-radius: 50%; width: 62px; height: 62px; font-size: 28px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.6); z-index: 9999; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;">🤖</button>
 
-<div id="aiChatWindow" style="display: none; position: fixed; bottom: 92px; right: 20px; width: 400px; height: 550px; max-height: 82vh; background: #0f172a; border: 2px solid #38bdf8; border-radius: 12px; z-index: 9999; flex-direction: column; box-shadow: 0 12px 35px rgba(0,0,0,0.85); overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif;">
+<div id="aiChatWindow" style="display: none; position: fixed; bottom: 92px; right: 20px; width: 430px; height: 600px; max-height: 82vh; background: #0f172a; border: 2px solid #38bdf8; border-radius: 12px; z-index: 9999; flex-direction: column; box-shadow: 0 12px 35px rgba(0,0,0,0.85); overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif;">
     <!-- Header -->
     <div style="background: #1e293b; border-bottom: 1px solid #334155; color: white; padding: 12px 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
-        <span style="color: #10b981; font-size: 1.05em;">🧠 DSI IE Assistant</span>
+        <div style="display: flex; flex-direction: column;">
+            <span style="color: #10b981; font-size: 1.05em;">🧠 DSI IE Cloud Agent</span>
+            <span id="aiDbStatus" style="font-size: 0.72em; color: #94a3b8; font-weight: normal;">⏳ Syncing Google Sheets...</span>
+        </div>
         <div style="display: flex; gap: 6px; align-items: center;">
+            <button onclick="syncAiCloudMemory(true)" title="Refresh Google Sheet Data" style="background: #334155; border: none; color: #38bdf8; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; font-weight: bold;">🔄 Sync</button>
+            <button onclick="setGeminiApiKey()" title="Set Gemini API Key" style="background: #334155; border: none; color: #fcd34d; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; font-weight: bold;">🔑 Key</button>
+            <!-- NEW VOICE TOGGLE -->
+            <button id="voiceToggleBtn" onclick="toggleVoice()" title="Enable Voice Out Loud" style="background: #334155; border: none; color: #f8fafc; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.9em;">🔇</button>
             <button onclick="clearAiChat()" title="Clear Chat" style="background: #334155; border: none; color: #f8fafc; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">🧹</button>
             <button onclick="toggleAiChat()" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 1.2em; font-weight: bold; margin-left: 4px;">✖</button>
         </div>
@@ -3933,58 +3940,204 @@ let sNextPointNewPath = false;
     <div id="aiChatHistory" style="flex: 1; padding: 15px; overflow-y: auto; color: #f8fafc; font-size: 0.88em; display: flex; flex-direction: column; gap: 12px; line-height: 1.5;">
         <div style="background: #1e293b; padding: 12px; border-radius: 8px 8px 8px 0; border-left: 3px solid #10b981; align-self: flex-start; max-width: 90%;">
             Hello! I am your DSI Footwear IE Assistant.<br><br>
-            I have full memory of this web application and the local operations database.<br><br>
-            Ask me anything about SMVs, operations, or how to use this system!
+            I have full memory of:<br>
+            • 📊 <b>Active Screen Bulletin & Part Summary</b><br>
+            • ☁️ <b>All Saved Bulletins in Google Sheets</b><br>
+            • ⚙️ <b>All Plant IEs (MP, BP, KP, SP) & Machines</b><br><br>
+            Click the <b>🎤 Mic</b> below to speak, or type your question! Turn on the <b>🔊 Speaker</b> at the top if you want me to talk back.
         </div>
     </div>
 
-    <!-- Input Box -->
+    <!-- Input Box with Mic -->
     <div style="padding: 10px 12px; background: #1e293b; border-top: 1px solid #334155; display: flex; gap: 8px;">
-        <input type="text" id="aiChatInput" placeholder="Ask a question..." style="flex: 1; background: #0b1120; border: 1px solid #475569; color: white; padding: 10px; border-radius: 6px; outline: none; font-size: 0.9em;" onkeydown="if(event.key === 'Enter') sendAiMessage()">
+        <button id="micBtn" onclick="toggleMic()" title="Click to Speak" style="background: #334155; color: #fff; border: none; padding: 10px; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.1em;">🎤</button>
+        
+        <input type="text" id="aiChatInput" placeholder="Ask about any sample, SMV..." style="flex: 1; background: #0b1120; border: 1px solid #475569; color: white; padding: 10px; border-radius: 6px; outline: none; font-size: 0.9em;" onkeydown="if(event.key === 'Enter') sendAiMessage()">
+        
         <button id="aiSendBtn" onclick="sendAiMessage()" style="background: #10b981; color: #000; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">Send</button>
     </div>
 </div>
 
 <script>
+    let loadedCloudDB = window.loadedCloudDB || [];
     let aiChatMessages = [];
+    
+    // --- VOICE CONFIGURATION ---
+    let voiceEnabled = false;
+    let isListening = false;
+    let speechRecognizer;
 
+    // Initialize Speech Recognition (Microphone)
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        speechRecognizer = new SpeechRecognition();
+        speechRecognizer.continuous = false;
+        speechRecognizer.interimResults = false;
+        speechRecognizer.lang = 'en-US';
+
+        speechRecognizer.onstart = function() {
+            isListening = true;
+            const mic = document.getElementById("micBtn");
+            mic.style.background = "#ef4444"; // Red for recording
+            mic.innerText = "🎙️";
+            mic.style.boxShadow = "0 0 10px rgba(239,68,68,0.6)";
+            document.getElementById("aiChatInput").placeholder = "Listening to you...";
+        };
+
+        speechRecognizer.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            document.getElementById("aiChatInput").value = transcript;
+            sendAiMessage(); // Auto-send when you finish speaking
+        };
+
+        speechRecognizer.onerror = function(event) {
+            console.error("Mic error:", event.error);
+            stopMicUI();
+        };
+
+        speechRecognizer.onend = function() {
+            stopMicUI();
+        };
+    }
+
+    function toggleMic() {
+        if (!speechRecognizer) {
+            alert("⚠️ Microphone input is not supported in this browser. Try Google Chrome or Edge.");
+            return;
+        }
+        if (isListening) {
+            speechRecognizer.stop();
+        } else {
+            speechRecognizer.start();
+        }
+    }
+
+    function stopMicUI() {
+        isListening = false;
+        const mic = document.getElementById("micBtn");
+        mic.style.background = "#334155";
+        mic.innerText = "🎤";
+        mic.style.boxShadow = "none";
+        document.getElementById("aiChatInput").placeholder = "Ask about any sample, SMV...";
+    }
+
+    function toggleVoice() {
+        voiceEnabled = !voiceEnabled;
+        const btn = document.getElementById("voiceToggleBtn");
+        if (voiceEnabled) {
+            btn.innerText = "🔊";
+            btn.title = "Disable Voice Out Loud";
+        } else {
+            btn.innerText = "🔇";
+            btn.title = "Enable Voice Out Loud";
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop talking immediately
+            }
+        }
+    }
+
+    // --- STANDARD AI CHAT LOGIC ---
     function toggleAiChat() {
         const chatWin = document.getElementById("aiChatWindow");
         const btn = document.getElementById("aiChatToggle");
         if (chatWin.style.display === "none") {
             chatWin.style.display = "flex";
             btn.style.transform = "scale(0.9)";
+            if (!loadedCloudDB || loadedCloudDB.length === 0) {
+                syncAiCloudMemory();
+            } else {
+                updateAiDbStatus();
+            }
         } else {
             chatWin.style.display = "none";
             btn.style.transform = "scale(1)";
         }
     }
 
+    function updateAiDbStatus() {
+        const statusEl = document.getElementById("aiDbStatus");
+        if (loadedCloudDB && loadedCloudDB.length > 0) {
+            statusEl.innerHTML = `✅ Cloud Memory: ${loadedCloudDB.length} Bulletins Loaded`;
+            statusEl.style.color = "#38bdf8";
+        } else {
+            statusEl.innerHTML = `⚠️ Cloud Memory: 0 Bulletins (Click 🔄 Sync)`;
+            statusEl.style.color = "#f59e0b";
+        }
+    }
+
+    function syncAiCloudMemory(forceAlert = false) {
+        const statusEl = document.getElementById("aiDbStatus");
+        statusEl.innerHTML = "⏳ Syncing Google Sheets...";
+        statusEl.style.color = "#fcd34d";
+        if(typeof fetchCloudData === 'function') {
+            fetchCloudData(() => {
+                updateAiDbStatus();
+                if (forceAlert) alert(`✅ Synced ${loadedCloudDB.length} bulletins from Google Sheets into AI Memory!`);
+            }, () => {
+                statusEl.innerHTML = "❌ Cloud Sync Failed";
+                statusEl.style.color = "#ef4444";
+            });
+        }
+    }
+
+    function setGeminiApiKey() {
+        const current = localStorage.getItem("dsi_gemini_api_key") || localStorage.getItem("geminiApiKey") || "";
+        const key = prompt("Enter your Google Gemini API Key:", current);
+        if (key !== null && key.trim() !== "") {
+            localStorage.setItem("dsi_gemini_api_key", key.trim());
+            alert("✅ Gemini API Key saved!");
+        }
+    }
+
     function clearAiChat() {
         aiChatMessages = [];
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
         document.getElementById("aiChatHistory").innerHTML = `
             <div style="background: #1e293b; padding: 12px; border-radius: 8px 8px 8px 0; border-left: 3px solid #10b981; align-self: flex-start; max-width: 90%;">
-                Chat memory cleared. I am ready for your next question!
+                Chat memory cleared. I still have full access to your screen and all ${loadedCloudDB ? loadedCloudDB.length : 0} cloud bulletins!
             </div>`;
     }
 
-    function buildSystemKnowledge() {
-        // Build a summary of the operations array
-        let opsSummary = "No operations loaded.";
-        if (typeof operations !== 'undefined' && operations.length > 0) {
-            opsSummary = operations.map((op, idx) => `[${idx}] ${op.name} (SMV: ${op.smvPair.toFixed(4)})`).join("\n");
+    function buildFullSystemKnowledge() {
+        const activeSample = document.getElementById("sampleName") ? document.getElementById("sampleName").value : "None";
+        let activeOpsText = "No operations currently on screen.";
+        let activeTotalSmv = 0;
+        
+        if (typeof operationsData !== 'undefined' && operationsData.length > 0) {
+            activeOpsText = operationsData.map(op => {
+                activeTotalSmv += (Number(op.smv) || 0);
+                return `  #${op.no} | WC:${op.section || '-'} | Part:${op.component || '-'} | Op:${op.name} | Mach:${op.machine || '-'} | SMV:${Number(op.smv).toFixed(4)}`;
+            }).join("\n");
+        } else if (typeof operations !== 'undefined' && operations.length > 0) {
+            activeOpsText = operations.map((op, idx) => `[${idx}] ${op.name} (SMV: ${op.smvPair ? op.smvPair.toFixed(4) : 0})`).join("\n");
         }
 
-        return `You are the Official DSI FOOTTECH Operation Bulletin v2.0 AI Assistant.
-You have knowledge of this web application and the local operations database.
+        let cloudDbText = "Cloud database not loaded yet.";
+        if (loadedCloudDB && loadedCloudDB.length > 0) {
+            cloudDbText = loadedCloudDB.map((entry, idx) => {
+                const m = entry.meta || {};
+                const ops = entry.ops || [];
+                const totSmv = ops.reduce((s, o) => s + (Number(o.smv) || 0), 0);
+                return `BULLETIN ${idx + 1}: Sample="${m.name || entry.id}" | Plant=${m.plant || 'N/A'} | TotalOps=${ops.length} | TotalSMV=${totSmv.toFixed(4)}`;
+            }).join("\n");
+        }
 
-=== LOCAL OPERATIONS DATABASE ===
-${opsSummary}
+        return `You are the Official DSI FOOTTECH Operation Bulletin AI Assistant.
+You have complete, real-time knowledge of this web application, the active screen, and the Google Sheets Cloud Database.
+
+If the user is using Voice mode (speaking to you), keep your answers VERY short and conversational so it sounds natural when spoken aloud.
+
+=== CURRENT ACTIVE SCREEN DATA ===
+- Sample Name: ${activeSample}
+- Active Screen Operations:
+${activeOpsText}
+
+=== GOOGLE SHEETS CLOUD DATABASE ===
+${cloudDbText}
 
 INSTRUCTIONS:
-- Answer questions accurately based on the provided operations database.
-- If asked to load an operation, instruct the user to use the 'Global & Local Search' tab.
-- Keep answers clear, professional, and concise. Do not use markdown bolding.`;
+- Answer clearly and concisely.
+- Do not use markdown bolding (**) or complex tables, as this text may be read aloud by a text-to-speech engine.`;
     }
 
     async function sendAiMessage() {
@@ -3992,14 +4145,18 @@ INSTRUCTIONS:
         const msg = inputEl.value.trim();
         if (!msg) return;
 
-        let apiKey = localStorage.getItem("geminiApiKey") || "";
+        let apiKey = localStorage.getItem("dsi_gemini_api_key") || localStorage.getItem("geminiApiKey") || "";
         if (!apiKey) {
-            alert("⚠️ Please enter your Gemini API Key in the Admin tab first to use the Chat Bot.");
-            return;
+            apiKey = prompt("Please enter your Google Gemini API Key to activate the AI Assistant:");
+            if (!apiKey || !apiKey.trim()) return;
+            localStorage.setItem("dsi_gemini_api_key", apiKey.trim());
         }
 
         const historyEl = document.getElementById("aiChatHistory");
         const sendBtn = document.getElementById("aiSendBtn");
+
+        // Stop any current talking when the user sends a new message
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
         // Show User Message
         const safeUserMsg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -4014,13 +4171,19 @@ INSTRUCTIONS:
         historyEl.scrollTop = historyEl.scrollHeight;
 
         try {
-            // Keep conversation history (last 10 messages)
+            if (!loadedCloudDB || loadedCloudDB.length === 0) {
+                if(typeof fetchCloudData === 'function') {
+                    await new Promise((resolve) => fetchCloudData(resolve, resolve));
+                    updateAiDbStatus();
+                }
+            }
+
             aiChatMessages.push({ role: "user", parts: [{ text: msg }] });
             if (aiChatMessages.length > 10) aiChatMessages = aiChatMessages.slice(-10);
 
-            const systemKnowledge = buildSystemKnowledge();
+            const systemKnowledge = buildFullSystemKnowledge();
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey.trim()}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey.trim()}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -4037,8 +4200,17 @@ INSTRUCTIONS:
                 const aiText = data.candidates[0].content.parts[0].text;
                 aiChatMessages.push({ role: "model", parts: [{ text: aiText }] });
 
+                // --- SPEAK THE RESPONSE ALOUD ---
+                if (voiceEnabled && 'speechSynthesis' in window) {
+                    const cleanTextForSpeech = aiText.replace(/[*#_`]/g, '').replace(/<[^>]*>?/gm, '');
+                    const utterance = new SpeechSynthesisUtterance(cleanTextForSpeech);
+                    utterance.rate = 1.05; // Slightly faster than default
+                    window.speechSynthesis.speak(utterance);
+                }
+
                 const formattedHtml = aiText
                     .replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                    .replace(/\*\*(.*?)\*\*/g, '<b style="color:#38bdf8;">$1</b>')
                     .replace(/\n/g, '<br>');
 
                 historyEl.innerHTML += `<div style="background: #1e293b; padding: 12px; border-radius: 8px 8px 8px 0; border-left: 3px solid #10b981; align-self: flex-start; max-width: 92%;">${formattedHtml}</div>`;
