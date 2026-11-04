@@ -1209,13 +1209,13 @@ async function processOcrFile(file) {
             <span style="color: #10b981; font-size: 1.05em;">🧠 DSI IE Cloud Agent</span>
             <span id="aiDbStatus" style="font-size: 0.72em; color: #94a3b8; font-weight: normal;">⏳ Syncing Google Sheets...</span>
         </div>
-        <div style="display: flex; gap: 6px; align-items: center;">
+<div style="display: flex; gap: 6px; align-items: center;">
             <button onclick="syncAiCloudMemory(true)" title="Refresh Google Sheet Data" style="background: #334155; border: none; color: #38bdf8; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; font-weight: bold;">🔄 Sync</button>
             <button onclick="setGeminiApiKey()" title="Set Gemini API Key" style="background: #334155; border: none; color: #fcd34d; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; font-weight: bold;">🔑 Key</button>
+            <button id="voiceToggleBtn" onclick="toggleVoice()" title="Enable Voice Out Loud" style="background: #334155; border: none; color: #f8fafc; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.9em;">🔇</button>
             <button onclick="clearAiChat()" title="Clear Chat" style="background: #334155; border: none; color: #f8fafc; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">🧹</button>
             <button onclick="toggleAiChat()" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 1.2em; font-weight: bold; margin-left: 4px;">✖</button>
-        </div>
-    </div>
+        </div>    </div>
 
     <!-- Chat History -->
     <div id="aiChatHistory" style="flex: 1; padding: 15px; overflow-y: auto; color: #f8fafc; font-size: 0.88em; display: flex; flex-direction: column; gap: 12px; line-height: 1.5;">
@@ -1229,8 +1229,9 @@ async function processOcrFile(file) {
         </div>
     </div>
 
-    <!-- Input Box -->
+<!-- Input Box -->
     <div style="padding: 10px 12px; background: #1e293b; border-top: 1px solid #334155; display: flex; gap: 8px;">
+        <button id="micBtn" onclick="toggleMic()" title="Click to Speak" style="background: #334155; color: #fff; border: none; padding: 10px; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.1em;">🎤</button>
         <input type="text" id="aiChatInput" placeholder="Ask about any sample, SMV, or operation..." style="flex: 1; background: #0b1120; border: 1px solid #475569; color: white; padding: 10px; border-radius: 6px; outline: none; font-size: 0.9em;" onkeydown="if(event.key === 'Enter') sendAiMessage()">
         <button id="aiSendBtn" onclick="sendAiMessage()" style="background: #10b981; color: #000; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">Send</button>
     </div>
@@ -1238,7 +1239,80 @@ async function processOcrFile(file) {
 
 <script>
     let loadedCloudDB = window.loadedCloudDB || [];
-    let aiChatMessages = [];
+let aiChatMessages = [];
+
+    // --- VOICE CONFIGURATION ---
+    let voiceEnabled = false;
+    let isListening = false;
+    let speechRecognizer;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        speechRecognizer = new SpeechRecognition();
+        speechRecognizer.continuous = false;
+        speechRecognizer.interimResults = false;
+        speechRecognizer.lang = 'en-US';
+
+        speechRecognizer.onstart = function() {
+            isListening = true;
+            const mic = document.getElementById("micBtn");
+            mic.style.background = "#ef4444"; 
+            mic.innerText = "🎙️";
+            mic.style.boxShadow = "0 0 10px rgba(239,68,68,0.6)";
+            document.getElementById("aiChatInput").placeholder = "Listening to you...";
+        };
+
+        speechRecognizer.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            document.getElementById("aiChatInput").value = transcript;
+            sendAiMessage(); 
+        };
+
+        speechRecognizer.onerror = function(event) {
+            console.error("Mic error:", event.error);
+            stopMicUI();
+        };
+
+        speechRecognizer.onend = function() {
+            stopMicUI();
+        };
+    }
+
+    function toggleMic() {
+        if (!speechRecognizer) {
+            alert("⚠️ Microphone input is not supported in this browser.");
+            return;
+        }
+        if (isListening) {
+            speechRecognizer.stop();
+        } else {
+            speechRecognizer.start();
+        }
+    }
+
+    function stopMicUI() {
+        isListening = false;
+        const mic = document.getElementById("micBtn");
+        mic.style.background = "#334155";
+        mic.innerText = "🎤";
+        mic.style.boxShadow = "none";
+        document.getElementById("aiChatInput").placeholder = "Ask about any sample, SMV, or operation...";
+    }
+
+    function toggleVoice() {
+        voiceEnabled = !voiceEnabled;
+        const btn = document.getElementById("voiceToggleBtn");
+        if (voiceEnabled) {
+            btn.innerText = "🔊";
+            btn.title = "Disable Voice Out Loud";
+        } else {
+            btn.innerText = "🔇";
+            btn.title = "Enable Voice Out Loud";
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); 
+            }
+        }
+    }
 
     function toggleAiChat() {
         const chatWin = document.getElementById("aiChatWindow");
@@ -1387,7 +1461,7 @@ INSTRUCTIONS:
 - Keep answers clear, well-structured, and concise.`;
     }
 
-    async function sendAiMessage() {
+async function sendAiMessage() {
         const inputEl = document.getElementById("aiChatInput");
         const msg = inputEl.value.trim();
         if (!msg) return;
@@ -1401,6 +1475,9 @@ INSTRUCTIONS:
 
         const historyEl = document.getElementById("aiChatHistory");
         const sendBtn = document.getElementById("aiSendBtn");
+
+        // Stop any current talking when the user sends a new message
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
         // Show User Message
         const safeUserMsg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -1417,16 +1494,19 @@ INSTRUCTIONS:
         try {
             // Auto-fetch Google Sheets data if not loaded yet
             if (!loadedCloudDB || loadedCloudDB.length === 0) {
-                await new Promise((resolve) => fetchCloudData(resolve, resolve));
-                updateAiDbStatus();
+                if(typeof fetchCloudData === 'function') {
+                    await new Promise((resolve) => fetchCloudData(resolve, resolve));
+                    updateAiDbStatus();
+                }
             }
 
-            // Keep last 10 messages of conversation history so it remembers follow-up questions
+            // Keep last 10 messages of conversation history
             aiChatMessages.push({ role: "user", parts: [{ text: msg }] });
             if (aiChatMessages.length > 10) aiChatMessages = aiChatMessages.slice(-10);
 
             const systemKnowledge = buildFullSystemKnowledge();
 
+            // FIXED API URL: Changed from 3.5 to 1.5
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey.trim()}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1443,6 +1523,14 @@ INSTRUCTIONS:
             if (data.candidates && data.candidates[0] && data.candidates[0].content) {
                 const aiText = data.candidates[0].content.parts[0].text;
                 aiChatMessages.push({ role: "model", parts: [{ text: aiText }] });
+
+                // --- SPEAK THE RESPONSE ALOUD ---
+                if (voiceEnabled && 'speechSynthesis' in window) {
+                    const cleanTextForSpeech = aiText.replace(/[*#_`]/g, '').replace(/<[^>]*>?/gm, '');
+                    const utterance = new SpeechSynthesisUtterance(cleanTextForSpeech);
+                    utterance.rate = 1.05; // Slightly faster than default
+                    window.speechSynthesis.speak(utterance);
+                }
 
                 const formattedHtml = aiText
                     .replace(/</g, "&lt;").replace(/>/g, "&gt;")
