@@ -1104,9 +1104,11 @@ async function processOcrFile(file) {
                     if (opName.toLowerCase().includes('operation') || opName.toLowerCase() === 'total' || opName === '') return;
                     if (opName.toLowerCase().includes('sheet1') || opName.toLowerCase().includes('sheet2')) return;
                     
-                    let targetVal = Math.round(60 / smvVal);
-                    let extractedMachine = parts[smvIndex + 1] || '';
-                    let extractedPart = parts[smvIndex + 2] || '';
+		    let targetVal = Math.round(60 / smvVal);
+                    
+                    // Grab ALL words after the SMV number and join them together for the Machine name
+                    let extractedMachine = parts.slice(smvIndex + 1).join(' ').trim();
+                    let extractedPart = ''; // Leave Part blank since it is not in your image
 
                     newOps.push({ id: Date.now() + Math.random(), no: currentNo++, name: opName, section: '', component: extractedPart, machine: extractedMachine, smv: smvVal, target: targetVal, remarks: '', attach: '' });
                 }
