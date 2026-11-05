@@ -1079,7 +1079,15 @@ async function processOcrFile(file) {
                 let smvVal = NaN;
                 let smvIndex = -1;
                 for (let j = parts.length - 1; j >= 1; j--) {
-                    let possibleSMV = parts[j].replace(',', '.').replace(/[Oo]/g, '0').replace(/[^0-9.]/g, '');
+                    let originalPart = parts[j];
+                    
+                    // STRICT CHECK: If the word contains alphabet letters (excluding O/o which OCR confuses for zero),
+                    // it is a Machine name (like "CH01" or "M/C"), NOT the SMV. Skip it!
+                    if (/[a-np-zA-NP-Z]/.test(originalPart)) {
+                        continue; 
+                    }
+
+                    let possibleSMV = originalPart.replace(',', '.').replace(/[Oo]/g, '0').replace(/[^0-9.]/g, '');
                     
                     // 3. DECIMAL AUTO-RESTORER: Puts the dot back if AI missed it
                     if (possibleSMV.length >= 3 && !possibleSMV.includes('.')) {
