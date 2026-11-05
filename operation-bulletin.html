@@ -834,7 +834,7 @@ if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(cleanDate)) {
     }
 
     async function deleteFromCloudDB(id) {
-        if (prompt("Enter Admin Password to Delete Cloud File (9999):") !== "9999") return alert("Incorrect password. Deletion blocked.");
+        if (prompt("Enter Admin Password to Delete Cloud File:") !== "2222") return alert("Incorrect password. Deletion blocked.");
         if (!confirm("Are you sure you want to permanently delete this saved bulletin?")) return;
         try { await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "delete", payload: { id: id } }) }); loadedCloudDB = loadedCloudDB.filter(e => String(e.id) !== String(id)); renderDatabaseList(); alert("Delete request sent to cloud."); } catch (e) { alert("Error connecting to cloud."); }
     }
@@ -866,7 +866,7 @@ if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(cleanDate)) {
 
     function moveRowUp(id) { const index = operationsData.findIndex(o => o.id === id); if (index > 0) { saveState(); const temp = operationsData[index - 1]; operationsData[index - 1] = operationsData[index]; operationsData[index] = temp; reindexOperations(); renderTable(); } }
     function moveRowDown(id) { const index = operationsData.findIndex(o => o.id === id); if (index !== -1 && index < operationsData.length - 1) { saveState(); const temp = operationsData[index + 1]; operationsData[index + 1] = operationsData[index]; operationsData[index] = temp; reindexOperations(); renderTable(); } }
-    function deleteRow(id, bypassConfirm = false) { if (!bypassConfirm) { if(prompt("Enter Admin Password to Delete Row (9999):") !== "9999") return alert("Incorrect password."); } saveState(); operationsData = operationsData.filter(op => op.id !== id); reindexOperations(); renderTable(); }
+    function deleteRow(id, bypassConfirm = false) { if (!bypassConfirm) { if(prompt("Enter Admin Password to Delete Row:") !== "2222") return alert("Incorrect password."); } saveState(); operationsData = operationsData.filter(op => op.id !== id); reindexOperations(); renderTable(); }
     function editRow(id) {
         const op = operationsData.find(o => o.id === id); if (!op) return;
         document.getElementById("inNo").value = op.no; document.getElementById("inSection").value = op.section || ''; document.getElementById("inComponent").value = op.component || ''; document.getElementById("inOpName").value = op.name; document.getElementById("inMachine").value = op.machine; document.getElementById("inRemarks").value = op.remarks || ''; document.getElementById("inAttach").value = op.attach || ''; document.getElementById("inSmv").value = op.smv; document.getElementById("inTarget").value = op.target;
@@ -874,7 +874,7 @@ if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(cleanDate)) {
     }
 
     function clearAllData() {
-        if (prompt("Enter Admin Password to Clear All (9999):") !== "9999") return alert("Incorrect password.");
+        if (prompt("Enter Admin Password to Clear All:") !== "2222") return alert("Incorrect password.");
         if (!confirm("Are you sure you want to clear the current table and images?")) return;
         saveState(); operationsData = []; sampleImages = []; sampleVideos = []; detailsSheet = null;
         document.getElementById("sampleName").value = ""; document.getElementById("processName").value = ""; document.getElementById("sampleVideoLink").value = ""; document.getElementById("sampleComments").value = ""; document.getElementById("targetPlant").value = ""; updateIEList("");
@@ -1448,7 +1448,7 @@ You have complete, real-time knowledge of this web application, the active scree
 - Tabs:
   1) Standard Entry & Excel: Bulk apply Work Center (Cutting, Preparation, Sewing, Assembly, Finishing) and Component Part (CU, CI, CS, II, SS, UU, AA), Drag & Drop .xlsx import, manual row entry, auto Target/Hr calculation (Target = Round(60 / SMV)), and Part-Wise SMV Summary table.
   2) AI Image Scanner (Beta): Uses image binarization, grid-line removal, and Tesseract OCR to extract operations and SMVs from table screenshots.
-- Admin Password for deleting rows, clearing all data, or deleting cloud files: 9999.
+- Deleting rows, clearing all data, or deleting cloud files requires a secret Admin Password.
 
 === 2. PLANT IE DIRECTORY & MACHINES ===
 - Plants & IE Team: ${ieDirectory}
