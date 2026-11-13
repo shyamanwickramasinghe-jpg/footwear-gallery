@@ -8,6 +8,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- Deep Document Readers for SMV Proof Vault (Word .docx & PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    </script>
     <style>
         * { box-sizing: border-box; }
         body { background: #0b1120; color: #f8fafc; font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; display: flex; flex-direction: column; min-height: 100vh; transition: background-color 0.3s, color 0.3s; }
@@ -20,7 +28,7 @@
         .storage-path { background: #1e293b; color: #94a3b8; font-size: 0.75em; padding: 4px 20px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; }
         .dashboard-container { padding: 20px; max-width: 1700px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 20px; flex: 1; }
         .info-panel, .table-panel { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 20px; display: flex; gap: 20px; flex-wrap: wrap; }
-        .table-panel { flex-direction: column; overflow: hidden; flex: 1; align-items: flex-start; } 
+        .table-panel { flex-direction: column; overflow: visible; flex: 1; align-items: flex-start; } 
         .meta-inputs { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 12px; }
         .input-group { display: flex; flex-direction: column; }
         .input-group label { font-size: 0.75em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: bold;}
@@ -44,11 +52,12 @@
         .drop-zone.dragover, .drop-zone:hover { border-color: #38bdf8 !important; }
         .drop-zone-text { font-weight: bold; pointer-events: auto; color: #94a3b8; margin: auto;}
         .drop-zone-text span { color: #10b981; }
-        .drop-zone-input { display: none; } /* HIDDEN INPUT FIX */
+        .drop-zone-input { display: none; }
 
-        .tab-bar { display: flex; width: 100%; border-bottom: 2px solid #334155; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 12px; background: transparent; color: #94a3b8; border: none; font-weight: bold; cursor: pointer; font-size: 1em; border-radius: 8px 8px 0 0; }
+        .tab-bar { display: flex; width: 100%; border-bottom: 2px solid #334155; margin-bottom: 15px; gap: 6px; }
+        .tab-btn { flex: 1; padding: 12px; background: transparent; color: #94a3b8; border: none; font-weight: bold; cursor: pointer; font-size: 1em; border-radius: 8px 8px 0 0; transition: 0.2s; }
         .tab-btn.active { background: #1e293b; color: #38bdf8; border-bottom: 3px solid #38bdf8; }
+        .tab-btn.proof-tab.active { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-bottom: 3px solid #f59e0b; }
         .tab-content { display: none; width: 100%; flex-direction: column; gap: 15px; }
         .tab-content.active { display: flex; }
 
@@ -86,7 +95,7 @@
 
         .summary-panel { background: #1e293b; padding: 15px 25px; border-radius: 8px; margin-top: 20px; border: 1px solid #334155; width: 300px !important; align-self: flex-start !important; }
         .summary-panel h4 { margin: 0 0 10px 0; color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 8px; font-size: 1.05em; }
-        .summary-table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+        .summary-table { width: 100%; border-collapse: collapse; font-size: 0.95em; min-width: 0 !important; }
         .summary-table td { padding: 6px 0; border-bottom: 1px dashed #334155; }
         .summary-table td:first-child { padding-right: 50px; } 
         .summary-table tr:last-child td { border-bottom: none; border-top: 2px solid #334155; padding-top: 8px; margin-top: 4px; font-weight: bold; }
@@ -134,6 +143,57 @@
         .ops-popup th { color: #10b981; padding-top: 12px;}
         .ops-popup td.smv { text-align: right; color: #38bdf8; font-weight: bold; }
 
+        /* =========================================================
+           🛡️ SMV PROVING PROOF VAULT (SEPARATE STANDALONE DATABASE)
+           ========================================================= */
+        .proof-vault-wrapper { display: flex; flex-direction: column; gap: 18px; width: 100%; }
+        .proof-search-bar-wrap { position: relative; width: 100%; background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(56, 189, 248, 0.08)); border: 1px solid #f59e0b; border-radius: 10px; padding: 16px; }
+        .proof-search-input { width: 100%; background: #0b1120; border: 2px solid #f59e0b; color: #f8fafc; padding: 12px 16px; border-radius: 8px; font-size: 1.02em; outline: none; transition: box-shadow 0.2s; }
+        .proof-search-input:focus { box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25); }
+        .proof-search-dropdown { display: none; position: absolute; top: calc(100% - 6px); left: 16px; right: 16px; background: #0f172a; border: 2px solid #f59e0b; border-radius: 8px; max-height: 360px; overflow-y: auto; z-index: 2500; box-shadow: 0 15px 35px rgba(0,0,0,0.85); }
+        .proof-search-dropdown.show { display: block; }
+        .proof-dd-item { padding: 12px 15px; border-bottom: 1px solid #334155; cursor: pointer; display: flex; flex-direction: column; gap: 5px; transition: background 0.15s; }
+        .proof-dd-item:hover { background: rgba(245, 158, 11, 0.16); }
+        .proof-dd-item:last-child { border-bottom: none; }
+        .proof-dd-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .proof-dd-title { font-weight: bold; color: #fbbf24; font-size: 1em; }
+        .proof-dd-snippet { font-size: 0.82em; color: #cbd5e1; background: rgba(15, 23, 42, 0.8); padding: 5px 8px; border-radius: 4px; border-left: 3px solid #38bdf8; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .proof-highlight { background: #f59e0b; color: #000; font-weight: bold; padding: 0 3px; border-radius: 2px; }
+
+        .proof-builder-grid { display: flex; gap: 20px; flex-wrap: wrap; background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 18px; }
+        .proof-form-left { flex: 1; min-width: 320px; display: flex; flex-direction: column; gap: 12px; }
+        .proof-upload-right { flex: 1.5; min-width: 380px; display: flex; flex-direction: column; gap: 10px; border-left: 1px dashed #475569; padding-left: 20px; }
+        .proof-quota-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+        .quota-pill { background: #0f172a; border: 1px solid #475569; padding: 4px 10px; border-radius: 20px; font-size: 0.78em; font-weight: bold; color: #cbd5e1; }
+        .quota-pill.full { border-color: #ef4444; color: #fca5a5; }
+        .proof-staged-files { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; justify-content: flex-start; padding-top: 6px; }
+        .proof-file-chip { position: relative; width: 125px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
+        .proof-file-chip:hover { border-color: #f59e0b; transform: translateY(-2px); }
+        .proof-file-chip img, .proof-file-chip video { width: 100%; height: 68px; object-fit: cover; border-radius: 4px; background: #000; }
+        .proof-file-icon { width: 100%; height: 68px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1e293b; border-radius: 4px; font-size: 1.7em; }
+        .proof-file-label-input { width: 100%; background: #1e293b; border: 1px solid #334155; color: #f8fafc; font-size: 0.72em; padding: 3px 5px; border-radius: 4px; text-align: center; }
+
+        .proof-records-list { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .proof-card { background: #1e293b; border: 1px solid #334155; border-left: 5px solid #f59e0b; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap; transition: border-color 0.2s, background 0.2s; }
+        .proof-card:hover { border-color: #fbbf24; background: rgba(30, 41, 59, 0.9); }
+        .proof-card-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 280px; flex-wrap: wrap; }
+        .proof-card-title { font-size: 1.05em; font-weight: bold; color: #fbbf24; cursor: help; border-bottom: 1px dotted #fbbf24; }
+        .proof-file-badges { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .proof-mini-badge { background: #0f172a; border: 1px solid #475569; color: #e2e8f0; padding: 4px 9px; border-radius: 6px; font-size: 0.78em; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: 0.15s; }
+        .proof-mini-badge:hover { border-color: #38bdf8; color: #38bdf8; transform: scale(1.04); }
+
+        /* Rich Hover Popup for Proof Vault (Inner Text, Tables, Photos & Video) */
+        .proof-hover-popup { display: none; position: fixed; z-index: 10005; background: #0f172a; border: 2px solid #f59e0b; border-radius: 10px; padding: 14px; width: 580px; max-width: 92vw; max-height: 78vh; overflow-y: auto; box-shadow: 0 18px 45px rgba(0,0,0,0.9); color: #f8fafc; pointer-events: auto; }
+        .proof-hover-popup h4 { margin: 0 0 6px 0; color: #fbbf24; font-size: 1.05em; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 6px; }
+        .proof-popup-section { margin-top: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 10px; }
+        .proof-popup-section-title { font-size: 0.8em; font-weight: bold; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; }
+        .proof-inner-preview-box { max-height: 210px; overflow: auto; background: #0b1120; padding: 8px; border-radius: 6px; border: 1px solid #334155; font-size: 0.82em; color: #e2e8f0; line-height: 1.45; }
+        .proof-inner-preview-box table { min-width: 0 !important; width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        .proof-inner-preview-box th, .proof-inner-preview-box td { border: 1px solid #334155; padding: 4px 6px; }
+        .proof-popup-media-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-top: 6px; }
+        .proof-popup-media-grid img { width: 100%; max-height: 180px; object-fit: contain; background: #000; border-radius: 6px; border: 1px solid #475569; }
+        .proof-popup-media-grid video { width: 100%; max-height: 200px; background: #000; border-radius: 6px; border: 1px solid #38bdf8; }
+
         /* LIGHT MODE */
         body.light-mode { background: #f1f5f9; color: #0f172a; }
         body.light-mode .top-bar { background: #ffffff; border-bottom-color: #cbd5e1; }
@@ -154,8 +214,10 @@
         body.light-mode .summary-panel { background: #f8fafc; border-color: #cbd5e1; }
         body.light-mode .ops-popup { border-color: #059669; color: #0f172a; background: #ffffff; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
         body.light-mode .ops-thead { background: #ffffff; }
-        body.light-mode .db-card { background: #f8fafc; border-color: #cbd5e1; }
-        body.light-mode .db-search { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
+        body.light-mode .db-card, body.light-mode .proof-card, body.light-mode .proof-builder-grid { background: #f8fafc; border-color: #cbd5e1; }
+        body.light-mode .db-search, body.light-mode .proof-search-input { background: #ffffff; border-color: #cbd5e1; color: #0f172a; }
+        body.light-mode .proof-search-dropdown, body.light-mode .proof-hover-popup { background: #ffffff; color: #0f172a; border-color: #d97706; }
+        body.light-mode .proof-popup-section, body.light-mode .proof-inner-preview-box { background: #f8fafc; color: #0f172a; border-color: #cbd5e1; }
         body.light-mode .db-meta-text { color: #0284c7; }
         body.light-mode #imgDropZone { background: #f8fafc; border-color: #cbd5e1; }
         body.light-mode .file-thumb { background: #f1f5f9; }
@@ -173,6 +235,7 @@
             <h2>📊 Operation Bulletin v2.0</h2>
         </div>
         <div class="top-actions">
+            <button class="btn-top" onclick="switchTab('proof'); document.getElementById('proofSearchInput').focus();" style="background:#d97706; color:#000; border: 2px solid #fbbf24;">🛡️ SMV Proof Vault</button>
             <button class="btn-top" onclick="openGuideModal()" style="background:#8b5cf6; color:#fff;">📖 User Guide</button>
             <button class="btn-top" onclick="manualAutoLoad()" style="background:#f59e0b; color:#000; font-size:1.1em; border: 2px solid #000;">📥 Load Assigned Task</button>
             <button class="btn-top" id="btnTheme" onclick="toggleTheme()" style="background:#e2e8f0; color:#0f172a;">☀️ Light Mode</button>
@@ -186,10 +249,11 @@
     </div>
     <div class="storage-path">
         <span><b>Cloud Database Linked:</b> Connected to DSI Google Sheets Secure Network</span>
+        <span id="proofVaultTopStat" style="color:#fbbf24; font-weight:bold;">🛡️ SMV Proof Vault: Ready (Isolated DB)</span>
     </div>
 
     <div class="dashboard-container">
-        <div class="info-panel">
+        <div class="info-panel" id="bulletinInfoPanel">
             <div class="meta-inputs">
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                     <div class="input-group" style="flex: 2; min-width: 200px;">
@@ -262,8 +326,10 @@
             <div class="tab-bar">
                 <button class="tab-btn active" id="tabBtnManual" onclick="switchTab('manual')">⌨️ Standard Entry & Excel</button>
                 <button class="tab-btn" id="tabBtnAI" onclick="switchTab('ai')">🤖 AI Image Scanner (Auto-Extract)</button>
+                <button class="tab-btn proof-tab" id="tabBtnProof" onclick="switchTab('proof')">🛡️ SMV Proving Proof Vault (Separate DB)</button>
             </div>
 
+            <!-- TAB 1: STANDARD OPERATION BULLETIN -->
             <div id="tabManualContent" class="tab-content active">
                 <div class="table-toolbar">
                     <div style="display:flex; gap:15px; align-items:center; flex-wrap: wrap;">
@@ -289,6 +355,7 @@
                 </div>
             </div>
 
+            <!-- TAB 2: AI OCR SCANNER -->
             <div id="tabAIContent" class="tab-content">
                 <div class="table-toolbar" style="margin-bottom: 0;">
                     <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; width: 100%;">
@@ -303,8 +370,126 @@
                     </div>
                 </div>
             </div>
+
+            <!-- TAB 3: 🛡️ SMV PROVING PROOF VAULT (SEPARATE STANDALONE DATABASE) -->
+            <div id="tabProofContent" class="tab-content">
+                <div class="proof-vault-wrapper">
+                    <!-- Deep Search Bar + Auto Dropdown List -->
+                    <div class="proof-search-bar-wrap" onmouseleave="hideProofSearchDropdownDelay()">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                            <div>
+                                <span style="color:#fbbf24; font-weight:bold; font-size:1.05em;">🔍 Deep Search SMV Proof Vault (Searches Proof Names + Inner File Details of Excel, Word, PDF & Images)</span>
+                                <span style="color:#94a3b8; font-size:0.8em; display:block;">Move your cursor over any dropdown result or file badge below to pop up inner file contents, photos, and videos.</span>
+                            </div>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <select id="proofCategoryFilter" onchange="renderProofVaultList(); handleProofSearch();" style="background:#0b1120; border:1px solid #475569; color:#f8fafc; padding:8px 10px; border-radius:6px; font-size:0.85em;">
+                                    <option value="">All Categories</option>
+                                    <option value="Machine Time Details">Machine Time Details</option>
+                                    <option value="Newly Received Machine">Newly Received Machine</option>
+                                    <option value="External Company SMV">External Company SMV</option>
+                                    <option value="SMV Reduction Proof">SMV Reduction Proof</option>
+                                    <option value="R & D Details">R & D Details</option>
+                                    <option value="Mould Type Details">Mould Type Details</option>
+                                    <option value="Other SMV Proof">Other SMV Proof</option>
+                                </select>
+                                <button class="btn-top" onclick="syncProofVaultFromCloud(true)" style="background:#0284c7; font-size:0.8em; padding:8px 12px;">☁️ Sync Cloud Proofs</button>
+                                <button class="btn-top" onclick="exportProofVaultJSON()" title="Export all Proof Vault records to a backup file" style="background:#334155; font-size:0.8em; padding:8px 12px;">📤 Backup</button>
+                                <button class="btn-top" onclick="document.getElementById('proofJsonImport').click()" title="Import Proof Vault backup file" style="background:#334155; font-size:0.8em; padding:8px 12px;">📥 Restore</button>
+                                <input type="file" id="proofJsonImport" accept=".json" style="display:none;" onchange="importProofVaultJSON(event)">
+                            </div>
+                        </div>
+                        <input type="text" id="proofSearchInput" class="proof-search-input" autocomplete="off"
+                            placeholder="🔎 Type to search by Specific Name, Machine, Mould, R&D note, or any word/number inside uploaded PDF, Excel, Word, Image..."
+                            onfocus="handleProofSearch()" oninput="handleProofSearch()">
+                        <!-- Instant Search Dropdown -->
+                        <div id="proofSearchDropdown" class="proof-search-dropdown"></div>
+                    </div>
+
+                    <!-- Add / Edit Proof Record Builder -->
+                    <div class="proof-builder-grid">
+                        <div class="proof-form-left">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <h4 style="margin:0; color:#fbbf24; font-size:1em;">➕ Save New SMV Proving Proof Record</h4>
+                                <span id="proofEditBadge" style="display:none; background:#f59e0b; color:#000; padding:2px 8px; border-radius:4px; font-size:0.75em; font-weight:bold;">EDITING RECORD</span>
+                            </div>
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <div class="input-group" style="flex:1.5; min-width:200px;">
+                                    <label style="color:#fbbf24;">Specific Identifier Name <span style="color:#ef4444;">*</span></label>
+                                    <input type="text" id="proofTitle" placeholder="e.g., New Programe Cutter Time / Mould B2 SMV">
+                                </div>
+                                <div class="input-group" style="flex:1; min-width:170px;">
+                                    <label style="color:#38bdf8;">Proof Category</label>
+                                    <select id="proofCategory">
+                                        <option value="Machine Time Details">Machine Time Details</option>
+                                        <option value="Newly Received Machine">Newly Received Machine</option>
+                                        <option value="External Company SMV">External Company SMV</option>
+                                        <option value="SMV Reduction Proof">SMV Reduction Proof</option>
+                                        <option value="R & D Details">R & D Details</option>
+                                        <option value="Mould Type Details">Mould Type Details</option>
+                                        <option value="Other SMV Proof">Other SMV Proof</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <div class="input-group" style="flex:1;">
+                                    <label>Reference / Machine / Mould / Source Tag</label>
+                                    <input type="text" id="proofRefTag" placeholder="e.g., Juki AMS-221EN / Mould #402 / Brand X">
+                                </div>
+                                <div class="input-group" style="flex:1;">
+                                    <label style="color:#38bdf8;">🔗 Optional Cloud Video / Folder Link</label>
+                                    <input type="text" id="proofCloudLink" placeholder="Paste OneDrive / Google Drive link...">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Inner SMV Proving Details / Notes (Fully Searchable)</label>
+                                <textarea id="proofNotes" placeholder="Type key SMV proof figures, RPM, cycle time, before/after SMV reduction numbers, R&D observations..."></textarea>
+                            </div>
+                            <div style="display:flex; gap:10px;">
+                                <button class="btn-top" id="btnSaveProof" onclick="saveProofRecord()" style="background:#10b981; color:#000; flex:2; padding:10px; font-size:0.95em;">💾 Save SMV Proof Record (Local + Cloud)</button>
+                                <button class="btn-top" onclick="resetProofForm()" style="background:#475569; flex:1; padding:10px;">🧹 Reset Form</button>
+                            </div>
+                        </div>
+
+                        <div class="proof-upload-right">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                <label style="font-size:0.78em; text-transform:uppercase; color:#fbbf24; font-weight:bold;">
+                                    Upload Proof Files (Max 5 Each: PDF, Excel, Word, Image, Video)
+                                </label>
+                                <button class="btn-top" onclick="document.getElementById('proofFileInput').click()" style="background:#38bdf8; color:#000; padding:5px 12px; font-size:0.8em;">➕ Browse Proof Files</button>
+                            </div>
+
+                            <div class="proof-quota-bar" id="proofQuotaBar">
+                                <span class="quota-pill" id="qImg">🖼️ Image: 0/5</span>
+                                <span class="quota-pill" id="qVid">🎥 Video: 0/5</span>
+                                <span class="quota-pill" id="qPdf">📄 PDF: 0/5</span>
+                                <span class="quota-pill" id="qXls">📊 Excel: 0/5</span>
+                                <span class="quota-pill" id="qDoc">📝 Word: 0/5</span>
+                            </div>
+
+                            <div class="drop-zone" id="proofDropZone" style="min-height:110px; border-color:#f59e0b; background:rgba(15,23,42,0.8);">
+                                <input type="file" id="proofFileInput" multiple accept="image/*,video/*,.pdf,.xls,.xlsx,.csv,.doc,.docx" class="drop-zone-input" onchange="handleProofFilesUpload(event)">
+                                <div id="proofStagedContainer" class="proof-staged-files">
+                                    <span class="drop-zone-text" style="color:#cbd5e1;">
+                                        📂 Drag & Drop <b>PDF, Excel, Word, Photos, or Videos</b> here, <label for="proofFileInput" style="color:#fbbf24; cursor:pointer; text-decoration:underline;">Browse</label>, or press <span>Ctrl+V</span><br>
+                                        <small style="color:#94a3b8;">Inner text & tables of Excel, Word, PDF, and Images are automatically indexed for search & hover popups!</small>
+                                    </span>
+                                </div>
+                            </div>
+                            <div id="proofIndexingStatus" style="font-size:0.8em; color:#38bdf8; min-height:18px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Saved Proof Records List -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                        <h4 style="margin:0; color:#f8fafc;">📚 Saved SMV Proving Proof Archive (<span id="proofTotalCount">0</span> Records)</h4>
+                        <span style="font-size:0.8em; color:#94a3b8;">💡 Hover cursor over any Proof Title or individual File Badge to inspect inner contents, photos & videos</span>
+                    </div>
+                    <div id="proofRecordsList" class="proof-records-list"></div>
+                </div>
+            </div>
             
-            <div class="table-container" style="margin-top: 15px;">
+            <!-- OPERATION BULLETIN TABLE (Automatically hidden when inside SMV Proof Vault tab) -->
+            <div class="table-container" id="bulletinTableContainer" style="margin-top: 15px;">
                 <table id="opsTable">
                     <thead>
                         <tr>
@@ -358,7 +543,7 @@
         </div>
     </div>
 
-    <!-- DATABASE SEARCH MODAL -->
+    <!-- DATABASE SEARCH MODAL (OPERATION BULLETIN ONLY) -->
     <div class="modal-overlay" id="dbModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -389,7 +574,7 @@
                     <li><b>Auto-Save & Assign:</b> Click the pink <b>📧 Email Allocated IE</b> button at the top of the screen. The system will automatically save the media and text to the cloud, then open a pre-written email to the assigned Plant IE. Hit "Send" on the email.</li>
                 </ol>
                 <div class="guide-warning">
-                    <b>⚠️ Important Note on Videos:</b> Do not drag and drop raw video files into the media upload box, as this will crash the Google Sheets database limit. Always upload videos to DSI OneDrive/SharePoint first and paste the "Share Link" into the designated Cloud Video Link box.
+                    <b>⚠️ Important Note on Videos:</b> Do not drag and drop raw video files into the Operation Bulletin media upload box, as this will crash the Google Sheets database limit. Always upload videos to DSI OneDrive/SharePoint first and paste the "Share Link" into the designated Cloud Video Link box.
                 </div>
 
                 <h4 class="phase2">🏭 Phase 2: Plant IE Team (Calculation & Submission)</h4>
@@ -410,6 +595,10 @@
     <div id="hoverPopup" class="hover-popup"><img id="hoverPopupImg" src="" alt="Preview"></div>
     <div id="hoverOpsPopup" class="hover-popup ops-popup" onmouseenter="clearTimeout(opsPopupTimeout)" onmouseleave="closeOpsPopupDelay()">
         <div id="hoverOpsContent"></div>
+    </div>
+    <!-- 🛡️ SMV PROOF VAULT HOVER POPUP (INNER FILE DETAILS + PHOTOS + LIVE VIDEO) -->
+    <div id="proofHoverPopup" class="proof-hover-popup" onmouseenter="clearTimeout(proofPopupTimeout)" onmouseleave="closeProofPopupDelay()">
+        <div id="proofHoverContent"></div>
     </div>
 
 <script>
@@ -439,9 +628,16 @@
         return (p && p !== "n_a") ? `${s}__${p}` : s;
     }
 
+    function isProofVaultEntry(entry) {
+        if (!entry) return false;
+        if (String(entry.id || "").startsWith("smvproof__")) return true;
+        if (entry.meta && entry.meta.isSmvProof === true) return true;
+        return false;
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         
-        // 1. BULLETPROOF DRAG & DROP: Catches files directly on the box, ignoring the hidden input
+        // 1. BULLETPROOF DRAG & DROP
         function setupDropZone(inputId, zoneId) {
             const zone = document.getElementById(zoneId);
             if (!zone) return;
@@ -456,10 +652,11 @@
                     if (inputId === 'mediaUpload') {
                         Array.from(e.dataTransfer.files).forEach(file => processMediaFile(file));
                     } else if (inputId === 'excelUpload') {
-                        // Pass fake event to trick the excel handler into reading it
                         handleExcelImport({ target: { files: e.dataTransfer.files, value: '' } });
                     } else if (inputId === 'ocrUpload') {
                         processOcrFile(e.dataTransfer.files[0]);
+                    } else if (inputId === 'proofFileInput') {
+                        Array.from(e.dataTransfer.files).forEach(file => processProofFile(file));
                     }
                 }
             });
@@ -468,10 +665,10 @@
         setupDropZone('mediaUpload', 'imgDropZone');
         setupDropZone('excelUpload', 'excelDropZone');
         setupDropZone('ocrUpload', 'ocrDropZone'); 
+        setupDropZone('proofFileInput', 'proofDropZone');
 
-        // 2. BULLETPROOF PASTE: Globally catches any image on the clipboard
+        // 2. BULLETPROOF PASTE: Routes Ctrl+V to Proof Vault if Proof Tab is active
         document.onpaste = function(e) {
-            // Ignore if you are actually typing in a text box
             if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
             
             const clipboardData = e.clipboardData || window.clipboardData;
@@ -496,8 +693,15 @@
             if (imgFile) {
                 e.preventDefault();
                 const aiTab = document.getElementById('tabAIContent');
-                if (aiTab && aiTab.classList.contains('active')) processOcrFile(imgFile);
-                else processMediaFile(imgFile);
+                const proofTab = document.getElementById('tabProofContent');
+                if (proofTab && proofTab.classList.contains('active')) {
+                    const namedImg = new File([imgFile], `Pasted_Proof_${Date.now()}.png`, { type: imgFile.type || 'image/png' });
+                    processProofFile(namedImg);
+                } else if (aiTab && aiTab.classList.contains('active')) {
+                    processOcrFile(imgFile);
+                } else {
+                    processMediaFile(imgFile);
+                }
             }
         };
 
@@ -505,8 +709,11 @@
             if (e.key === 'Escape') {
                 if(typeof closeImagePopup === 'function') closeImagePopup();
                 if(typeof closeOpsPopup === 'function') closeOpsPopup();
+                if(typeof closeProofPopup === 'function') closeProofPopup();
                 if(typeof closeLoadModal === 'function') closeLoadModal();
                 if(typeof closeGuideModal === 'function') closeGuideModal();
+                const pdd = document.getElementById('proofSearchDropdown');
+                if (pdd) pdd.classList.remove('show');
             }
         });
 
@@ -543,6 +750,9 @@
         reindexOperations();
         renderTable();
 
+        // Initialize Separate SMV Proof Vault DB
+        initProofVaultDB();
+
         const urlParams = new URLSearchParams(window.location.search);
         const loadId = urlParams.get('load');
         if (loadId) { setTimeout(() => { fetchCloudDataAndLoad(loadId); }, 500); }
@@ -562,8 +772,12 @@
     function fetchCloudData(onSuccess, onError) {
         const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
         window[callbackName] = function(data) {
-            loadedCloudDB = data; delete window[callbackName]; const scriptNode = document.getElementById(callbackName); 
-            if(scriptNode) scriptNode.remove(); if(onSuccess) onSuccess();
+            loadedCloudDB = data;
+            mergeCloudProofsIntoLocal(data);
+            delete window[callbackName];
+            const scriptNode = document.getElementById(callbackName); 
+            if(scriptNode) scriptNode.remove();
+            if(onSuccess) onSuccess();
         };
         const script = document.createElement('script'); script.src = GOOGLE_SCRIPT_URL + "?callback=" + callbackName; script.id = callbackName;
         script.onerror = function() { delete window[callbackName]; script.remove(); if(onError) onError(); };
@@ -579,17 +793,17 @@
         fetchCloudData(() => {
             if(document.getElementById("autoLoadOverlay")) document.getElementById("autoLoadOverlay").remove(); 
             
-            // 1. Check exact ID match first (e.g. from email link or full ID)
-            let entry = loadedCloudDB.find(e => String(e.id).toLowerCase() === String(loadId).toLowerCase());
+            const bulletinOnlyDB = (loadedCloudDB || []).filter(e => !isProofVaultEntry(e));
+
+            let entry = bulletinOnlyDB.find(e => String(e.id).toLowerCase() === String(loadId).toLowerCase());
             if (entry) {
                 loadFromCloudDB(entry.id, true);
                 alert(`✅ Successfully loaded assigned bulletin: ${entry.meta.name} (${entry.meta.process || 'N/A'})\n\nYou can now enter your SMVs and hit 'Save to Cloud' when finished.`);
                 return;
             }
 
-            // 2. Check if multiple processes exist under this Sample Number
             const cleanSearch = String(loadId).toLowerCase().replace(/[^a-z0-9-]+/g, '_').replace(/^_+|_+$/g, '');
-            const matches = loadedCloudDB.filter(e => {
+            const matches = bulletinOnlyDB.filter(e => {
                 const eName = (e.meta && e.meta.name) ? String(e.meta.name).trim().toLowerCase().replace(/[^a-z0-9-]+/g, '_').replace(/^_+|_+$/g, '') : "";
                 return eName === cleanSearch || String(e.id).toLowerCase().startsWith(cleanSearch + "__");
             });
@@ -640,7 +854,7 @@
         reader.readAsDataURL(file);
     }
 
-function renderMediaGallery() {
+    function renderMediaGallery() {
         const gal = document.getElementById("mediaGallery");
         if (sampleImages.length === 0 && sampleVideos.length === 0 && !detailsSheet) { gal.innerHTML = `<span class="drop-zone-text">📂 Drag & Drop Photos, Videos, or Details Sheet, or press <span>Ctrl+V</span></span>`; return; }
         let html = "";
@@ -649,7 +863,6 @@ function renderMediaGallery() {
         if (detailsSheet) { const linkHref = detailsSheet.data ? detailsSheet.data : '#'; html += `<div class="media-preview-box"><a href="${linkHref}" download="${detailsSheet.name}" style="text-decoration:none;"><div class="file-thumb" title="${detailsSheet.name}">📄<br><span style="font-size:0.7em; color:#10b981;">Details Sheet</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline; margin-top:4px;">Click to DL</span></div></a><button onclick="removeMedia('doc', 0)" class="btn-del-media" title="Delete Sheet">✖</button></div>`; }
         gal.innerHTML = html;
 
-        // --- NEW: Dynamic Cloud Video Button (Bulletproof Method) ---
         const videoLink = document.getElementById("sampleVideoLink").value.trim();
         const videoContainer = document.getElementById("cloudVideoContainer");
         if (videoContainer) {
@@ -676,9 +889,38 @@ function renderMediaGallery() {
     }
 
     function switchTab(tabId) {
-        document.getElementById('tabBtnManual').classList.remove('active'); document.getElementById('tabBtnAI').classList.remove('active'); document.getElementById('tabManualContent').classList.remove('active'); document.getElementById('tabAIContent').classList.remove('active');
-        if(tabId === 'manual') { document.getElementById('tabBtnManual').classList.add('active'); document.getElementById('tabManualContent').classList.add('active'); } 
-        else if(tabId === 'ai') { document.getElementById('tabBtnAI').classList.add('active'); document.getElementById('tabAIContent').classList.add('active'); }
+        document.getElementById('tabBtnManual').classList.remove('active');
+        document.getElementById('tabBtnAI').classList.remove('active');
+        document.getElementById('tabBtnProof').classList.remove('active');
+        document.getElementById('tabManualContent').classList.remove('active');
+        document.getElementById('tabAIContent').classList.remove('active');
+        document.getElementById('tabProofContent').classList.remove('active');
+
+        const bulletinTable = document.getElementById('bulletinTableContainer');
+        const bulletinSummary = document.getElementById('summaryPanel');
+        const bulletinInfo = document.getElementById('bulletinInfoPanel');
+
+        if (tabId === 'manual') {
+            document.getElementById('tabBtnManual').classList.add('active');
+            document.getElementById('tabManualContent').classList.add('active');
+            bulletinTable.style.display = 'block';
+            bulletinSummary.style.display = 'block';
+            bulletinInfo.style.display = 'flex';
+        } else if (tabId === 'ai') {
+            document.getElementById('tabBtnAI').classList.add('active');
+            document.getElementById('tabAIContent').classList.add('active');
+            bulletinTable.style.display = 'block';
+            bulletinSummary.style.display = 'block';
+            bulletinInfo.style.display = 'flex';
+        } else if (tabId === 'proof') {
+            document.getElementById('tabBtnProof').classList.add('active');
+            document.getElementById('tabProofContent').classList.add('active');
+            // Completely isolate Proof Vault from Operation Bulletin UI
+            bulletinTable.style.display = 'none';
+            bulletinSummary.style.display = 'none';
+            bulletinInfo.style.display = 'none';
+            renderProofVaultList();
+        }
     }
 
     function openImagePopup(e, src) { const popup = document.getElementById("hoverPopup"); document.getElementById("hoverPopupImg").src = src; popup.style.display = "block"; moveImagePopup(e); }
@@ -759,7 +1001,7 @@ function renderMediaGallery() {
         } catch (e) { alert("Network Error: Make sure your GOOGLE_SCRIPT_URL is correct."); } finally { btn.innerText = originalText; btn.disabled = false; }
     }
 
-async function emailAllocatedIE() {
+    async function emailAllocatedIE() {
         const sampleName = document.getElementById("sampleName").value.trim();
         const processName = document.getElementById("processName").value.trim() || "N/A";
         const videoLink = document.getElementById("sampleVideoLink").value.trim() || "No external video attached";
@@ -770,7 +1012,6 @@ async function emailAllocatedIE() {
         if (!sampleName) return alert("Please enter a Sample Number first.");
         if (!ieEmail) return alert("Please select an Allocated IE Member from the dropdown first.");
 
-        // NEW: Look up the actual name of the selected IE member for the email greeting
         let ieName = "Team Member";
         if (plant !== "N/A" && ieData[plant]) {
             let foundPerson = ieData[plant].find(p => p.email === ieEmail);
@@ -781,9 +1022,9 @@ async function emailAllocatedIE() {
 
         const safeId = getBulletinId(sampleName, processName);
 
-const payload = { 
-    id: safeId, 
-    date: "'" + new Date().toLocaleDateString('en-GB'),
+        const payload = { 
+            id: safeId, 
+            date: "'" + new Date().toLocaleDateString('en-GB'),
             meta: { name: sampleName, process: processName, videoLink: document.getElementById("sampleVideoLink").value.trim(), comments: comments, plant: plant, ieMember: ieEmail, vids: sampleVideos, docs: detailsSheet }, 
             ops: operationsData, imgs: sampleImages 
         };
@@ -795,7 +1036,6 @@ const payload = {
         const systemLink = `https://shyamanwickramasinghe-jpg.github.io/footwear-gallery/operation-bulletin.html?load=${safeId}`;
         const subject = encodeURIComponent("Action Required: Complete Operation Bulletin for " + sampleName + (processName !== "N/A" ? " (" + processName + ")" : ""));
         
-        // NEW: Email body with dynamic "Dear [Name]" and updated professional wording
         const body = encodeURIComponent("Dear " + ieName + ",\n\nKindly formulate the Operation Breakdown and SMVs for the new item detailed below.\n\nItem / Sample: " + sampleName + "\nTarget Plant: " + plant + "\nProcess: " + processName + "\nVideo Link: " + videoLink + "\nNotes / Comments: " + comments + "\n\n*** INSTRUCTIONS ***\n1. Click the System Link below to open the Operation Bulletin tool.\n2. Click the orange '📥 Load Assigned Task' button at the top of the screen and type in this Sample Number: " + sampleName + ".\n3. Analyze the downloaded media.\n4. Type the Operations and SMVs into an Excel file, then upload it into the 'Drag & Drop Excel' box.\n5. Click 'Save to Cloud' to upload your completed bulletin.\n\nSystem Link: " + systemLink + "\n\nBest regards,\nCentral IE Team");
 
         window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${ieEmail}&su=${subject}&body=${body}`, '_blank');
@@ -807,9 +1047,10 @@ const payload = {
     }
     function closeLoadModal() { document.getElementById("dbModal").style.display = "none"; }
 
-function renderDatabaseList() {
+    function renderDatabaseList() {
         const query1 = document.getElementById("dbSearchInput").value.toLowerCase(); const query2 = document.getElementById("dbSearchOpInput").value.toLowerCase(); const container = document.getElementById("dbListContainer");
-        const filtered = loadedCloudDB.filter(entry => {
+        const filtered = (loadedCloudDB || []).filter(entry => {
+            if (isProofVaultEntry(entry)) return false; // Strictly exclude SMV Proof Vault records from Operation Bulletin DB
             const m = entry.meta || {}; const match1 = (m.name || "").toLowerCase().includes(query1) || (m.process || m.cutting || m.assembly || "").toLowerCase().includes(query1) || (m.comments || "").toLowerCase().includes(query1);
             let match2 = true; if (query2) match2 = entry.ops && entry.ops.some(op => (op.name || "").toLowerCase().includes(query2)); return match1 && match2;
         });
@@ -822,21 +1063,18 @@ function renderDatabaseList() {
             const plantBadge = `<span class="sec-badge" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8;" title="Target Plant">🏢 ${plantText}</span>`;
             const ieBadge = `<span class="sec-badge" style="background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid #a855f7;" title="Allocated IE Member">👤 ${ieName}</span>`;
             const procBadge = `<span class="sec-badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444;" title="Process">⚙️ ${procText}</span>`;
-let cleanDate = entry.date ? String(entry.date).replace(/^'/, '').split("T")[0] : "";
-if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(cleanDate)) {
-    // Convert Google's UTC timestamp back to Sri Lanka time (+5.5 hours)
-    const d = new Date(entry.date);
-    if (!isNaN(d)) {
-        const slDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
-        const p1 = String(slDate.getUTCDate()).padStart(2, '0');
-        const p2 = String(slDate.getUTCMonth() + 1).padStart(2, '0');
-        const yr = slDate.getUTCFullYear();
-        // Swap day and month back because Google US-parsed DD/MM as MM/DD
-        cleanDate = `${p2}/${p1}/${yr}`;
-    }
-}
+            let cleanDate = entry.date ? String(entry.date).replace(/^'/, '').split("T")[0] : "";
+            if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(cleanDate)) {
+                const d = new Date(entry.date);
+                if (!isNaN(d)) {
+                    const slDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+                    const p1 = String(slDate.getUTCDate()).padStart(2, '0');
+                    const p2 = String(slDate.getUTCMonth() + 1).padStart(2, '0');
+                    const yr = slDate.getUTCFullYear();
+                    cleanDate = `${p2}/${p1}/${yr}`;
+                }
+            }
             
-            // --- NEW: Calculate Total SMV for the row ---
             let totalSmv = 0;
             if (entry.ops && entry.ops.length > 0) {
                 totalSmv = entry.ops.reduce((sum, op) => sum + (op.smv || 0), 0);
@@ -847,10 +1085,7 @@ if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(cleanDate)) {
                 <div class="db-card-content">
                     <span class="db-card-name" style="cursor: help; border-bottom: 1px dotted #10b981;" onmouseenter="openOpsPopup(event, '${entry.id}')" onmousemove="moveOpsPopup(event)" onmouseleave="closeOpsPopupDelay()">👟 ${entry.meta.name}</span>
                     <div class="db-badges">${plantBadge} ${ieBadge} ${procBadge}</div>
-                    
-                    <!-- Added Total SMV to the meta text line below -->
                     <span class="db-meta-text">📅 ${cleanDate} &nbsp;|&nbsp; ⚙️ ${entry.ops ? entry.ops.length : 0} Ops &nbsp;|&nbsp; ⏱️ ${totalSmv.toFixed(4)} SMV</span>
-                    
                     <div class="db-images">${imgHtml}</div>
                 </div>
                 <div class="db-actions">
@@ -914,7 +1149,7 @@ if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(cleanDate)) {
 
     function clearAllData() {
         if (prompt("Enter Admin Password to Clear All:") !== "2222") return alert("Incorrect password.");
-        if (!confirm("Are you sure you want to clear the current table and images?")) return;
+        if (!confirm("Are you sure you want to clear the current Operation Bulletin table and images?")) return;
         saveState(); operationsData = []; sampleImages = []; sampleVideos = []; detailsSheet = null;
         document.getElementById("sampleName").value = ""; document.getElementById("processName").value = ""; document.getElementById("sampleVideoLink").value = ""; document.getElementById("sampleComments").value = ""; document.getElementById("targetPlant").value = ""; updateIEList("");
         localStorage.removeItem("dsi_costing_ops"); localStorage.removeItem("dsi_costing_meta"); localStorage.removeItem("dsi_costing_imgs");
@@ -943,10 +1178,9 @@ if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(cleanDate)) {
         localStorage.setItem("dsi_costing_ops", JSON.stringify(operationsData));
     }
 
-async function handleExcelImport(event) {
-const file = event.target.files[0]; if (!file) return; const dropText = document.getElementById('excelDropText'); 
+    async function handleExcelImport(event) {
+        const file = event.target.files[0]; if (!file) return; const dropText = document.getElementById('excelDropText'); 
         
-        // --- NEW: Catch old .xls format immediately and give a helpful error ---
         if (file.name.toLowerCase().endsWith('.xls')) {
             dropText.innerHTML = `❌ .xls not supported`;
             alert("⚠️ Unsupported File Format!\n\nYou uploaded an older 'Excel 97-2003' (.xls) file. This system requires the modern .xlsx format.\n\nPlease open your file in Excel, go to 'File > Save As', choose 'Excel Workbook (*.xlsx)', and upload the new file.");
@@ -1011,7 +1245,7 @@ const file = event.target.files[0]; if (!file) return; const dropText = document
 
     async function handleOcrUpload(event) { const file = event.target.files[0]; if (!file) return; await processOcrFile(file); event.target.value = ""; }
 
-async function processOcrFile(file) {
+    async function processOcrFile(file) {
         const dropText = document.getElementById('ocrDropText'); 
         const originalText = `<span style="font-size: 1.05em; color: #f9a8d4;">📥 Drop Image, <span style="color:#ec4899;">Browse</span>, or press <b>Ctrl+V</b></span>`; 
         dropText.innerHTML = `⏳ Enhancing Image...`;
@@ -1036,22 +1270,18 @@ async function processOcrFile(file) {
             }
             let isDarkMode = (totalBrightness / (canvas.width * canvas.height)) < 127;
 
-            // 1. PERFECT BINARIZATION: The exact mathematical sweet spot. 
-            // Erases green/dark backgrounds to white, keeps text thick and black.
             for (let i = 0; i < data.length; i += 4) { 
                 let r = data[i], g = data[i+1], b = data[i+2]; 
                 let gray = (r * 0.299) + (g * 0.587) + (b * 0.114); 
                 
                 if (isDarkMode) {
-                    gray = 255 - gray; // Safely invert dark themes
+                    gray = 255 - gray;
                 }
                 
-                // Everything darker than 130 becomes Black (text). Everything lighter becomes White (green column/background).
                 let finalColor = gray < 130 ? 0 : 255; 
                 data[i] = data[i+1] = data[i+2] = finalColor;
             }
 
-            // 2. MAGIC LINE ERASER (Deletes black Excel grid borders so they don't block the AI)
             for (let y = 0; y < canvas.height; y++) {
                 let blackCount = 0; let startX = 0;
                 for (let x = 0; x < canvas.width; x++) {
@@ -1103,7 +1333,6 @@ async function processOcrFile(file) {
             
             dropText.innerHTML = `⏳ Analyzing Image...`;
             
-            // PSM 6: Forces AI to read left-to-right, completely ignoring any remaining columns/borders
             const result = await Tesseract.recognize(processedImage, 'eng', { tessedit_pageseg_mode: 6 }); 
             const lines = result.data.text.split('\n');
             let newOps = []; 
@@ -1120,15 +1349,12 @@ async function processOcrFile(file) {
                 for (let j = parts.length - 1; j >= 1; j--) {
                     let originalPart = parts[j];
                     
-                    // STRICT CHECK: If the word contains alphabet letters (excluding O/o which OCR confuses for zero),
-                    // it is a Machine name (like "CH01" or "M/C"), NOT the SMV. Skip it!
                     if (/[a-np-zA-NP-Z]/.test(originalPart)) {
                         continue; 
                     }
 
                     let possibleSMV = originalPart.replace(',', '.').replace(/[Oo]/g, '0').replace(/[^0-9.]/g, '');
                     
-                    // 3. DECIMAL AUTO-RESTORER: Puts the dot back if AI missed it
                     if (possibleSMV.length >= 3 && !possibleSMV.includes('.')) {
                         let rawNum = parseInt(possibleSMV, 10);
                         if (rawNum > 50) { 
@@ -1152,10 +1378,8 @@ async function processOcrFile(file) {
                     if (opName.toLowerCase().includes('sheet1') || opName.toLowerCase().includes('sheet2')) return;
                     
                     let targetVal = Math.round(60 / smvVal);
-                    
-                    // Grab ALL words after the SMV number and join them together for the Machine name
                     let extractedMachine = parts.slice(smvIndex + 1).join(' ').trim();
-                    let extractedPart = ''; // Leave Part blank since it is not in your image
+                    let extractedPart = '';
 
                     newOps.push({ id: Date.now() + Math.random(), no: currentNo++, name: opName, section: '', component: extractedPart, machine: extractedMachine, smv: smvVal, target: targetVal, remarks: '', attach: '' });
                 }
@@ -1178,6 +1402,7 @@ async function processOcrFile(file) {
             setTimeout(() => { dropText.innerHTML = originalText; }, 4000); 
         }
     }
+
     async function exportToExcel() {
         if (operationsData.length === 0) return alert("Table is empty.");
         const btn = document.getElementById("btnExport"); btn.innerText = "⏳ Generating Excel..."; btn.disabled = true;
@@ -1245,6 +1470,806 @@ async function processOcrFile(file) {
 
         } catch (error) { alert("Error exporting to Excel."); } finally { btn.innerText = "🟢 Export to Excel"; btn.disabled = false; }
     }
+
+    /* ============================================================================
+       🛡️ SMV PROVING PROOF VAULT ENGINE (100% SEPARATE DATABASE & DEEP INDEXER)
+       ============================================================================ */
+    let proofVaultRecords = [];
+    let stagedProofFiles = []; // { id, type: 'img'|'vid'|'pdf'|'xls'|'doc', fileName, customLabel, dataUrl, innerText, innerHtml }
+    let editingProofId = null;
+    let proofPopupTimeout = null;
+    let proofHideDropdownTimeout = null;
+    let proofDbInstance = null;
+
+    function initProofVaultDB() {
+        const request = indexedDB.open("DSI_SMV_Proof_Vault_DB", 1);
+        request.onupgradeneeded = function(e) {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains("proofs")) {
+                db.createObjectStore("proofs", { keyPath: "id" });
+            }
+        };
+        request.onsuccess = function(e) {
+            proofDbInstance = e.target.result;
+            loadAllProofsFromIndexedDB();
+        };
+        request.onerror = function() {
+            const fallback = localStorage.getItem("dsi_smv_proof_vault_fallback");
+            if (fallback) proofVaultRecords = JSON.parse(fallback);
+            renderProofVaultList();
+        };
+    }
+
+    function loadAllProofsFromIndexedDB() {
+        if (!proofDbInstance) return;
+        const tx = proofDbInstance.transaction("proofs", "readonly");
+        const store = tx.objectStore("proofs");
+        const req = store.getAll();
+        req.onsuccess = function() {
+            proofVaultRecords = (req.result || []).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            updateProofTopStatus();
+            renderProofVaultList();
+        };
+    }
+
+    function saveProofToIndexedDB(record, onComplete) {
+        if (!proofDbInstance) {
+            const idx = proofVaultRecords.findIndex(r => r.id === record.id);
+            if (idx > -1) proofVaultRecords[idx] = record;
+            else proofVaultRecords.unshift(record);
+            try { localStorage.setItem("dsi_smv_proof_vault_fallback", JSON.stringify(proofVaultRecords)); } catch(e) {}
+            if (onComplete) onComplete();
+            return;
+        }
+        const tx = proofDbInstance.transaction("proofs", "readwrite");
+        const store = tx.objectStore("proofs");
+        store.put(record);
+        tx.oncomplete = function() {
+            loadAllProofsFromIndexedDB();
+            if (onComplete) onComplete();
+        };
+    }
+
+    function deleteProofFromIndexedDB(id, onComplete) {
+        if (!proofDbInstance) {
+            proofVaultRecords = proofVaultRecords.filter(r => r.id !== id);
+            if (onComplete) onComplete();
+            return;
+        }
+        const tx = proofDbInstance.transaction("proofs", "readwrite");
+        const store = tx.objectStore("proofs");
+        store.delete(id);
+        tx.oncomplete = function() {
+            loadAllProofsFromIndexedDB();
+            if (onComplete) onComplete();
+        };
+    }
+
+    function updateProofTopStatus() {
+        const el = document.getElementById("proofVaultTopStat");
+        if (el) el.innerText = `🛡️ SMV Proof Vault: ${proofVaultRecords.length} Saved Proofs (Isolated DB)`;
+        const cntEl = document.getElementById("proofTotalCount");
+        if (cntEl) cntEl.innerText = proofVaultRecords.length;
+    }
+
+    function getProofFileCategory(file) {
+        const name = (file.name || "").toLowerCase();
+        const type = (file.type || "").toLowerCase();
+        if (type.startsWith("image/") || /\.(png|jpe?g|gif|webp|bmp)$/.test(name)) return "img";
+        if (type.startsWith("video/") || /\.(mp4|webm|ogg|mov|avi|mkv)$/.test(name)) return "vid";
+        if (type === "application/pdf" || name.endsWith(".pdf")) return "pdf";
+        if (/\.(xlsx|xls|csv)$/.test(name) || type.includes("spreadsheet") || type.includes("excel")) return "xls";
+        if (/\.(docx|doc)$/.test(name) || type.includes("word")) return "doc";
+        return null;
+    }
+
+    function handleProofFilesUpload(event) {
+        const files = Array.from(event.target.files || []);
+        files.forEach(file => processProofFile(file));
+        event.target.value = "";
+    }
+
+    async function processProofFile(file) {
+        const cat = getProofFileCategory(file);
+        if (!cat) {
+            return alert(`⚠️ Unsupported file type: ${file.name}\nAllowed: PDF, Excel (.xlsx/.csv), Word (.docx), Images, and Videos.`);
+        }
+
+        const currentCount = stagedProofFiles.filter(f => f.type === cat).length;
+        if (currentCount >= 5) {
+            const labels = { img: "Images", vid: "Videos", pdf: "PDF files", xls: "Excel files", doc: "Word files" };
+            return alert(`⚠️ Maximum 5 ${labels[cat]} allowed per SMV Proof record.`);
+        }
+
+        const statusEl = document.getElementById("proofIndexingStatus");
+        statusEl.innerText = `⏳ Reading & indexing inner details of "${file.name}"...`;
+
+        try {
+            const dataUrl = await new Promise((res, rej) => {
+                const r = new FileReader();
+                r.onload = e => res(e.target.result);
+                r.onerror = rej;
+                r.readAsDataURL(file);
+            });
+
+            let innerText = "";
+            let innerHtml = "";
+
+            if (cat === "xls") {
+                const extracted = await extractExcelInnerDetails(file);
+                innerText = extracted.text;
+                innerHtml = extracted.html;
+            } else if (cat === "doc") {
+                const extracted = await extractWordInnerDetails(file);
+                innerText = extracted.text;
+                innerHtml = extracted.html;
+            } else if (cat === "pdf") {
+                const extracted = await extractPdfInnerDetails(file);
+                innerText = extracted.text;
+                innerHtml = extracted.html;
+            } else if (cat === "img") {
+                innerHtml = `<div style="text-align:center;"><img src="${dataUrl}" style="max-width:100%; max-height:240px; border-radius:6px;"></div>`;
+                // Background OCR for text inside uploaded proof image
+                try {
+                    const ocrRes = await Tesseract.recognize(dataUrl, 'eng');
+                    innerText = (ocrRes.data.text || "").trim();
+                } catch (e) { innerText = ""; }
+            } else if (cat === "vid") {
+                innerText = `Video File: ${file.name}`;
+                innerHtml = `<video src="${dataUrl}" controls muted style="width:100%; max-height:220px; border-radius:6px;"></video>`;
+            }
+
+            stagedProofFiles.push({
+                id: "pf_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+                type: cat,
+                fileName: file.name,
+                customLabel: file.name.replace(/\.[^/.]+$/, ""),
+                dataUrl: dataUrl,
+                innerText: innerText,
+                innerHtml: innerHtml
+            });
+
+            renderStagedProofFiles();
+            statusEl.innerText = `✅ Indexed "${file.name}" (${innerText ? innerText.length + ' chars of inner details searchable' : 'Media ready'})`;
+            setTimeout(() => { if (statusEl.innerText.startsWith("✅")) statusEl.innerText = ""; }, 4000);
+        } catch (err) {
+            console.error(err);
+            statusEl.innerText = `❌ Error reading "${file.name}"`;
+        }
+    }
+
+    async function extractExcelInnerDetails(file) {
+        try {
+            const buffer = await file.arrayBuffer();
+            const wb = new ExcelJS.Workbook();
+            await wb.xlsx.load(buffer);
+            let allText = [];
+            let htmlParts = [];
+
+            wb.eachSheet((sheet) => {
+                allText.push(`Sheet: ${sheet.name}`);
+                let tableHtml = `<div style="font-weight:bold; color:#10b981; margin:4px 0;">📊 Sheet: ${escapeHtmlStr(sheet.name)}</div><table><tbody>`;
+                let rowCount = 0;
+                sheet.eachRow((row) => {
+                    let rowVals = [];
+                    row.eachCell({ includeEmpty: false }, (cell) => {
+                        let v = cell.value;
+                        if (v && typeof v === 'object') {
+                            if (v.result !== undefined) v = v.result;
+                            else if (v.richText) v = v.richText.map(t => t.text).join('');
+                            else if (v.text) v = v.text;
+                        }
+                        if (v !== null && v !== undefined) rowVals.push(String(v).trim());
+                    });
+                    if (rowVals.length > 0) {
+                        allText.push(rowVals.join(" | "));
+                        if (rowCount < 35) {
+                            tableHtml += `<tr>${rowVals.slice(0, 8).map(c => `<td>${escapeHtmlStr(c)}</td>`).join("")}</tr>`;
+                        }
+                        rowCount++;
+                    }
+                });
+                tableHtml += `</tbody></table>`;
+                htmlParts.push(tableHtml);
+            });
+            return { text: allText.join("\n"), html: htmlParts.join("<hr style='border-color:#334155;'>") };
+        } catch (e) {
+            return { text: file.name, html: `<div>Excel File (${escapeHtmlStr(file.name)})</div>` };
+        }
+    }
+
+    async function extractWordInnerDetails(file) {
+        try {
+            if (!window.mammoth) return { text: file.name, html: `<div>Word File: ${escapeHtmlStr(file.name)}</div>` };
+            const arrayBuffer = await file.arrayBuffer();
+            const rawRes = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+            const htmlRes = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+            return {
+                text: (rawRes.value || "").trim(),
+                html: `<div style="line-height:1.5;">${htmlRes.value || escapeHtmlStr(rawRes.value || "")}</div>`
+            };
+        } catch (e) {
+            return { text: file.name, html: `<div>Word Document (${escapeHtmlStr(file.name)})</div>` };
+        }
+    }
+
+    async function extractPdfInnerDetails(file) {
+        try {
+            if (!window.pdfjsLib) return { text: file.name, html: `<div>PDF Document: ${escapeHtmlStr(file.name)}</div>` };
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = [];
+            let htmlPages = [];
+            const maxPages = Math.min(pdf.numPages, 15);
+            for (let i = 1; i <= maxPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                const pageText = content.items.map(item => item.str).join(" ").trim();
+                if (pageText) {
+                    fullText.push(`[Page ${i}] ${pageText}`);
+                    htmlPages.push(`<div style="margin-bottom:8px;"><b style="color:#fbbf24;">📄 Page ${i}:</b><br>${escapeHtmlStr(pageText)}</div>`);
+                }
+            }
+            return {
+                text: fullText.join("\n"),
+                html: htmlPages.length > 0 ? htmlPages.join("<hr style='border-color:#334155;'>") : `<div>PDF Document (${pdf.numPages} pages)</div>`
+            };
+        } catch (e) {
+            return { text: file.name, html: `<div>PDF File (${escapeHtmlStr(file.name)})</div>` };
+        }
+    }
+
+    function escapeHtmlStr(str) {
+        return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function updateProofQuotaBadges() {
+        const counts = { img: 0, vid: 0, pdf: 0, xls: 0, doc: 0 };
+        stagedProofFiles.forEach(f => { if (counts[f.type] !== undefined) counts[f.type]++; });
+        const map = [
+            { id: "qImg", icon: "🖼️ Image", c: counts.img },
+            { id: "qVid", icon: "🎥 Video", c: counts.vid },
+            { id: "qPdf", icon: "📄 PDF", c: counts.pdf },
+            { id: "qXls", icon: "📊 Excel", c: counts.xls },
+            { id: "qDoc", icon: "📝 Word", c: counts.doc }
+        ];
+        map.forEach(m => {
+            const el = document.getElementById(m.id);
+            if (!el) return;
+            el.innerText = `${m.icon}: ${m.c}/5`;
+            if (m.c >= 5) el.classList.add("full");
+            else el.classList.remove("full");
+        });
+    }
+
+    function renderStagedProofFiles() {
+        updateProofQuotaBadges();
+        const container = document.getElementById("proofStagedContainer");
+        if (stagedProofFiles.length === 0) {
+            container.innerHTML = `
+                <span class="drop-zone-text" style="color:#cbd5e1;">
+                    📂 Drag & Drop <b>PDF, Excel, Word, Photos, or Videos</b> here, <label for="proofFileInput" style="color:#fbbf24; cursor:pointer; text-decoration:underline;">Browse</label>, or press <span>Ctrl+V</span><br>
+                    <small style="color:#94a3b8;">Inner text & tables of Excel, Word, PDF, and Images are automatically indexed for search & hover popups!</small>
+                </span>`;
+            return;
+        }
+
+        const typeIcons = { pdf: "📄 PDF", xls: "📊 EXCEL", doc: "📝 WORD" };
+        container.innerHTML = stagedProofFiles.map((f, idx) => {
+            let previewThumb = "";
+            if (f.type === "img") {
+                previewThumb = `<img src="${f.dataUrl}" alt="${escapeHtmlStr(f.customLabel)}">`;
+            } else if (f.type === "vid") {
+                previewThumb = `<video src="${f.dataUrl}" muted></video>`;
+            } else {
+                previewThumb = `<div class="proof-file-icon">${typeIcons[f.type] || "📁"}<span style="font-size:0.4em; color:#38bdf8; margin-top:4px;">${f.innerText ? "Indexed ✓" : ""}</span></div>`;
+            }
+
+            return `
+                <div class="proof-file-chip" onmouseenter="openStagedFileHover(event, ${idx})" onmouseleave="closeProofPopupDelay()">
+                    <button class="btn-del-media" onclick="event.stopPropagation(); removeStagedProofFile(${idx})" title="Remove file">✖</button>
+                    ${previewThumb}
+                    <input type="text" class="proof-file-label-input" value="${escapeHtmlStr(f.customLabel)}"
+                        title="Specific Name for this file" placeholder="File label..."
+                        onclick="event.stopPropagation()" oninput="stagedProofFiles[${idx}].customLabel = this.value">
+                </div>`;
+        }).join("");
+    }
+
+    function removeStagedProofFile(idx) {
+        stagedProofFiles.splice(idx, 1);
+        renderStagedProofFiles();
+    }
+
+    async function saveProofRecord() {
+        const title = document.getElementById("proofTitle").value.trim();
+        const category = document.getElementById("proofCategory").value;
+        const refTag = document.getElementById("proofRefTag").value.trim();
+        const cloudLink = document.getElementById("proofCloudLink").value.trim();
+        const notes = document.getElementById("proofNotes").value.trim();
+
+        if (!title) return alert("Please enter a 'Specific Identifier Name' to identify this SMV Proof.");
+        if (stagedProofFiles.length === 0 && !notes && !cloudLink) {
+            return alert("Please upload at least one file (PDF, Excel, Word, Image, Video) or enter Proving Notes.");
+        }
+
+        const btn = document.getElementById("btnSaveProof");
+        const origText = btn.innerText;
+        btn.innerText = "⏳ Saving SMV Proof...";
+        btn.disabled = true;
+
+        const recordId = editingProofId || ("smvproof__" + Date.now() + "_" + title.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 30));
+        const record = {
+            id: recordId,
+            timestamp: Date.now(),
+            date: new Date().toLocaleDateString('en-GB'),
+            title: title,
+            category: category,
+            refTag: refTag,
+            cloudLink: cloudLink,
+            notes: notes,
+            files: JSON.parse(JSON.stringify(stagedProofFiles))
+        };
+
+        // 1. Save full record (with all videos, PDFs, Excels, Word files & images) to local IndexedDB
+        saveProofToIndexedDB(record, async () => {
+            // 2. Also sync a lightweight/cloud-compatible copy to Google Sheets with isolated prefix `smvproof__`
+            try {
+                const cloudFilesSafe = record.files.map(f => ({
+                    id: f.id,
+                    type: f.type,
+                    fileName: f.fileName,
+                    customLabel: f.customLabel,
+                    innerText: (f.innerText || "").slice(0, 12000),
+                    innerHtml: (f.innerHtml || "").slice(0, 15000),
+                    // Keep dataUrl if under ~1.5MB so Google Sheets cell limit doesn't reject the row
+                    dataUrl: (f.dataUrl && f.dataUrl.length < 1500000) ? f.dataUrl : ""
+                }));
+                const cloudPayload = {
+                    id: record.id,
+                    date: "'" + record.date,
+                    meta: {
+                        isSmvProof: true,
+                        name: record.title,
+                        category: record.category,
+                        refTag: record.refTag,
+                        cloudLink: record.cloudLink,
+                        comments: record.notes,
+                        proofFiles: cloudFilesSafe
+                    },
+                    ops: [],
+                    imgs: record.files.filter(f => f.type === 'img' && f.dataUrl.length < 1500000).map(f => f.dataUrl)
+                };
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify({ action: "save", payload: cloudPayload })
+                });
+            } catch (e) { console.warn("Cloud sync warning:", e); }
+
+            btn.innerText = origText;
+            btn.disabled = false;
+            resetProofForm();
+            alert(`✅ SMV Proving Proof "${record.title}" saved to your isolated Proof Vault!`);
+        });
+    }
+
+    function resetProofForm() {
+        editingProofId = null;
+        document.getElementById("proofTitle").value = "";
+        document.getElementById("proofCategory").value = "Machine Time Details";
+        document.getElementById("proofRefTag").value = "";
+        document.getElementById("proofCloudLink").value = "";
+        document.getElementById("proofNotes").value = "";
+        document.getElementById("proofEditBadge").style.display = "none";
+        stagedProofFiles = [];
+        renderStagedProofFiles();
+    }
+
+    function editProofRecord(id) {
+        const rec = proofVaultRecords.find(r => r.id === id);
+        if (!rec) return;
+        editingProofId = rec.id;
+        document.getElementById("proofTitle").value = rec.title || "";
+        document.getElementById("proofCategory").value = rec.category || "Machine Time Details";
+        document.getElementById("proofRefTag").value = rec.refTag || "";
+        document.getElementById("proofCloudLink").value = rec.cloudLink || "";
+        document.getElementById("proofNotes").value = rec.notes || "";
+        document.getElementById("proofEditBadge").style.display = "inline-block";
+        stagedProofFiles = JSON.parse(JSON.stringify(rec.files || []));
+        renderStagedProofFiles();
+        document.getElementById("proofTitle").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    async function deleteProofRecord(id) {
+        if (prompt("Enter Admin Password to Delete SMV Proof Record:") !== "2222") return alert("Incorrect password.");
+        if (!confirm("Permanently delete this SMV Proof record?")) return;
+        deleteProofFromIndexedDB(id, async () => {
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify({ action: "delete", payload: { id: id } })
+                });
+            } catch (e) {}
+        });
+    }
+
+    function mergeCloudProofsIntoLocal(cloudArray) {
+        if (!Array.isArray(cloudArray)) return;
+        const cloudProofs = cloudArray.filter(e => isProofVaultEntry(e));
+        if (cloudProofs.length === 0) return;
+
+        cloudProofs.forEach(entry => {
+            const existsLocally = proofVaultRecords.some(r => r.id === entry.id);
+            if (!existsLocally && entry.meta) {
+                const m = entry.meta;
+                const reconstructed = {
+                    id: entry.id,
+                    timestamp: Date.now(),
+                    date: entry.date ? String(entry.date).replace(/^'/, '').split("T")[0] : "",
+                    title: m.name || entry.id,
+                    category: m.category || "Other SMV Proof",
+                    refTag: m.refTag || "",
+                    cloudLink: m.cloudLink || "",
+                    notes: m.comments || "",
+                    files: m.proofFiles || []
+                };
+                saveProofToIndexedDB(reconstructed);
+            }
+        });
+    }
+
+    function syncProofVaultFromCloud(showAlert = false) {
+        fetchCloudData(() => {
+            if (showAlert) alert(`✅ Proof Vault synced! Total Proof Records available: ${proofVaultRecords.length}`);
+        }, () => {
+            if (showAlert) alert("❌ Could not reach Google Sheets Cloud.");
+        });
+    }
+
+    // --- DEEP SEARCH ENGINE (SEARCHES TITLES + INNER TEXT OF EXCEL/WORD/PDF/IMAGES) ---
+    function getProofMatchResult(rec, query) {
+        if (!query) return { matched: true, snippet: rec.notes || "Hover to inspect inner files & media" };
+        const q = query.toLowerCase();
+
+        if ((rec.title || "").toLowerCase().includes(q)) {
+            return { matched: true, snippet: `Matched in Specific Name: "${rec.title}"` };
+        }
+        if ((rec.category || "").toLowerCase().includes(q) || (rec.refTag || "").toLowerCase().includes(q)) {
+            return { matched: true, snippet: `Matched in Category/Tag: ${rec.category} | ${rec.refTag || ''}` };
+        }
+        if ((rec.notes || "").toLowerCase().includes(q)) {
+            const idx = rec.notes.toLowerCase().indexOf(q);
+            const start = Math.max(0, idx - 35);
+            const sub = rec.notes.substring(start, idx + q.length + 55);
+            return { matched: true, snippet: `Notes: ...${sub}...` };
+        }
+
+        for (const f of (rec.files || [])) {
+            if ((f.customLabel || "").toLowerCase().includes(q) || (f.fileName || "").toLowerCase().includes(q)) {
+                return { matched: true, snippet: `Matched File Name: "${f.customLabel || f.fileName}" (${f.type.toUpperCase()})` };
+            }
+            if ((f.innerText || "").toLowerCase().includes(q)) {
+                const idx = f.innerText.toLowerCase().indexOf(q);
+                const start = Math.max(0, idx - 35);
+                const sub = f.innerText.substring(start, idx + q.length + 60).replace(/\s+/g, " ");
+                return { matched: true, snippet: `Inside ${f.type.toUpperCase()} "${f.customLabel}": ...${sub}...` };
+            }
+        }
+        return { matched: false, snippet: "" };
+    }
+
+    function highlightSearchTerm(text, query) {
+        const safe = escapeHtmlStr(text || "");
+        if (!query) return safe;
+        const cleanQ = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return safe.replace(new RegExp(`(${cleanQ})`, 'gi'), `<span class="proof-highlight">$1</span>`);
+    }
+
+    function handleProofSearch() {
+        clearTimeout(proofHideDropdownTimeout);
+        const query = document.getElementById("proofSearchInput").value.trim();
+        const catFilter = document.getElementById("proofCategoryFilter").value;
+        const dropdown = document.getElementById("proofSearchDropdown");
+
+        const matches = [];
+        proofVaultRecords.forEach(rec => {
+            if (catFilter && rec.category !== catFilter) return;
+            const res = getProofMatchResult(rec, query);
+            if (res.matched) matches.push({ rec, snippet: res.snippet });
+        });
+
+        renderProofVaultList(matches.map(m => m.rec), query);
+
+        if (matches.length === 0) {
+            dropdown.innerHTML = `<div style="padding:14px; color:#94a3b8; text-align:center;">No matching SMV Proof records or inner file contents found.</div>`;
+            dropdown.classList.add("show");
+            return;
+        }
+
+        dropdown.innerHTML = matches.slice(0, 25).map(({ rec, snippet }) => {
+            const counts = { img: 0, vid: 0, pdf: 0, xls: 0, doc: 0 };
+            (rec.files || []).forEach(f => { if (counts[f.type] !== undefined) counts[f.type]++; });
+            const badgeSummary = [
+                counts.img ? `🖼️${counts.img}` : '',
+                counts.vid ? `🎥${counts.vid}` : '',
+                counts.pdf ? `📄${counts.pdf}` : '',
+                counts.xls ? `📊${counts.xls}` : '',
+                counts.doc ? `📝${counts.doc}` : ''
+            ].filter(Boolean).join("  ");
+
+            return `
+                <div class="proof-dd-item"
+                    onmouseenter="openProofRecordHover(event, '${rec.id}', '${escapeHtmlStr(query)}')"
+                    onmousemove="moveProofPopup(event)"
+                    onmouseleave="closeProofPopupDelay()"
+                    onclick="selectProofFromDropdown('${rec.id}')">
+                    <div class="proof-dd-top">
+                        <span class="proof-dd-title">🛡️ ${highlightSearchTerm(rec.title, query)}</span>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <span class="sec-badge" style="background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid #f59e0b;">${escapeHtmlStr(rec.category)}</span>
+                            <span style="font-size:0.8em; color:#38bdf8; font-weight:bold;">${badgeSummary || '📝 Text Proof'}</span>
+                            <span style="font-size:0.75em; color:#94a3b8;">📅 ${escapeHtmlStr(rec.date || '')}</span>
+                        </div>
+                    </div>
+                    <div class="proof-dd-snippet">🔎 ${highlightSearchTerm(snippet, query)}</div>
+                </div>`;
+        }).join("");
+        dropdown.classList.add("show");
+    }
+
+    function hideProofSearchDropdownDelay() {
+        proofHideDropdownTimeout = setTimeout(() => {
+            const dd = document.getElementById("proofSearchDropdown");
+            if (dd) dd.classList.remove("show");
+        }, 300);
+    }
+
+    function selectProofFromDropdown(id) {
+        const dd = document.getElementById("proofSearchDropdown");
+        if (dd) dd.classList.remove("show");
+        const card = document.getElementById("proof_card_" + id);
+        if (card) {
+            card.scrollIntoView({ behavior: "smooth", block: "center" });
+            card.style.boxShadow = "0 0 0 3px #fbbf24";
+            setTimeout(() => { card.style.boxShadow = "none"; }, 2500);
+        }
+    }
+
+    function renderProofVaultList(filteredArray = null, activeQuery = "") {
+        const container = document.getElementById("proofRecordsList");
+        if (!container) return;
+        updateProofTopStatus();
+
+        const catFilter = document.getElementById("proofCategoryFilter") ? document.getElementById("proofCategoryFilter").value : "";
+        let list = filteredArray || proofVaultRecords.filter(r => !catFilter || r.category === catFilter);
+
+        if (list.length === 0) {
+            container.innerHTML = `<div class="empty-msg" style="background:#1e293b; border-radius:8px; border:1px dashed #475569;">No SMV Proving Proof records found. Use the form above to upload PDFs, Excel sheets, Word files, images, or videos!</div>`;
+            return;
+        }
+
+        const iconMap = { img: "🖼️", vid: "🎥", pdf: "📄", xls: "📊", doc: "📝" };
+
+        container.innerHTML = list.map(rec => {
+            const filesHtml = (rec.files || []).map((f, fIdx) => `
+                <span class="proof-mini-badge"
+                    onmouseenter="openSingleProofFileHover(event, '${rec.id}', ${fIdx})"
+                    onmousemove="moveProofPopup(event)"
+                    onmouseleave="closeProofPopupDelay()"
+                    onclick="downloadProofFile('${rec.id}', ${fIdx})"
+                    title="Hover to preview inner details / Click to download ${escapeHtmlStr(f.fileName)}">
+                    ${iconMap[f.type] || '📁'} ${highlightSearchTerm(f.customLabel || f.fileName, activeQuery)}
+                </span>
+            `).join("");
+
+            const cloudBtn = rec.cloudLink ? `<a href="${escapeHtmlStr(rec.cloudLink)}" target="_blank" class="proof-mini-badge" style="border-color:#ef4444; color:#fca5a5; text-decoration:none;">▶️ Cloud Link</a>` : "";
+
+            return `
+                <div class="proof-card" id="proof_card_${rec.id}">
+                    <div class="proof-card-left">
+                        <span class="proof-card-title"
+                            onmouseenter="openProofRecordHover(event, '${rec.id}', '${escapeHtmlStr(activeQuery)}')"
+                            onmousemove="moveProofPopup(event)"
+                            onmouseleave="closeProofPopupDelay()">
+                            🛡️ ${highlightSearchTerm(rec.title, activeQuery)}
+                        </span>
+                        <span class="sec-badge" style="background:rgba(245,158,11,0.12); color:#fbbf24; border:1px solid #f59e0b;">${escapeHtmlStr(rec.category)}</span>
+                        ${rec.refTag ? `<span class="sec-badge" style="background:rgba(56,189,248,0.12); color:#38bdf8; border:1px solid #38bdf8;">🏷️ ${highlightSearchTerm(rec.refTag, activeQuery)}</span>` : ""}
+                        <div class="proof-file-badges">${filesHtml} ${cloudBtn}</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:0.78em; color:#94a3b8;">📅 ${escapeHtmlStr(rec.date || '')}</span>
+                        <button class="btn-table btn-edit" onclick="editProofRecord('${rec.id}')" title="Edit this Proof Record">✏️ Edit</button>
+                        <button class="btn-table btn-delete" onclick="deleteProofRecord('${rec.id}')" title="Delete this Proof Record">✖</button>
+                    </div>
+                </div>`;
+        }).join("");
+    }
+
+    function downloadProofFile(recordId, fileIdx) {
+        const rec = proofVaultRecords.find(r => r.id === recordId);
+        if (!rec || !rec.files || !rec.files[fileIdx]) return;
+        const f = rec.files[fileIdx];
+        if (!f.dataUrl) return alert("This file was synced as text-only metadata from Cloud.");
+        const a = document.createElement("a");
+        a.href = f.dataUrl;
+        a.download = f.fileName || (f.customLabel + "." + f.type);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+
+    // --- HOVER POPUPS FOR PROOF VAULT (INNER TABLES/TEXT, PHOTOS & LIVE VIDEO) ---
+    function openStagedFileHover(e, idx) {
+        clearTimeout(proofPopupTimeout);
+        const f = stagedProofFiles[idx];
+        if (!f) return;
+        renderSingleFilePopupContent(f, "Staged Preview");
+        const popup = document.getElementById("proofHoverPopup");
+        popup.style.display = "block";
+        moveProofPopup(e);
+    }
+
+    function openSingleProofFileHover(e, recordId, fileIdx) {
+        clearTimeout(proofPopupTimeout);
+        const rec = proofVaultRecords.find(r => r.id === recordId);
+        if (!rec || !rec.files || !rec.files[fileIdx]) return;
+        const f = rec.files[fileIdx];
+        renderSingleFilePopupContent(f, rec.title, recordId, fileIdx);
+        const popup = document.getElementById("proofHoverPopup");
+        popup.style.display = "block";
+        moveProofPopup(e);
+    }
+
+    function renderSingleFilePopupContent(f, parentTitle, recordId = null, fileIdx = null) {
+        const typeNames = { img: "🖼️ Photo Proof", vid: "🎥 Video Proof", pdf: "📄 PDF Inner Details", xls: "📊 Excel Inner Sheet Preview", doc: "📝 Word Inner Document Preview" };
+        let bodyHtml = "";
+        if (f.type === "img" && f.dataUrl) {
+            bodyHtml = `<div style="text-align:center;"><img src="${f.dataUrl}" style="max-width:100%; max-height:360px; border-radius:6px; border:1px solid #475569;"></div>`;
+            if (f.innerText) {
+                bodyHtml += `<div class="proof-inner-preview-box" style="margin-top:8px;"><b>🔍 OCR Detected Text in Image:</b><br>${escapeHtmlStr(f.innerText)}</div>`;
+            }
+        } else if (f.type === "vid" && f.dataUrl) {
+            bodyHtml = `<video src="${f.dataUrl}" controls autoplay muted style="width:100%; max-height:340px; border-radius:6px; background:#000;"></video>`;
+        } else {
+            bodyHtml = `<div class="proof-inner-preview-box">${f.innerHtml || escapeHtmlStr(f.innerText || "No inner preview text available.")}</div>`;
+        }
+
+        const dlBtn = (recordId !== null && f.dataUrl)
+            ? `<button class="btn-table btn-save-row" style="width:auto; padding:4px 10px;" onclick="downloadProofFile('${recordId}', ${fileIdx})">⬇️ Download File</button>`
+            : "";
+
+        document.getElementById("proofHoverContent").innerHTML = `
+            <h4>
+                <span>${typeNames[f.type] || '📁 File'}: ${escapeHtmlStr(f.customLabel || f.fileName)}</span>
+                ${dlBtn}
+            </h4>
+            <div style="font-size:0.78em; color:#94a3b8; margin-bottom:8px;">Record: <b style="color:#f8fafc;">${escapeHtmlStr(parentTitle)}</b> | Original File: ${escapeHtmlStr(f.fileName)}</div>
+            ${bodyHtml}
+        `;
+    }
+
+    function openProofRecordHover(e, recordId, query = "") {
+        clearTimeout(proofPopupTimeout);
+        const rec = proofVaultRecords.find(r => r.id === recordId);
+        if (!rec) return;
+
+        const imgs = (rec.files || []).filter(f => f.type === "img" && f.dataUrl);
+        const vids = (rec.files || []).filter(f => f.type === "vid" && f.dataUrl);
+        const docs = (rec.files || []).filter(f => ["pdf", "xls", "doc"].includes(f.type));
+
+        let html = `
+            <h4>
+                <span>🛡️ ${highlightSearchTerm(rec.title, query)}</span>
+                <span class="sec-badge" style="background:rgba(245,158,11,0.2); color:#fbbf24;">${escapeHtmlStr(rec.category)}</span>
+            </h4>
+            <div style="font-size:0.8em; color:#94a3b8; display:flex; gap:12px; flex-wrap:wrap;">
+                <span>📅 <b>Date:</b> ${escapeHtmlStr(rec.date || '')}</span>
+                ${rec.refTag ? `<span>🏷️ <b>Ref/Machine:</b> ${highlightSearchTerm(rec.refTag, query)}</span>` : ""}
+                ${rec.cloudLink ? `<a href="${escapeHtmlStr(rec.cloudLink)}" target="_blank" style="color:#38bdf8; font-weight:bold;">🔗 Open Cloud Video/Link ↗</a>` : ""}
+            </div>
+        `;
+
+        if (rec.notes) {
+            html += `
+                <div class="proof-popup-section">
+                    <div class="proof-popup-section-title"><span>📝 SMV Proving Notes / Inner Details</span></div>
+                    <div style="font-size:0.85em; white-space:pre-wrap; color:#f8fafc;">${highlightSearchTerm(rec.notes, query)}</div>
+                </div>`;
+        }
+
+        if (imgs.length > 0 || vids.length > 0) {
+            html += `
+                <div class="proof-popup-section">
+                    <div class="proof-popup-section-title"><span>🖼️ Visual & Video Proof (${imgs.length} Photos, ${vids.length} Videos)</span></div>
+                    <div class="proof-popup-media-grid">
+                        ${imgs.map(img => `<div><img src="${img.dataUrl}" title="${escapeHtmlStr(img.customLabel)}"><div style="font-size:0.72em; text-align:center; color:#cbd5e1; margin-top:2px;">${escapeHtmlStr(img.customLabel)}</div></div>`).join("")}
+                        ${vids.map(vid => `<div><video src="${vid.dataUrl}" controls autoplay muted></video><div style="font-size:0.72em; text-align:center; color:#38bdf8; margin-top:2px;">🎥 ${escapeHtmlStr(vid.customLabel)}</div></div>`).join("")}
+                    </div>
+                </div>`;
+        }
+
+        if (docs.length > 0) {
+            const typeBadge = { pdf: "📄 PDF", xls: "📊 EXCEL", doc: "📝 WORD" };
+            html += docs.map(d => {
+                const origIdx = rec.files.findIndex(x => x.id === d.id);
+                return `
+                    <div class="proof-popup-section">
+                        <div class="proof-popup-section-title">
+                            <span>${typeBadge[d.type]} Inner Content: ${highlightSearchTerm(d.customLabel || d.fileName, query)}</span>
+                            ${d.dataUrl ? `<a href="#" onclick="event.preventDefault(); downloadProofFile('${rec.id}', ${origIdx})" style="color:#10b981; text-decoration:none;">⬇️ Download</a>` : ""}
+                        </div>
+                        <div class="proof-inner-preview-box">${d.innerHtml || highlightSearchTerm(d.innerText || "No text content extracted.", query)}</div>
+                    </div>`;
+            }).join("");
+        }
+
+        document.getElementById("proofHoverContent").innerHTML = html;
+        const popup = document.getElementById("proofHoverPopup");
+        popup.style.display = "block";
+        moveProofPopup(e);
+    }
+
+    function moveProofPopup(e) {
+        const popup = document.getElementById("proofHoverPopup");
+        if (!popup || popup.style.display === "none" || popup.matches(":hover")) return;
+        let x = e.clientX + 18;
+        let y = e.clientY + 18;
+        const rect = popup.getBoundingClientRect();
+        if (x + rect.width > window.innerWidth - 10) x = Math.max(10, e.clientX - rect.width - 18);
+        if (y + rect.height > window.innerHeight - 10) y = Math.max(10, window.innerHeight - rect.height - 15);
+        popup.style.left = x + "px";
+        popup.style.top = y + "px";
+    }
+
+    function closeProofPopupDelay() {
+        proofPopupTimeout = setTimeout(() => {
+            const popup = document.getElementById("proofHoverPopup");
+            if (popup && !popup.matches(":hover")) {
+                popup.style.display = "none";
+                // Stop any playing preview videos when popup closes
+                popup.querySelectorAll("video").forEach(v => v.pause());
+            }
+        }, 280);
+    }
+
+    function closeProofPopup() {
+        const popup = document.getElementById("proofHoverPopup");
+        if (popup) {
+            popup.style.display = "none";
+            popup.querySelectorAll("video").forEach(v => v.pause());
+        }
+    }
+
+    function exportProofVaultJSON() {
+        if (proofVaultRecords.length === 0) return alert("Proof Vault is empty.");
+        const blob = new Blob([JSON.stringify(proofVaultRecords)], { type: "application/json" });
+        saveAs(blob, `DSI_SMV_Proof_Vault_Backup_${new Date().toISOString().slice(0,10)}.json`);
+    }
+
+    function importProofVaultJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (!Array.isArray(imported)) throw new Error("Invalid format");
+                imported.forEach(rec => {
+                    if (rec && rec.id && rec.title) saveProofToIndexedDB(rec);
+                });
+                alert(`✅ Restored ${imported.length} SMV Proof records into your Proof Vault!`);
+            } catch (err) {
+                alert("❌ Invalid Proof Vault backup file.");
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = "";
+    }
 </script>
 <!-- ========================================== -->
 <!-- 🤖 DSI AI AGENT (SCREEN + CLOUD DB MEMORY) -->
@@ -1258,13 +2283,14 @@ async function processOcrFile(file) {
             <span style="color: #10b981; font-size: 1.05em;">🧠 DSI IE Cloud Agent</span>
             <span id="aiDbStatus" style="font-size: 0.72em; color: #94a3b8; font-weight: normal;">⏳ Syncing Google Sheets...</span>
         </div>
-<div style="display: flex; gap: 6px; align-items: center;">
+        <div style="display: flex; gap: 6px; align-items: center;">
             <button onclick="syncAiCloudMemory(true)" title="Refresh Google Sheet Data" style="background: #334155; border: none; color: #38bdf8; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; font-weight: bold;">🔄 Sync</button>
             <button onclick="setGeminiApiKey()" title="Set Gemini API Key" style="background: #334155; border: none; color: #fcd34d; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; font-weight: bold;">🔑 Key</button>
             <button id="voiceToggleBtn" onclick="toggleVoice()" title="Enable Voice Out Loud" style="background: #334155; border: none; color: #f8fafc; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.9em;">🔇</button>
             <button onclick="clearAiChat()" title="Clear Chat" style="background: #334155; border: none; color: #f8fafc; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">🧹</button>
             <button onclick="toggleAiChat()" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 1.2em; font-weight: bold; margin-left: 4px;">✖</button>
-        </div>    </div>
+        </div>
+    </div>
 
     <!-- Chat History -->
     <div id="aiChatHistory" style="flex: 1; padding: 15px; overflow-y: auto; color: #f8fafc; font-size: 0.88em; display: flex; flex-direction: column; gap: 12px; line-height: 1.5;">
@@ -1278,7 +2304,7 @@ async function processOcrFile(file) {
         </div>
     </div>
 
-<!-- Input Box -->
+    <!-- Input Box -->
     <div style="padding: 10px 12px; background: #1e293b; border-top: 1px solid #334155; display: flex; gap: 8px;">
         <button id="micBtn" onclick="toggleMic()" title="Click to Speak" style="background: #334155; color: #fff; border: none; padding: 10px; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.1em;">🎤</button>
         <input type="text" id="aiChatInput" placeholder="Ask about any sample, SMV, or operation..." style="flex: 1; background: #0b1120; border: 1px solid #475569; color: white; padding: 10px; border-radius: 6px; outline: none; font-size: 0.9em;" onkeydown="if(event.key === 'Enter') sendAiMessage()">
@@ -1288,7 +2314,7 @@ async function processOcrFile(file) {
 
 <script>
     let loadedCloudDB = window.loadedCloudDB || [];
-let aiChatMessages = [];
+    let aiChatMessages = [];
 
     // --- VOICE CONFIGURATION ---
     let voiceEnabled = false;
@@ -1382,8 +2408,9 @@ let aiChatMessages = [];
 
     function updateAiDbStatus() {
         const statusEl = document.getElementById("aiDbStatus");
-        if (loadedCloudDB && loadedCloudDB.length > 0) {
-            statusEl.innerHTML = `✅ Cloud Memory: ${loadedCloudDB.length} Bulletins Loaded`;
+        const bulletinCount = (loadedCloudDB || []).filter(e => !isProofVaultEntry(e)).length;
+        if (bulletinCount > 0) {
+            statusEl.innerHTML = `✅ Cloud Memory: ${bulletinCount} Bulletins Loaded`;
             statusEl.style.color = "#38bdf8";
         } else {
             statusEl.innerHTML = `⚠️ Cloud Memory: 0 Bulletins (Click 🔄 Sync)`;
@@ -1397,7 +2424,8 @@ let aiChatMessages = [];
         statusEl.style.color = "#fcd34d";
         fetchCloudData(() => {
             updateAiDbStatus();
-            if (forceAlert) alert(`✅ Synced ${loadedCloudDB.length} bulletins from Google Sheets into AI Memory!`);
+            const bulletinCount = (loadedCloudDB || []).filter(e => !isProofVaultEntry(e)).length;
+            if (forceAlert) alert(`✅ Synced ${bulletinCount} bulletins from Google Sheets into AI Memory!`);
         }, () => {
             statusEl.innerHTML = "❌ Cloud Sync Failed";
             statusEl.style.color = "#ef4444";
@@ -1415,14 +2443,14 @@ let aiChatMessages = [];
 
     function clearAiChat() {
         aiChatMessages = [];
+        const bulletinCount = (loadedCloudDB || []).filter(e => !isProofVaultEntry(e)).length;
         document.getElementById("aiChatHistory").innerHTML = `
             <div style="background: #1e293b; padding: 12px; border-radius: 8px 8px 8px 0; border-left: 3px solid #10b981; align-self: flex-start; max-width: 90%;">
-                Chat memory cleared. I still have full access to your screen and all ${loadedCloudDB ? loadedCloudDB.length : 0} cloud bulletins!
+                Chat memory cleared. I still have full access to your screen and all ${bulletinCount} cloud bulletins!
             </div>`;
     }
 
     function buildFullSystemKnowledge() {
-        // 1. Current Active Screen State
         const activeSample = document.getElementById("sampleName").value || "None";
         const activeProcess = document.getElementById("processName").value || "None";
         const activePlant = document.getElementById("targetPlant").value || "None";
@@ -1439,15 +2467,14 @@ let aiChatMessages = [];
             }).join("\n");
         }
 
-        // 2. Full Google Sheets Database (Stripped of heavy base64 images so everything fits in memory)
         let cloudDbText = "Cloud database not loaded yet.";
-        if (loadedCloudDB && loadedCloudDB.length > 0) {
-            cloudDbText = loadedCloudDB.map((entry, idx) => {
+        const bulletinOnlyList = (loadedCloudDB || []).filter(e => !isProofVaultEntry(e));
+        if (bulletinOnlyList.length > 0) {
+            cloudDbText = bulletinOnlyList.map((entry, idx) => {
                 const m = entry.meta || {};
                 const ops = entry.ops || [];
                 const totSmv = ops.reduce((s, o) => s + (Number(o.smv) || 0), 0);
 
-                // Format Date cleanly
                 let cleanDate = entry.date ? String(entry.date).replace(/^'/, '').split("T")[0] : "";
                 if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(cleanDate)) {
                     const d = new Date(entry.date);
@@ -1459,7 +2486,6 @@ let aiChatMessages = [];
                     }
                 }
 
-                // Resolve IE Name
                 let ieName = m.ieMember || "Unassigned";
                 for (let p in ieData) {
                     let found = ieData[p].find(x => x.email === m.ieMember);
@@ -1472,7 +2498,6 @@ let aiChatMessages = [];
             }).join("\n\n");
         }
 
-        // 3. Machine List & Plant IE Directory
         const machineSummary = dsiMachines.map(m => `${m.name} (MA:${m.ma})`).join(", ");
         const ieDirectory = Object.keys(ieData).map(plant => {
             return `${plant}: ` + ieData[plant].map(p => `${p.name} <${p.email}>`).join(", ");
@@ -1482,12 +2507,12 @@ let aiChatMessages = [];
 You have complete, real-time knowledge of this web application, the active screen, and the entire Google Sheets Cloud Database.
 
 === 1. WEBSITE FEATURES & WORKFLOW ===
-- Top Bar Actions: User Guide, Load Assigned Task (auto-loads by Sample Number), Light/Dark Mode toggle, Undo, Save to Cloud (saves to Google Sheets), Email Allocated IE (saves to cloud & opens Gmail compose with auto-load link), Load DB (opens Cloud Database modal with dual search bars for Item/Process and Operation Name), Export Excel (generates formatted .xlsx with embedded photos & Part-Wise SMV Summary), Clear All (Admin password: 9999).
+- Top Bar Actions: SMV Proof Vault (standalone evidence archive), User Guide, Load Assigned Task (auto-loads by Sample Number), Light/Dark Mode toggle, Undo, Save to Cloud (saves to Google Sheets), Email Allocated IE (saves to cloud & opens Gmail compose with auto-load link), Load DB (opens Cloud Database modal with dual search bars for Item/Process and Operation Name), Export Excel (generates formatted .xlsx with embedded photos & Part-Wise SMV Summary), Clear All.
 - Media & Documents Panel: Supports up to 8 Photos, 2 Videos, 1 Details Sheet (PDF/Excel), plus a Cloud Video Link box for OneDrive/Google Drive links.
 - Tabs:
   1) Standard Entry & Excel: Bulk apply Work Center (Cutting, Preparation, Sewing, Assembly, Finishing) and Component Part (CU, CI, CS, II, SS, UU, AA), Drag & Drop .xlsx import, manual row entry, auto Target/Hr calculation (Target = Round(60 / SMV)), and Part-Wise SMV Summary table.
   2) AI Image Scanner (Beta): Uses image binarization, grid-line removal, and Tesseract OCR to extract operations and SMVs from table screenshots.
-- Deleting rows, clearing all data, or deleting cloud files requires a secret Admin Password.
+  3) SMV Proving Proof Vault (Separate DB): A completely separate database for saving SMV proving evidence (up to 5 PDFs, 5 Excels, 5 Word docs, 5 Photos, 5 Videos per entry) with deep inner-file search dropdown and hover preview popups.
 
 === 2. PLANT IE DIRECTORY & MACHINES ===
 - Plants & IE Team: ${ieDirectory}
@@ -1501,7 +2526,7 @@ You have complete, real-time knowledge of this web application, the active scree
 - Active Screen Operations:
 ${activeOpsText}
 
-=== 4. COMPLETE GOOGLE SHEETS CLOUD DATABASE (${loadedCloudDB ? loadedCloudDB.length : 0} BULLETINS) ===
+=== 4. COMPLETE GOOGLE SHEETS CLOUD DATABASE (${bulletinOnlyList.length} BULLETINS) ===
 ${cloudDbText}
 
 INSTRUCTIONS:
@@ -1510,7 +2535,7 @@ INSTRUCTIONS:
 - Keep answers clear, well-structured, and concise.`;
     }
 
-async function sendAiMessage() {
+    async function sendAiMessage() {
         const inputEl = document.getElementById("aiChatInput");
         const msg = inputEl.value.trim();
         if (!msg) return;
@@ -1525,23 +2550,19 @@ async function sendAiMessage() {
         const historyEl = document.getElementById("aiChatHistory");
         const sendBtn = document.getElementById("aiSendBtn");
 
-        // Stop any current talking when the user sends a new message
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
-        // Show User Message
         const safeUserMsg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         historyEl.innerHTML += `<div style="background: #38bdf8; color: #0f172a; padding: 10px 12px; border-radius: 8px 8px 0 8px; align-self: flex-end; max-width: 85%; font-weight: 600;">${safeUserMsg}</div>`;
         inputEl.value = "";
         sendBtn.disabled = true;
         historyEl.scrollTop = historyEl.scrollHeight;
 
-        // Show Loading Indicator
         const loadingId = "load_" + Date.now();
         historyEl.innerHTML += `<div id="${loadingId}" style="background: #1e293b; padding: 10px 12px; border-radius: 8px 8px 8px 0; border-left: 3px solid #38bdf8; align-self: flex-start; max-width: 85%; color: #94a3b8;">⏳ Analyzing database & screen...</div>`;
         historyEl.scrollTop = historyEl.scrollHeight;
 
         try {
-            // Auto-fetch Google Sheets data if not loaded yet
             if (!loadedCloudDB || loadedCloudDB.length === 0) {
                 if(typeof fetchCloudData === 'function') {
                     await new Promise((resolve) => fetchCloudData(resolve, resolve));
@@ -1549,13 +2570,11 @@ async function sendAiMessage() {
                 }
             }
 
-            // Keep last 10 messages of conversation history
             aiChatMessages.push({ role: "user", parts: [{ text: msg }] });
             if (aiChatMessages.length > 10) aiChatMessages = aiChatMessages.slice(-10);
 
             const systemKnowledge = buildFullSystemKnowledge();
 
-            // FIXED API URL: Changed from 3.5 to 1.5
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey.trim()}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1573,11 +2592,10 @@ async function sendAiMessage() {
                 const aiText = data.candidates[0].content.parts[0].text;
                 aiChatMessages.push({ role: "model", parts: [{ text: aiText }] });
 
-                // --- SPEAK THE RESPONSE ALOUD ---
                 if (voiceEnabled && 'speechSynthesis' in window) {
                     const cleanTextForSpeech = aiText.replace(/[*#_`]/g, '').replace(/<[^>]*>?/gm, '');
                     const utterance = new SpeechSynthesisUtterance(cleanTextForSpeech);
-                    utterance.rate = 1.05; // Slightly faster than default
+                    utterance.rate = 1.05;
                     window.speechSynthesis.speak(utterance);
                 }
 
@@ -1603,7 +2621,6 @@ async function sendAiMessage() {
         }
     }
 
-    // Automatically pre-load Google Sheets database in the background on page startup
     window.addEventListener("load", () => {
         setTimeout(() => {
             if (!loadedCloudDB || loadedCloudDB.length === 0) {
