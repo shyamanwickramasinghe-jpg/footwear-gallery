@@ -295,7 +295,7 @@
 
                 <div class="input-group" style="margin-top: 10px;">
                     <label style="color: #38bdf8;">🔗 Cloud Video Link (OneDrive / Google Drive)</label>
-                    <input type="text" id="sampleVideoLink" placeholder="Paste video share link here..." oninput="saveMetaData()">
+                    <input type="text" id="sampleVideoLink" placeholder="Paste video share link here..." oninput="saveMetaData(); renderMediaGallery();">
                 </div>
 
                 <div class="input-group" style="margin-top: 10px;">
@@ -306,14 +306,14 @@
             
             <div class="image-gallery-container">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <label style="font-size: 0.75em; text-transform: uppercase; color: #94a3b8; font-weight: bold;">Media & Documents (8 Photos, 2 Videos, 1 PDF/Excel)</label>
+                    <label style="font-size: 0.75em; text-transform: uppercase; color: #94a3b8; font-weight: bold;">Media & Documents (8 Auto-Compressed Photos, 1 PDF/Excel &le; 300KB)</label>
                     <button class="btn-top" onclick="document.getElementById('mediaUpload').click()" style="padding: 4px 10px; font-size: 0.75em; background: #38bdf8; color: #000;">➕ Browse Files</button>
                 </div>
                 
                 <div class="drop-zone" id="imgDropZone">
-                    <input type="file" id="mediaUpload" accept="image/*, video/*, .pdf, .xls, .xlsx" multiple class="drop-zone-input" onchange="handleMediaUpload(event)">
+                    <input type="file" id="mediaUpload" accept="image/*, .pdf, .xls, .xlsx" multiple class="drop-zone-input" onchange="handleMediaUpload(event)">
                     <div id="mediaGallery" style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%; position: relative; z-index: 10; pointer-events: auto; justify-content: center;">
-                        <span class="drop-zone-text">📂 Drag & Drop Photos/Videos, <label for="mediaUpload" style="color:#10b981; cursor:pointer; text-decoration:underline;">Browse</label>, or press <span>Ctrl+V</span></span>
+                        <span class="drop-zone-text">📂 Drag & Drop Photos or Details Sheet, <label for="mediaUpload" style="color:#10b981; cursor:pointer; text-decoration:underline;">Browse</label>, or press <span>Ctrl+V</span></span>
                     </div>
                 </div>
 
@@ -445,7 +445,7 @@
                                 <textarea id="proofNotes" placeholder="Type key SMV proof figures, RPM, cycle time, before/after SMV reduction numbers, R&D observations..."></textarea>
                             </div>
                             <div style="display:flex; gap:10px;">
-                                <button class="btn-top" id="btnSaveProof" onclick="saveProofRecord()" style="background:#10b981; color:#000; flex:2; padding:10px; font-size:0.95em;">💾 Save SMV Proof Record (Local + Cloud)</button>
+                                <button class="btn-top" id="btnSaveProof" onclick="saveProofRecord()" style="background:#10b981; color:#000; flex:2; padding:10px; font-size:0.95em;">💾 Save SMV Proof (Local Vault + Cloud Index)</button>
                                 <button class="btn-top" onclick="resetProofForm()" style="background:#475569; flex:1; padding:10px;">🧹 Reset Form</button>
                             </div>
                         </div>
@@ -471,7 +471,7 @@
                                 <div id="proofStagedContainer" class="proof-staged-files">
                                     <span class="drop-zone-text" style="color:#cbd5e1;">
                                         📂 Drag & Drop <b>PDF, Excel, Word, Photos, or Videos</b> here, <label for="proofFileInput" style="color:#fbbf24; cursor:pointer; text-decoration:underline;">Browse</label>, or press <span>Ctrl+V</span><br>
-                                        <small style="color:#94a3b8;">Inner text & tables of Excel, Word, PDF, and Images are automatically indexed for search & hover popups!</small>
+                                        <small style="color:#94a3b8;">Full files are stored safely on your PC (IndexedDB); lightweight searchable text syncs to Google Sheets without overflowing sheet limits.</small>
                                     </span>
                                 </div>
                             </div>
@@ -570,7 +570,7 @@
                 <ol>
                     <li><b>Enter Core Details:</b> Type in the <b>Item Type / Sample Number</b> (this acts as the unique ID for the task). Select the Process Name, Target Plant, and the specific Allocated IE Member from the dropdowns.</li>
                     <li><b>Add Video Links & Comments:</b> Paste the OneDrive/SharePoint video link into the <b>🔗 Cloud Video Link</b> box. Add any specific guidelines into the General Comments box.</li>
-                    <li><b>Upload Media:</b> Drag and drop up to 8 photos and 1 Details Sheet (Excel/PDF) into the Media & Documents box.</li>
+                    <li><b>Upload Media:</b> Drag and drop up to 8 photos (automatically compressed) and 1 Details Sheet (Excel/PDF under 300 KB) into the Media & Documents box.</li>
                     <li><b>Auto-Save & Assign:</b> Click the pink <b>📧 Email Allocated IE</b> button at the top of the screen. The system will automatically save the media and text to the cloud, then open a pre-written email to the assigned Plant IE. Hit "Send" on the email.</li>
                 </ol>
                 <div class="guide-warning">
@@ -602,6 +602,7 @@
     </div>
 
 <script>
+    let loadedCloudDB = [];
     let operationsData = [];
     let sampleImages = []; 
     let sampleVideos = []; 
@@ -772,8 +773,8 @@
     function fetchCloudData(onSuccess, onError) {
         const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
         window[callbackName] = function(data) {
-            loadedCloudDB = data;
-            mergeCloudProofsIntoLocal(data);
+            loadedCloudDB = Array.isArray(data) ? data : [];
+            mergeCloudProofsIntoLocal(loadedCloudDB);
             delete window[callbackName];
             const scriptNode = document.getElementById(callbackName); 
             if(scriptNode) scriptNode.remove();
@@ -828,7 +829,7 @@
             }
         }, () => { 
             if(document.getElementById("autoLoadOverlay")) document.getElementById("autoLoadOverlay").remove(); 
-            alert("❌ Failed to connect to Cloud Database. The network blocked the connection."); 
+            alert("❌ Failed to connect to Cloud Database. The network or Google Sheet script blocked the connection."); 
         });
     }
 
@@ -841,27 +842,72 @@
 
     function handleMediaUpload(event) { Array.from(event.target.files).forEach(file => processMediaFile(file)); event.target.value = ""; }
 
-    function processMediaFile(file) {
+    // AUTO-COMPRESS PHOTOS TO LIGHTWEIGHT JPEGS (~25KB) TO PREVENT GOOGLE SHEETS CRASHES
+    function compressImageFile(file, maxWidth = 650, quality = 0.65) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                const scale = Math.min(1, maxWidth / img.width);
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.round(img.width * scale);
+                canvas.height = Math.round(img.height * scale);
+                const ctx = canvas.getContext("2d");
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL("image/jpeg", quality));
+            };
+            img.onerror = (err) => { URL.revokeObjectURL(url); reject(err); };
+            img.src = url;
+        });
+    }
+
+    async function processMediaFile(file) {
+        if (file.type.startsWith('image/')) {
+            if (sampleImages.length >= 8) return alert("Maximum 8 images allowed.");
+            try {
+                const compressedUrl = await compressImageFile(file, 650, 0.65);
+                sampleImages.push(compressedUrl);
+                saveMetaData();
+                localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages));
+                renderMediaGallery();
+            } catch (err) {
+                alert("Error processing image.");
+            }
+            return;
+        }
+
+        if (file.type.startsWith('video/')) {
+            return alert("⚠️ Raw videos cannot be saved inside Google Sheets cells (they crash the database).\n\nPlease upload the video to OneDrive / Google Drive and paste the share link into the '🔗 Cloud Video Link' box instead.");
+        }
+
+        if (file.size > 300000) {
+            return alert("⚠️ This document is too large (" + Math.round(file.size / 1024) + " KB) for Google Sheets.\nPlease keep Details Sheets under 300 KB, or upload it to OneDrive/Google Drive and paste the link in the Comments box.");
+        }
+
         const reader = new FileReader();
-        if (file.size > 2500000) { alert("⚠️ Warning: This file is " + Math.round(file.size/1000000) + "MB.\nGoogle Sheets has a strict database cell limit. If you click 'Save to Cloud' and it fails, you must use smaller files or paste a Google Drive link in the comments instead."); }
         reader.onload = (e) => {
-            const dataUrl = e.target.result;
-            if (file.type.startsWith('image/')) { if (sampleImages.length >= 8) return alert("Maximum 8 images allowed."); sampleImages.push(dataUrl); } 
-            else if (file.type.startsWith('video/')) { if (sampleVideos.length >= 2) return alert("Maximum 2 videos allowed."); sampleVideos.push({ name: file.name, data: dataUrl }); } 
-            else { if (detailsSheet !== null) return alert("You can only upload 1 Item Details Sheet."); detailsSheet = { name: file.name, data: dataUrl }; }
-            saveMetaData(); localStorage.setItem("dsi_costing_imgs", JSON.stringify(sampleImages)); renderMediaGallery();
+            if (detailsSheet !== null) return alert("You can only upload 1 Item Details Sheet.");
+            detailsSheet = { name: file.name, data: e.target.result };
+            saveMetaData();
+            renderMediaGallery();
         };
         reader.readAsDataURL(file);
     }
 
     function renderMediaGallery() {
         const gal = document.getElementById("mediaGallery");
-        if (sampleImages.length === 0 && sampleVideos.length === 0 && !detailsSheet) { gal.innerHTML = `<span class="drop-zone-text">📂 Drag & Drop Photos, Videos, or Details Sheet, or press <span>Ctrl+V</span></span>`; return; }
-        let html = "";
-        sampleImages.forEach((src, i) => { html += `<div class="media-preview-box"><img src="${src}" class="sample-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()"><button onclick="removeMedia('img', ${i})" class="btn-del-media" title="Delete Image">✖</button></div>`; });
-        sampleVideos.forEach((vid, i) => { const linkHref = vid.data ? vid.data : '#'; html += `<div class="media-preview-box"><a href="${linkHref}" download="${vid.name}" style="text-decoration:none;"><div class="file-thumb" title="${vid.name}">🎥<br><span style="font-size:0.7em; color:#fff;">Video ${i+1}</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline; margin-top:4px;">Click to DL</span></div></a><button onclick="removeMedia('vid', ${i})" class="btn-del-media" title="Delete Video">✖</button></div>`; });
-        if (detailsSheet) { const linkHref = detailsSheet.data ? detailsSheet.data : '#'; html += `<div class="media-preview-box"><a href="${linkHref}" download="${detailsSheet.name}" style="text-decoration:none;"><div class="file-thumb" title="${detailsSheet.name}">📄<br><span style="font-size:0.7em; color:#10b981;">Details Sheet</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline; margin-top:4px;">Click to DL</span></div></a><button onclick="removeMedia('doc', 0)" class="btn-del-media" title="Delete Sheet">✖</button></div>`; }
-        gal.innerHTML = html;
+        if (sampleImages.length === 0 && sampleVideos.length === 0 && !detailsSheet) {
+            gal.innerHTML = `<span class="drop-zone-text">📂 Drag & Drop Photos or Details Sheet, <label for="mediaUpload" style="color:#10b981; cursor:pointer; text-decoration:underline;">Browse</label>, or press <span>Ctrl+V</span></span>`;
+        } else {
+            let html = "";
+            sampleImages.forEach((src, i) => { html += `<div class="media-preview-box"><img src="${src}" class="sample-thumb" onmouseenter="openImagePopup(event, this.src)" onmousemove="moveImagePopup(event)" onmouseleave="closeImagePopup()"><button onclick="removeMedia('img', ${i})" class="btn-del-media" title="Delete Image">✖</button></div>`; });
+            sampleVideos.forEach((vid, i) => { const linkHref = vid.data ? vid.data : '#'; html += `<div class="media-preview-box"><a href="${linkHref}" download="${vid.name}" style="text-decoration:none;"><div class="file-thumb" title="${vid.name}">🎥<br><span style="font-size:0.7em; color:#fff;">Video ${i+1}</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline; margin-top:4px;">Click to DL</span></div></a><button onclick="removeMedia('vid', ${i})" class="btn-del-media" title="Delete Video">✖</button></div>`; });
+            if (detailsSheet) { const linkHref = detailsSheet.data ? detailsSheet.data : '#'; html += `<div class="media-preview-box"><a href="${linkHref}" download="${detailsSheet.name}" style="text-decoration:none;"><div class="file-thumb" title="${detailsSheet.name}">📄<br><span style="font-size:0.7em; color:#10b981;">Details Sheet</span><br><span style="font-size:0.6em; color:#94a3b8; text-decoration:underline; margin-top:4px;">Click to DL</span></div></a><button onclick="removeMedia('doc', 0)" class="btn-del-media" title="Delete Sheet">✖</button></div>`; }
+            gal.innerHTML = html;
+        }
 
         const videoLink = document.getElementById("sampleVideoLink").value.trim();
         const videoContainer = document.getElementById("cloudVideoContainer");
@@ -991,12 +1037,17 @@
         if (!sampleName) return alert("Please enter an 'Item Type / Sample Number'.");
         const btn = document.getElementById("btnSaveDB"); const originalText = btn.innerText; btn.innerText = "⏳ Saving..."; btn.disabled = true;
         const payload = {
-            id: getBulletinId(sampleName, processName), date: new Date().toLocaleDateString('en-GB'),
-            meta: { name: sampleName, process: processName, videoLink: videoLink, comments: comments, plant: plant, ieMember: ieMember, vids: sampleVideos, docs: detailsSheet },
+            id: getBulletinId(sampleName, processName), date: "'" + new Date().toLocaleDateString('en-GB'),
+            meta: { name: sampleName, process: processName, videoLink: videoLink, comments: comments, plant: plant, ieMember: ieMember, vids: [], docs: detailsSheet },
             ops: operationsData, imgs: sampleImages
         };
+        const serialized = JSON.stringify({ action: "save", payload: payload });
+        if (serialized.length > 600000) {
+            btn.innerText = originalText; btn.disabled = false;
+            return alert("⚠️ This bulletin's attached media is too large (" + Math.round(serialized.length / 1024) + " KB) for Google Sheets.\nPlease remove extra/old uncompressed photos or large attachments before saving.");
+        }
         try {
-            await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "save", payload: payload }) });
+            await fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: serialized });
             alert(`✅ Bulletin successfully fired to Cloud!`);
         } catch (e) { alert("Network Error: Make sure your GOOGLE_SCRIPT_URL is correct."); } finally { btn.innerText = originalText; btn.disabled = false; }
     }
@@ -1025,7 +1076,7 @@
         const payload = { 
             id: safeId, 
             date: "'" + new Date().toLocaleDateString('en-GB'),
-            meta: { name: sampleName, process: processName, videoLink: document.getElementById("sampleVideoLink").value.trim(), comments: comments, plant: plant, ieMember: ieEmail, vids: sampleVideos, docs: detailsSheet }, 
+            meta: { name: sampleName, process: processName, videoLink: document.getElementById("sampleVideoLink").value.trim(), comments: comments, plant: plant, ieMember: ieEmail, vids: [], docs: detailsSheet }, 
             ops: operationsData, imgs: sampleImages 
         };
 
@@ -1043,7 +1094,7 @@
 
     function openLoadModal() {
         document.getElementById("dbModal").style.display = "flex"; const container = document.getElementById("dbListContainer"); container.innerHTML = `<span class="empty-msg" style="font-weight:bold;">⏳ Fetching Bulletins from Google Sheets...</span>`;
-        fetchCloudData(() => { document.getElementById("dbSearchInput").value = ""; document.getElementById("dbSearchOpInput").value = ""; renderDatabaseList(); }, () => { container.innerHTML = `<span style="color:#ef4444; text-align:center; padding:20px;">Error fetching data. Network blocked the connection.</span>`; });
+        fetchCloudData(() => { document.getElementById("dbSearchInput").value = ""; document.getElementById("dbSearchOpInput").value = ""; renderDatabaseList(); }, () => { container.innerHTML = `<span style="color:#ef4444; text-align:center; padding:20px;">Error fetching data. Network or Google Sheet script blocked the connection.</span>`; });
     }
     function closeLoadModal() { document.getElementById("dbModal").style.display = "none"; }
 
@@ -1468,7 +1519,7 @@
             const buffer = await wb.xlsx.writeBuffer();
             saveAs(new Blob([buffer], { type: "application/octet-stream" }), `DSI_Operation_Bulletin_${sampleName.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
 
-        } catch (error) { alert("Error exporting to Excel."); } finally { btn.innerText = "🟢 Export to Excel"; btn.disabled = false; }
+        } catch (error) { alert("Error exporting to Excel."); } finally { btn.innerText = "🟢 Export Excel"; btn.disabled = false; }
     }
 
     /* ============================================================================
@@ -1749,7 +1800,7 @@
             container.innerHTML = `
                 <span class="drop-zone-text" style="color:#cbd5e1;">
                     📂 Drag & Drop <b>PDF, Excel, Word, Photos, or Videos</b> here, <label for="proofFileInput" style="color:#fbbf24; cursor:pointer; text-decoration:underline;">Browse</label>, or press <span>Ctrl+V</span><br>
-                    <small style="color:#94a3b8;">Inner text & tables of Excel, Word, PDF, and Images are automatically indexed for search & hover popups!</small>
+                    <small style="color:#94a3b8;">Full files are stored safely on your PC (IndexedDB); lightweight searchable text syncs to Google Sheets without overflowing sheet limits.</small>
                 </span>`;
             return;
         }
@@ -1811,19 +1862,18 @@
             files: JSON.parse(JSON.stringify(stagedProofFiles))
         };
 
-        // 1. Save full record (with all videos, PDFs, Excels, Word files & images) to local IndexedDB
+        // 1. Save FULL record (with all videos, PDFs, Excels, Word files & images) to local IndexedDB
         saveProofToIndexedDB(record, async () => {
-            // 2. Also sync a lightweight/cloud-compatible copy to Google Sheets with isolated prefix `smvproof__`
+            // 2. Sync ONLY lightweight searchable text metadata to Google Sheets (prevents getValues crash)
             try {
                 const cloudFilesSafe = record.files.map(f => ({
                     id: f.id,
                     type: f.type,
                     fileName: f.fileName,
                     customLabel: f.customLabel,
-                    innerText: (f.innerText || "").slice(0, 12000),
-                    innerHtml: (f.innerHtml || "").slice(0, 15000),
-                    // Keep dataUrl if under ~1.5MB so Google Sheets cell limit doesn't reject the row
-                    dataUrl: (f.dataUrl && f.dataUrl.length < 1500000) ? f.dataUrl : ""
+                    innerText: (f.innerText || "").slice(0, 2500),
+                    innerHtml: "",
+                    dataUrl: "" // Never write raw Base64 media/files into Google Sheets cells
                 }));
                 const cloudPayload = {
                     id: record.id,
@@ -1838,7 +1888,7 @@
                         proofFiles: cloudFilesSafe
                     },
                     ops: [],
-                    imgs: record.files.filter(f => f.type === 'img' && f.dataUrl.length < 1500000).map(f => f.dataUrl)
+                    imgs: [] // Keep raw images out of Google Sheets
                 };
                 await fetch(GOOGLE_SCRIPT_URL, {
                     method: "POST",
@@ -2094,7 +2144,7 @@
         const rec = proofVaultRecords.find(r => r.id === recordId);
         if (!rec || !rec.files || !rec.files[fileIdx]) return;
         const f = rec.files[fileIdx];
-        if (!f.dataUrl) return alert("This file was synced as text-only metadata from Cloud.");
+        if (!f.dataUrl) return alert("This file was synced as text-only metadata from Cloud. Full files are stored on the PC where they were uploaded (or via the Cloud Link / Backup file).");
         const a = document.createElement("a");
         a.href = f.dataUrl;
         a.download = f.fileName || (f.customLabel + "." + f.type);
@@ -2297,9 +2347,9 @@
         <div style="background: #1e293b; padding: 12px; border-radius: 8px 8px 8px 0; border-left: 3px solid #10b981; align-self: flex-start; max-width: 90%;">
             Hello! I am your DSI Footwear IE Assistant.<br><br>
             I have full memory of:<br>
-            • 📊 <b>Active Screen Bulletin & Part Summary</b><br>
-            • ☁️ <b>All Saved Bulletins in Google Sheets</b><br>
-            • ⚙️ <b>All Plant IEs (MP, BP, KP, SP) & Machines</b><br><br>
+- 📊 <b>Active Screen Bulletin & Part Summary</b><br>
+- ☁️ <b>All Saved Bulletins in Google Sheets</b><br>
+- ⚙️ <b>All Plant IEs (MP, BP, KP, SP) & Machines</b><br><br>
             Ask me anything about SMVs, past samples, operations, or how to use this system!
         </div>
     </div>
@@ -2313,7 +2363,6 @@
 </div>
 
 <script>
-    let loadedCloudDB = window.loadedCloudDB || [];
     let aiChatMessages = [];
 
     // --- VOICE CONFIGURATION ---
@@ -2508,7 +2557,7 @@ You have complete, real-time knowledge of this web application, the active scree
 
 === 1. WEBSITE FEATURES & WORKFLOW ===
 - Top Bar Actions: SMV Proof Vault (standalone evidence archive), User Guide, Load Assigned Task (auto-loads by Sample Number), Light/Dark Mode toggle, Undo, Save to Cloud (saves to Google Sheets), Email Allocated IE (saves to cloud & opens Gmail compose with auto-load link), Load DB (opens Cloud Database modal with dual search bars for Item/Process and Operation Name), Export Excel (generates formatted .xlsx with embedded photos & Part-Wise SMV Summary), Clear All.
-- Media & Documents Panel: Supports up to 8 Photos, 2 Videos, 1 Details Sheet (PDF/Excel), plus a Cloud Video Link box for OneDrive/Google Drive links.
+- Media & Documents Panel: Supports up to 8 auto-compressed Photos, 1 Details Sheet (PDF/Excel up to 300 KB), plus a Cloud Video Link box for OneDrive/Google Drive links.
 - Tabs:
   1) Standard Entry & Excel: Bulk apply Work Center (Cutting, Preparation, Sewing, Assembly, Finishing) and Component Part (CU, CI, CS, II, SS, UU, AA), Drag & Drop .xlsx import, manual row entry, auto Target/Hr calculation (Target = Round(60 / SMV)), and Part-Wise SMV Summary table.
   2) AI Image Scanner (Beta): Uses image binarization, grid-line removal, and Tesseract OCR to extract operations and SMVs from table screenshots.
