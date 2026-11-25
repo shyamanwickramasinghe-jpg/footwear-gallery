@@ -6,6 +6,8 @@
     <meta name="color-scheme" content="dark light">
     <title>DSI FOOTTECH — SMV Database Builder</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         * { box-sizing: border-box; }
@@ -168,7 +170,7 @@
                     <label>Load Existing Database Excel (Optional)</label>
                     <div class="drop-zone" id="dbDropZone" style="padding: 20px;">
                         <span class="drop-zone-text">📂 Drag & Drop or <span>Browse</span></span>
-                        <input type="file" id="existingDbUpload" accept=".xlsx, .xlsm, .xls" class="drop-zone-input">
+                        <input type="file" id="existingDbUpload" accept=".xlsx, .xlsm" class="drop-zone-input">
                     </div>
                 </div>
             </div>
@@ -176,12 +178,12 @@
             <div style="flex: 2; min-width: 500px; border-left: 1px dashed #475569; padding-left: 30px;">
                 <h3 style="margin-top: 0; color: #10b981;">2. Upload Labour File</h3>
                 <div class="input-group">
-                    <label>Upload 'IFS Labour' Excel File <span style="color:#ef4444">*</span></label>
+                    <label>Upload 'IFS Labour' Excel File (.xlsx / .xlsm) <span style="color:#ef4444">*</span></label>
                     <div class="drop-zone" id="ifsDropZone" style="padding: 40px 20px;">
-                        <span class="drop-zone-text" id="ifsDropText">📥 Drag & Drop your IFS file here, or <span>Click to Browse</span></span>
-                        <input type="file" id="ifsUpload" accept=".xlsx, .xlsm" class="drop-zone-input">
+                        <span class="drop-zone-text" id="ifsDropText">📥 Drag & Drop your IFS file (.xlsx or .xlsm) here, or <span>Click to Browse</span></span>
+                        <input type="file" id="ifsUpload" accept=".xlsx, .xlsm, .xlsb, .xls" class="drop-zone-input">
                     </div>
-                    <small style="color:#94a3b8; margin-top:10px; line-height: 1.4;">Extracts unlimited items seamlessly. Empty ghost columns will be automatically filtered out.</small>
+                    <small style="color:#94a3b8; margin-top:10px; line-height: 1.4;">Supports both standard (.xlsx) and Macro-Enabled (.xlsm) Excel files. Empty ghost columns will be automatically filtered out.</small>
                 </div>
             </div>
         </div>
@@ -238,6 +240,217 @@
         }
     }
 
+    // --- ZIP / XML HELPERS FOR .XLSM & .XLSX SUPPORT ---
+    function getZipFile(zip, targetPath) {
+        if (!targetPath) return null;
+        let f = zip.file(targetPath);
+        if (f) return f;
+        const lower = targetPath.toLowerCase();
+        for (const key of Object.keys(zip.files)) {
+            if (key.toLowerCase() === lower) return zip.files[key];
+        }
+        return null;
+    }
+
+    function resolveZipPath(baseFile, target) {
+        if (!target) return "";
+        const cleanTarget = target.replace(/\\/g, '/');
+        if (cleanTarget.startsWith('/')) return cleanTarget.slice(1);
+        const baseParts = baseFile.split('/');
+        baseParts.pop();
+        for (const part of cleanTarget.split('/')) {
+            if (part === '..') baseParts.pop();
+            else if (part !== '.' && part !== '') baseParts.push(part);
+        }
+        return baseParts.join('/');
+    }
+
+    function getRelAttr(el, localName) {
+        return el.getAttribute(`r:${localName}`)
+            || el.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', localName)
+            || el.getAttribute(localName);
+    }
+
+    function convertDataUrlToPng(dataUrl) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                resolve(canvas.toDataURL('image/png'));
+            };
+            img.onerror = () => resolve(null);
+            img.src = dataUrl;
+        });
+    }
+
+    // Directly reads images & column positions from .xlsx / .xlsm (ignores macro buttons & shapes)
+    async function extractImagesFromOpenXml(buffer) {
+        const rawImages = [];
+        try {
+            const zip = await JSZip.loadAsync(buffer);
+            const parser = new DOMParser();
+
+            // 1. Locate first worksheet path
+            let sheetPath = 'xl/worksheets/sheet1.xml';
+            const wbFile = getZipFile(zip, 'xl/workbook.xml');
+            const wbRelsFile = getZipFile(zip, 'xl/_rels/workbook.xml.rels');
+            if (wbFile && wbRelsFile) {
+                const wbDoc = parser.parseFromString(await wbFile.async('text'), 'application/xml');
+                const wbRelsDoc = parser.parseFromString(await wbRelsFile.async('text'), 'application/xml');
+                const firstSheet = wbDoc.getElementsByTagNameNS('*', 'sheet')[0];
+                if (firstSheet) {
+                    const sheetRid = getRelAttr(firstSheet, 'id');
+                    const rels = Array.from(wbRelsDoc.getElementsByTagNameNS('*', 'Relationship'));
+                    const match = rels.find(r => r.getAttribute('Id') === sheetRid);
+                    if (match) {
+                        const resolved = resolveZipPath('xl/workbook.xml', match.getAttribute('Target'));
+                        if (getZipFile(zip, resolved)) sheetPath = resolved;
+                    }
+                }
+            }
+
+            // 2. Locate drawing XML files linked to the first worksheet
+            const sheetFile = getZipFile(zip, sheetPath);
+            if (!sheetFile) return rawImages;
+
+            const sheetParts = sheetPath.split('/');
+            const sheetFileName = sheetParts.pop();
+            const sheetRelsPath = `${sheetParts.join('/')}/_rels/${sheetFileName}.rels`;
+            const sheetRelsFile = getZipFile(zip, sheetRelsPath);
+            if (!sheetRelsFile) return rawImages;
+
+            const sheetDoc = parser.parseFromString(await sheetFile.async('text'), 'application/xml');
+            const sheetRelsDoc = parser.parseFromString(await sheetRelsFile.async('text'), 'application/xml');
+            const sheetRelsMap = {};
+            Array.from(sheetRelsDoc.getElementsByTagNameNS('*', 'Relationship')).forEach(r => {
+                sheetRelsMap[r.getAttribute('Id')] = r.getAttribute('Target');
+            });
+
+            const drawingEls = Array.from(sheetDoc.getElementsByTagNameNS('*', 'drawing'));
+            for (const drawingEl of drawingEls) {
+                const drawingRid = getRelAttr(drawingEl, 'id');
+                const drawingTarget = sheetRelsMap[drawingRid];
+                if (!drawingTarget) continue;
+
+                const drawingPath = resolveZipPath(sheetPath, drawingTarget);
+                const drawingFile = getZipFile(zip, drawingPath);
+                if (!drawingFile) continue;
+
+                const drawParts = drawingPath.split('/');
+                const drawFileName = drawParts.pop();
+                const drawRelsPath = `${drawParts.join('/')}/_rels/${drawFileName}.rels`;
+                const drawRelsFile = getZipFile(zip, drawRelsPath);
+                if (!drawRelsFile) continue;
+
+                const drawRelsDoc = parser.parseFromString(await drawRelsFile.async('text'), 'application/xml');
+                const drawRelsMap = {};
+                Array.from(drawRelsDoc.getElementsByTagNameNS('*', 'Relationship')).forEach(r => {
+                    drawRelsMap[r.getAttribute('Id')] = r.getAttribute('Target');
+                });
+
+                const drawingDoc = parser.parseFromString(await drawingFile.async('text'), 'application/xml');
+                // Remove mc:Fallback blocks so images aren't duplicated
+                Array.from(drawingDoc.getElementsByTagNameNS('*', 'Fallback')).forEach(fb => {
+                    if (fb.parentNode) fb.parentNode.removeChild(fb);
+                });
+
+                const anchors = [
+                    ...Array.from(drawingDoc.getElementsByTagNameNS('*', 'twoCellAnchor')),
+                    ...Array.from(drawingDoc.getElementsByTagNameNS('*', 'oneCellAnchor'))
+                ];
+
+                for (const anchor of anchors) {
+                    const blip = anchor.getElementsByTagNameNS('*', 'blip')[0];
+                    if (!blip) continue; // Skips macro buttons, shapes, textboxes
+
+                    const embedId = getRelAttr(blip, 'embed');
+                    if (!embedId || !drawRelsMap[embedId]) continue;
+
+                    const fromEl = anchor.getElementsByTagNameNS('*', 'from')[0];
+                    if (!fromEl) continue;
+                    const colEl = fromEl.getElementsByTagNameNS('*', 'col')[0];
+                    const rowEl = fromEl.getElementsByTagNameNS('*', 'row')[0];
+                    if (!colEl) continue;
+
+                    const col = parseInt(colEl.textContent.trim(), 10);
+                    const row = rowEl ? parseInt(rowEl.textContent.trim(), 10) : 0;
+                    if (isNaN(col)) continue;
+
+                    const mediaPath = resolveZipPath(drawingPath, drawRelsMap[embedId]);
+                    const mediaFile = getZipFile(zip, mediaPath) || getZipFile(zip, drawRelsMap[embedId].replace(/^\/+/, ''));
+                    if (!mediaFile) continue;
+
+                    const ext = mediaPath.split('.').pop().toLowerCase();
+                    if (ext === 'emf' || ext === 'wmf') continue; // Unsupported by browsers/ExcelJS
+
+                    const b64 = await mediaFile.async('base64');
+                    let mime = (ext === 'jpg' || ext === 'jpeg') ? 'jpeg' : ext;
+                    let src = `data:image/${mime};base64,${b64}`;
+
+                    // Convert webp/bmp to png so ExcelJS export never fails
+                    if (mime !== 'jpeg' && mime !== 'png' && mime !== 'gif') {
+                        src = await convertDataUrlToPng(src);
+                    }
+                    if (src) {
+                        rawImages.push({ col, row, src });
+                    }
+                }
+            }
+
+            // Sort top-to-bottom so header product photos take priority
+            rawImages.sort((a, b) => a.row - b.row);
+        } catch (err) {
+            console.warn("Image extraction skipped/partial:", err);
+        }
+        return rawImages;
+    }
+
+    // Strips VBA macros/controls from an .xlsm buffer so ExcelJS can load an existing DB cleanly
+    async function sanitizeExcelBufferForExcelJS(buffer) {
+        try {
+            const zip = await JSZip.loadAsync(buffer);
+            const ctFile = getZipFile(zip, '[Content_Types].xml');
+            if (!ctFile) return buffer;
+
+            let ctText = await ctFile.async('text');
+            const isMacro = ctText.includes('macroEnabled') || !!getZipFile(zip, 'xl/vbaProject.bin');
+            if (!isMacro) return buffer;
+
+            // Remove macro & legacy control binaries
+            Object.keys(zip.files).forEach(path => {
+                const p = path.toLowerCase();
+                if (p.includes('vbaproject') || p.includes('activex') || p.includes('ctrlprops') || p.includes('vmldrawing')) {
+                    zip.remove(path);
+                }
+            });
+
+            // Convert Content_Types to standard .xlsx
+            ctText = ctText.replace(
+                /application\/vnd\.ms-excel\.sheet\.macroEnabled\.main\+xml/gi,
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml'
+            );
+            ctText = ctText.replace(/<Override[^>]+(vbaProject|activeX|ctrlProps|vmlDrawing)[^>]*\/>/gi, '');
+            zip.file('[Content_Types].xml', ctText);
+
+            // Clean workbook rels
+            const wbRelsFile = getZipFile(zip, 'xl/_rels/workbook.xml.rels');
+            if (wbRelsFile) {
+                let wbRels = await wbRelsFile.async('text');
+                wbRels = wbRels.replace(/<Relationship[^>]+vbaProject[^>]*\/>/gi, '');
+                zip.file(wbRelsFile.name, wbRels);
+            }
+
+            return await zip.generateAsync({ type: 'arraybuffer' });
+        } catch (e) {
+            console.warn("Buffer sanitize skipped:", e);
+            return buffer;
+        }
+    }
+
     document.getElementById('existingDbUpload').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if(!file) return;
@@ -253,29 +466,41 @@
 
         document.getElementById('ifsDropText').innerHTML = `⏳ Extracting from: <span style="color:#f59e0b">${file.name}</span>`;
 
-        if (file.name.toLowerCase().endsWith('.xls')) {
-            alert("⚠️ Please convert this file to .xlsx or .xlsm first! \n\nThe automatic image extractor requires modern Excel formats. \n\nPlease open the file in Excel, click 'File -> Save As', choose 'Excel Workbook (*.xlsx)', and upload that new file.");
-            e.target.value = "";
-            document.getElementById('ifsDropText').innerHTML = `📥 Drag & Drop your IFS file here, or <span>Click to Browse</span>`;
-            return;
-        }
+        const isLegacyXls = file.name.toLowerCase().endsWith('.xls');
 
         const reader = new FileReader();
         reader.onload = async function(ev) {
             try {
                 const buffer = ev.target.result;
-                const wb = new ExcelJS.Workbook();
-                await wb.xlsx.load(buffer);
-                const ws = wb.worksheets[0]; 
-                
-                function getVal(r, c) {
-                    let cell = ws.getRow(r).getCell(c);
-                    if(!cell || cell.value == null) return "";
-                    if(typeof cell.value === 'object') {
-                        if(cell.value.richText) return cell.value.richText.map(rt=>rt.text).join('');
-                        if(cell.value.result !== undefined) return cell.value.result;
+
+                // 1. Parse cell values with SheetJS (supports .xlsx, .xlsm, .xlsb, .xls)
+                const workbook = XLSX.read(buffer, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const ws = workbook.Sheets[firstSheetName];
+                if (!ws || !ws['!ref']) {
+                    throw new Error("The first worksheet appears to be empty.");
+                }
+
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                const maxRow = range.e.r + 1;
+                const merges = ws['!merges'] || [];
+
+                function getCellObj(r1, c1) {
+                    const r0 = r1 - 1, c0 = c1 - 1;
+                    let cell = ws[XLSX.utils.encode_cell({ r: r0, c: c0 })];
+                    if (cell && cell.v !== undefined && cell.v !== null) return cell;
+                    for (const m of merges) {
+                        if (r0 >= m.s.r && r0 <= m.e.r && c0 >= m.s.c && c0 <= m.e.c) {
+                            return ws[XLSX.utils.encode_cell(m.s)];
+                        }
                     }
-                    return cell.value.toString().trim();
+                    return null;
+                }
+
+                function getVal(r, c) {
+                    const cell = getCellObj(r, c);
+                    if (!cell || cell.t === 'e' || cell.v === undefined || cell.v === null) return "";
+                    return cell.v.toString().trim();
                 }
 
                 function findValueInRange(row, startCol, endCol) {
@@ -290,35 +515,21 @@
                     }
                     return "";
                 }
-                
+
+                // 2. Extract embedded images safely from .xlsx / .xlsm
+                const rawImages = isLegacyXls ? [] : await extractImagesFromOpenXml(buffer);
+
                 extractedItems = [];
-                let rawImages = [];
-
-                try {
-                    const images = ws.getImages();
-                    for (const image of images) {
-                        const img = wb.getImage(image.imageId);
-                        let binary = '';
-                        const bytes = new Uint8Array(img.buffer);
-                        for (let i = 0; i < bytes.byteLength; i++) {
-                            binary += String.fromCharCode(bytes[i]);
-                        }
-                        const base64 = window.btoa(binary);
-                        const src = `data:image/${img.extension};base64,${base64}`;
-                        const col = image.range.tl.nativeCol !== undefined ? image.range.tl.nativeCol : Math.floor(image.range.tl.col);
-                        rawImages.push({ col: col, src: src });
-                    }
-                } catch(imgErr) { console.warn("Could not extract images:", imgErr); }
-
                 let consecutiveEmpty = 0;
-                
-                for(let i=0; i<50; i++) { 
+                const maxItemsToScan = Math.max(50, Math.ceil((range.e.c + 1) / 4) + 5);
+
+                for(let i = 0; i < maxItemsToScan; i++) {
                     let pCol = 4 + (i * 4);
-		    let sCol = 5 + (i * 4);
-                    
+                    let sCol = 5 + (i * 4);
+
                     let sNo = findValueInRange(8, pCol - 1, sCol + 2);
                     let desc = findValueInRange(9, pCol - 1, sCol + 2);
-                    
+
                     let item = {
                         partCol: pCol,
                         sampleNo: sNo || `Item ${i+1}`,
@@ -327,18 +538,18 @@
                         pMap: { 'CU':0, 'CI':0, 'CS':0, 'II':0, 'SS':0, 'UU':0, 'AA':0 },
                         tot: 0
                     };
-                    
-                    for(let r=10; r<=ws.rowCount; r++) {
-                        let opName = getVal(r, 2); 
-                        let wc = getVal(r, 3);     
+
+                    for(let r = 10; r <= maxRow; r++) {
+                        let opName = getVal(r, 2);
+                        let wc = getVal(r, 3);
                         let part = getVal(r, pCol).toUpperCase();
                         let smvRaw = getVal(r, sCol);
                         let smv = parseFloat(smvRaw);
-                        
+
                         if (opName && opName.toUpperCase() !== 'DESCRIPTION' && !isNaN(smv) && smv > 0) {
                             part = part || "UNASSIGNED";
                             item.ops.push({ opName: opName, wc: wc, part: part, smv: smv });
-                            
+
                             if(item.pMap[part] !== undefined) item.pMap[part] += smv;
                             else item.pMap[part] = smv;
                             item.tot += smv;
@@ -360,7 +571,7 @@
                     let minDiff = 9999;
                     rawImages.forEach(img => {
                         let diff = Math.abs(img.col - item.partCol);
-                        if (diff < minDiff && diff <= 5) { 
+                        if (diff < minDiff && diff <= 5) {
                             minDiff = diff;
                             closestImg = img.src;
                         }
@@ -368,12 +579,16 @@
                     imagesBase64.push(closestImg);
                 });
 
-                document.getElementById('ifsDropText').innerHTML = `✅ Successfully Extracted: <span style="color:#10b981">${file.name}</span>`;
+                if (isLegacyXls) {
+                    document.getElementById('ifsDropText').innerHTML = `✅ Extracted data from <span style="color:#10b981">${file.name}</span> (Note: Save as .xlsx/.xlsm to include photos)`;
+                } else {
+                    document.getElementById('ifsDropText').innerHTML = `✅ Successfully Extracted (${extractedItems.length} items): <span style="color:#10b981">${file.name}</span>`;
+                }
                 renderPreview();
             } catch (err) {
                 console.error(err);
-                alert("Error parsing the IFS file. Ensure it matches the standard Labour template.");
-                document.getElementById('ifsDropText').innerHTML = `📥 Drag & Drop your IFS file here, or <span>Click to Browse</span>`;
+                alert("Error parsing the IFS file: " + err.message + "\n\nEnsure it matches the standard Labour template.");
+                document.getElementById('ifsDropText').innerHTML = `📥 Drag & Drop your IFS file (.xlsx or .xlsm) here, or <span>Click to Browse</span>`;
             }
             e.target.value = ""; 
         };
@@ -495,7 +710,8 @@
             let ws;
             
             if (existingDbBuffer) {
-                await wb.xlsx.load(existingDbBuffer);
+                const cleanDbBuffer = await sanitizeExcelBufferForExcelJS(existingDbBuffer);
+                await wb.xlsx.load(cleanDbBuffer);
                 ws = wb.worksheets[0]; // FORCE APPEND TO FIRST SHEET TO PREVENT SPLITTING
                 catName = ws.name; 
 
@@ -588,7 +804,7 @@
                         const ext = imagesBase64[index].substring(imagesBase64[index].indexOf('/') + 1, imagesBase64[index].indexOf(';'));
                         const imageId = wb.addImage({
                             base64: base64Data,
-                            extension: ext === 'jpeg' ? 'jpeg' : 'png',
+                            extension: ext === 'jpeg' ? 'jpeg' : (ext === 'gif' ? 'gif' : 'png'),
                         });
                         
                         let hPx = imgDims[index].h;
@@ -706,7 +922,7 @@
 
         } catch (error) {
             console.error(error);
-            alert("Error exporting database. Please check the console.");
+            alert("Error exporting database: " + error.message);
         } finally {
             btn.innerText = "💾 Append to Database & Download";
             btn.disabled = false;
