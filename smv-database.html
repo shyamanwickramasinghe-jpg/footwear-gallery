@@ -178,12 +178,12 @@
             <div style="flex: 2; min-width: 500px; border-left: 1px dashed #475569; padding-left: 30px;">
                 <h3 style="margin-top: 0; color: #10b981;">2. Upload Labour File</h3>
                 <div class="input-group">
-                    <label>Upload 'IFS Labour' Excel File (.xlsx / .xlsm) <span style="color:#ef4444">*</span></label>
+                    <label>Upload 'IFS Labour' Excel File (.xlsx / .xlsm / .xls) <span style="color:#ef4444">*</span></label>
                     <div class="drop-zone" id="ifsDropZone" style="padding: 40px 20px;">
-                        <span class="drop-zone-text" id="ifsDropText">📥 Drag & Drop your IFS file (.xlsx or .xlsm) here, or <span>Click to Browse</span></span>
+                        <span class="drop-zone-text" id="ifsDropText">📥 Drag & Drop your IFS file (.xlsx, .xlsm, or .xls) here, or <span>Click to Browse</span></span>
                         <input type="file" id="ifsUpload" accept=".xlsx, .xlsm, .xlsb, .xls" class="drop-zone-input">
                     </div>
-                    <small style="color:#94a3b8; margin-top:10px; line-height: 1.4;">Supports both standard (.xlsx) and Macro-Enabled (.xlsm) Excel files. Empty ghost columns will be automatically filtered out.</small>
+                    <small style="color:#94a3b8; margin-top:10px; line-height: 1.4;">Supports .xlsx, .xlsm, and .xls files with automatic header-row, column-stride (3-col & 4-col), and photo alignment detection.</small>
                 </div>
             </div>
         </div>
@@ -287,7 +287,7 @@
         });
     }
 
-    // Directly reads images & column positions from .xlsx / .xlsm (ignores macro buttons & shapes)
+    // Directly reads images & 1-based column positions from Sheet 1 (DATA) of .xlsx / .xlsm
     async function extractImagesFromOpenXml(buffer) {
         const rawImages = [];
         try {
@@ -313,7 +313,7 @@
                 }
             }
 
-            // 2. Locate drawing XML files linked to the first worksheet
+            // 2. Locate drawing XML files linked strictly to the first worksheet
             const sheetFile = getZipFile(zip, sheetPath);
             if (!sheetFile) return rawImages;
 
@@ -353,7 +353,6 @@
                 });
 
                 const drawingDoc = parser.parseFromString(await drawingFile.async('text'), 'application/xml');
-                // Remove mc:Fallback blocks so images aren't duplicated
                 Array.from(drawingDoc.getElementsByTagNameNS('*', 'Fallback')).forEach(fb => {
                     if (fb.parentNode) fb.parentNode.removeChild(fb);
                 });
@@ -376,33 +375,31 @@
                     const rowEl = fromEl.getElementsByTagNameNS('*', 'row')[0];
                     if (!colEl) continue;
 
-                    const col = parseInt(colEl.textContent.trim(), 10);
-                    const row = rowEl ? parseInt(rowEl.textContent.trim(), 10) : 0;
-                    if (isNaN(col)) continue;
+                    const col1 = parseInt(colEl.textContent.trim(), 10) + 1; // 1-based Excel column
+                    const row1 = rowEl ? parseInt(rowEl.textContent.trim(), 10) + 1 : 1;
+                    if (isNaN(col1) || col1 < 4) continue; // Ignore logos/buttons in cols A-C
 
                     const mediaPath = resolveZipPath(drawingPath, drawRelsMap[embedId]);
                     const mediaFile = getZipFile(zip, mediaPath) || getZipFile(zip, drawRelsMap[embedId].replace(/^\/+/, ''));
                     if (!mediaFile) continue;
 
                     const ext = mediaPath.split('.').pop().toLowerCase();
-                    if (ext === 'emf' || ext === 'wmf') continue; // Unsupported by browsers/ExcelJS
+                    if (ext === 'emf' || ext === 'wmf') continue;
 
                     const b64 = await mediaFile.async('base64');
                     let mime = (ext === 'jpg' || ext === 'jpeg') ? 'jpeg' : ext;
                     let src = `data:image/${mime};base64,${b64}`;
 
-                    // Convert webp/bmp to png so ExcelJS export never fails
                     if (mime !== 'jpeg' && mime !== 'png' && mime !== 'gif') {
                         src = await convertDataUrlToPng(src);
                     }
                     if (src) {
-                        rawImages.push({ col, row, src });
+                        rawImages.push({ col: col1, row: row1, src });
                     }
                 }
             }
 
-            // Sort top-to-bottom so header product photos take priority
-            rawImages.sort((a, b) => a.row - b.row);
+            rawImages.sort((a, b) => (a.row - b.row) || (a.col - b.col));
         } catch (err) {
             console.warn("Image extraction skipped/partial:", err);
         }
@@ -420,7 +417,6 @@
             const isMacro = ctText.includes('macroEnabled') || !!getZipFile(zip, 'xl/vbaProject.bin');
             if (!isMacro) return buffer;
 
-            // Remove macro & legacy control binaries
             Object.keys(zip.files).forEach(path => {
                 const p = path.toLowerCase();
                 if (p.includes('vbaproject') || p.includes('activex') || p.includes('ctrlprops') || p.includes('vmldrawing')) {
@@ -428,7 +424,6 @@
                 }
             });
 
-            // Convert Content_Types to standard .xlsx
             ctText = ctText.replace(
                 /application\/vnd\.ms-excel\.sheet\.macroEnabled\.main\+xml/gi,
                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml'
@@ -436,7 +431,6 @@
             ctText = ctText.replace(/<Override[^>]+(vbaProject|activeX|ctrlProps|vmlDrawing)[^>]*\/>/gi, '');
             zip.file('[Content_Types].xml', ctText);
 
-            // Clean workbook rels
             const wbRelsFile = getZipFile(zip, 'xl/_rels/workbook.xml.rels');
             if (wbRelsFile) {
                 let wbRels = await wbRelsFile.async('text');
@@ -483,6 +477,7 @@
 
                 const range = XLSX.utils.decode_range(ws['!ref']);
                 const maxRow = range.e.r + 1;
+                const maxCol = range.e.c + 1;
                 const merges = ws['!merges'] || [];
 
                 function getCellObj(r1, c1) {
@@ -503,43 +498,119 @@
                     return cell.v.toString().trim();
                 }
 
+                // 2. Dynamically detect Header Row (Row 8 in .xlsm, Row 9 in .xls) & First Operation Row
+                let headerRow = 8;
+                for (let r = 1; r <= Math.min(25, maxRow); r++) {
+                    const cA = getVal(r, 1).toUpperCase();
+                    const cB = getVal(r, 2).toUpperCase();
+                    if (cB === 'DESCRIPTION' || cA === 'PLANT') {
+                        headerRow = r;
+                        break;
+                    }
+                }
+
+                let opStartRow = headerRow + 2;
+                for (let r = headerRow + 1; r <= Math.min(headerRow + 6, maxRow); r++) {
+                    const cA = getVal(r, 1).toUpperCase();
+                    const cB = getVal(r, 2);
+                    const cC = getVal(r, 3);
+                    if (cB && cC && cA !== 'ORIGINAL ITEM CODE' && cB.toUpperCase() !== 'DESCRIPTION') {
+                        opStartRow = r;
+                        break;
+                    }
+                }
+
+                const ignoredHeaderWords = new Set([
+                    "DESCRIPTION", "WORK CENTER", "W/C/NO", "PLANT",
+                    "ORIGINAL ITEM CODE", "PART", "SMV", "OP SE"
+                ]);
+
                 function findValueInRange(row, startCol, endCol) {
-                    for(let c = startCol; c <= endCol; c++) {
+                    for (let c = startCol; c <= endCol; c++) {
                         let val = getVal(row, c);
-                        if(val) {
-                            let strVal = val.toString().trim();
-                            if(strVal !== "" && strVal.toUpperCase() !== "DESCRIPTION" && strVal.toUpperCase() !== "PLANT" && strVal.toUpperCase() !== "ORIGINAL ITEM CODE") {
-                                return strVal;
-                            }
+                        if (val && !ignoredHeaderWords.has(val.toUpperCase())) {
+                            return val;
                         }
                     }
                     return "";
                 }
 
-                // 2. Extract embedded images safely from .xlsx / .xlsm
+                function isPartCodeText(val) {
+                    if (!val) return false;
+                    const s = val.toString().trim();
+                    if (!s || s.length > 15) return false;
+                    if (!isNaN(Number(s))) return false; // Reject numeric SMV/Hours/Sequence values
+                    return /[A-Za-z]/.test(s);
+                }
+
+                // 3. Auto-detect every (Part Col, SMV Col) pair (works for 3-col, 4-col, and OP SE files)
+                const detectedColPairs = [];
+                for (let c = 4; c <= maxCol - 1; c++) {
+                    let validPartSmvPairs = 0;
+                    let numericInC = 0;
+
+                    for (let r = opStartRow; r <= maxRow; r++) {
+                        const opName = getVal(r, 2);
+                        if (!opName || opName.toUpperCase() === 'DESCRIPTION') continue;
+
+                        const valC = getVal(r, c);
+                        const valNext = getVal(r, c + 1);
+                        const smvNext = parseFloat(valNext);
+
+                        if (valC !== "" && !isNaN(Number(valC))) {
+                            numericInC++;
+                        }
+                        if (isPartCodeText(valC) && !isNaN(smvNext) && smvNext > 0) {
+                            validPartSmvPairs++;
+                        }
+                    }
+
+                    if (validPartSmvPairs > 0 && validPartSmvPairs > numericInC) {
+                        detectedColPairs.push({ pCol: c, sCol: c + 1 });
+                        c++; // Skip sCol since it's already paired
+                    }
+                }
+
+                // Fallback if no Part codes exist at all
+                if (detectedColPairs.length === 0) {
+                    for (let c = 4; c <= maxCol - 1; c += 3) {
+                        detectedColPairs.push({ pCol: c, sCol: c + 1 });
+                    }
+                }
+
+                // 4. Extract embedded images safely from .xlsx / .xlsm
                 const rawImages = isLegacyXls ? [] : await extractImagesFromOpenXml(buffer);
 
                 extractedItems = [];
-                let consecutiveEmpty = 0;
-                const maxItemsToScan = Math.max(50, Math.ceil((range.e.c + 1) / 4) + 5);
+                detectedColPairs.forEach((pair, idx) => {
+                    const pCol = pair.pCol;
+                    const sCol = pair.sCol;
+                    const nextPCol = idx < detectedColPairs.length - 1 ? detectedColPairs[idx + 1].pCol : Math.min(maxCol, sCol + 2);
+                    const endCol = Math.max(sCol, nextPCol - 1);
 
-                for(let i = 0; i < maxItemsToScan; i++) {
-                    let pCol = 4 + (i * 4);
-                    let sCol = 5 + (i * 4);
+                    let sNo = findValueInRange(headerRow, pCol, endCol);
 
-                    let sNo = findValueInRange(8, pCol - 1, sCol + 2);
-                    let desc = findValueInRange(9, pCol - 1, sCol + 2);
+                    // Collect description from all rows between headerRow+1 and opStartRow-1 (handles Row 9 & Row 11)
+                    let descParts = [];
+                    for (let dr = headerRow + 1; dr < opStartRow; dr++) {
+                        let dVal = findValueInRange(dr, pCol, endCol);
+                        if (dVal && !descParts.includes(dVal)) {
+                            descParts.push(dVal);
+                        }
+                    }
+                    let desc = descParts.join(" / ");
 
                     let item = {
                         partCol: pCol,
-                        sampleNo: sNo || `Item ${i+1}`,
+                        endCol: endCol,
+                        sampleNo: sNo || `Item ${idx + 1}`,
                         desc: desc || "",
                         ops: [],
                         pMap: { 'CU':0, 'CI':0, 'CS':0, 'II':0, 'SS':0, 'UU':0, 'AA':0 },
                         tot: 0
                     };
 
-                    for(let r = 10; r <= maxRow; r++) {
+                    for (let r = opStartRow; r <= maxRow; r++) {
                         let opName = getVal(r, 2);
                         let wc = getVal(r, 3);
                         let part = getVal(r, pCol).toUpperCase();
@@ -547,10 +618,20 @@
                         let smv = parseFloat(smvRaw);
 
                         if (opName && opName.toUpperCase() !== 'DESCRIPTION' && !isNaN(smv) && smv > 0) {
+                            // If Part cell was left blank on this item, inherit Part code from sibling item on same row
+                            if (!part) {
+                                for (const otherPair of detectedColPairs) {
+                                    const sibPart = getVal(r, otherPair.pCol).toUpperCase();
+                                    if (isPartCodeText(sibPart)) {
+                                        part = sibPart;
+                                        break;
+                                    }
+                                }
+                            }
                             part = part || "UNASSIGNED";
                             item.ops.push({ opName: opName, wc: wc, part: part, smv: smv });
 
-                            if(item.pMap[part] !== undefined) item.pMap[part] += smv;
+                            if (item.pMap[part] !== undefined) item.pMap[part] += smv;
                             else item.pMap[part] = smv;
                             item.tot += smv;
                         }
@@ -558,37 +639,49 @@
 
                     if (item.ops.length > 0) {
                         extractedItems.push(item);
-                        consecutiveEmpty = 0;
-                    } else {
-                        consecutiveEmpty++;
-                        if (consecutiveEmpty > 2) break;
                     }
-                }
+                });
 
+                // 5. Match each product photo accurately to its item's column span
                 imagesBase64 = [];
+                const usedImgIndices = new Set();
                 extractedItems.forEach((item) => {
-                    let closestImg = null;
-                    let minDiff = 9999;
-                    rawImages.forEach(img => {
-                        let diff = Math.abs(img.col - item.partCol);
-                        if (diff < minDiff && diff <= 5) {
-                            minDiff = diff;
-                            closestImg = img.src;
+                    let bestIdx = -1;
+                    let bestRangeDist = 9999;
+                    let bestAnchorDist = 9999;
+
+                    rawImages.forEach((img, imgIdx) => {
+                        if (usedImgIndices.has(imgIdx)) return;
+                        const rangeDist = img.col < item.partCol
+                            ? item.partCol - img.col
+                            : (img.col > item.endCol ? img.col - item.endCol : 0);
+                        const anchorDist = Math.abs(img.col - item.partCol);
+
+                        if (rangeDist <= 2 && (rangeDist < bestRangeDist || (rangeDist === bestRangeDist && anchorDist < bestAnchorDist))) {
+                            bestRangeDist = rangeDist;
+                            bestAnchorDist = anchorDist;
+                            bestIdx = imgIdx;
                         }
                     });
-                    imagesBase64.push(closestImg);
+
+                    if (bestIdx !== -1) {
+                        usedImgIndices.add(bestIdx);
+                        imagesBase64.push(rawImages[bestIdx].src);
+                    } else {
+                        imagesBase64.push(null);
+                    }
                 });
 
                 if (isLegacyXls) {
-                    document.getElementById('ifsDropText').innerHTML = `✅ Extracted data from <span style="color:#10b981">${file.name}</span> (Note: Save as .xlsx/.xlsm to include photos)`;
+                    document.getElementById('ifsDropText').innerHTML = `✅ Extracted (${extractedItems.length} item${extractedItems.length > 1 ? 's' : ''}) from <span style="color:#10b981">${file.name}</span> (Legacy .xls — save as .xlsx/.xlsm for photos)`;
                 } else {
-                    document.getElementById('ifsDropText').innerHTML = `✅ Successfully Extracted (${extractedItems.length} items): <span style="color:#10b981">${file.name}</span>`;
+                    document.getElementById('ifsDropText').innerHTML = `✅ Successfully Extracted (${extractedItems.length} item${extractedItems.length > 1 ? 's' : ''}): <span style="color:#10b981">${file.name}</span>`;
                 }
                 renderPreview();
             } catch (err) {
                 console.error(err);
                 alert("Error parsing the IFS file: " + err.message + "\n\nEnsure it matches the standard Labour template.");
-                document.getElementById('ifsDropText').innerHTML = `📥 Drag & Drop your IFS file (.xlsx or .xlsm) here, or <span>Click to Browse</span>`;
+                document.getElementById('ifsDropText').innerHTML = `📥 Drag & Drop your IFS file (.xlsx, .xlsm, or .xls) here, or <span>Click to Browse</span>`;
             }
             e.target.value = ""; 
         };
@@ -712,10 +805,9 @@
             if (existingDbBuffer) {
                 const cleanDbBuffer = await sanitizeExcelBufferForExcelJS(existingDbBuffer);
                 await wb.xlsx.load(cleanDbBuffer);
-                ws = wb.worksheets[0]; // FORCE APPEND TO FIRST SHEET TO PREVENT SPLITTING
+                ws = wb.worksheets[0];
                 catName = ws.name; 
 
-                // --- AUTO REPAIR TOOL ---
                 try {
                     const existingImages = ws.getImages();
                     for (const img of existingImages) {
@@ -751,7 +843,6 @@
                 return letter;
             }
 
-            // TARGET PIXEL WIDTH for 4 Columns
             let targetW_px = 435; 
             let maxTargetH_px = 10; 
             let imgDims = [];
@@ -775,13 +866,12 @@
             for (let r = 1; r <= 6; r++) {
                 ws.getRow(r).height = rowHeightPts;
             }
-            ws.getRow(7).height = 12; // Empty buffer row
+            ws.getRow(7).height = 12;
 
             extractedItems.forEach((item, index) => {
                 let C = startCol + (index * 5); 
                 let maxRowNeeded = 10 + item.ops.length + 10;
                 
-                // Draw Green Divider
                 if (C > 1) {
                     let gapCol = C - 1;
                     ws.getColumn(gapCol).width = 2.5;
@@ -792,12 +882,11 @@
                     }
                 }
                 
-                ws.getColumn(C).width = 28;   // Description 
-                ws.getColumn(C+1).width = 12; // Work Center
-                ws.getColumn(C+2).width = 12; // Part
-                ws.getColumn(C+3).width = 10; // SMV
+                ws.getColumn(C).width = 28;
+                ws.getColumn(C+1).width = 12;
+                ws.getColumn(C+2).width = 12;
+                ws.getColumn(C+3).width = 10;
                 
-                // BULLETPROOF IMAGE ANCHORING
                 if (imagesBase64[index] && imgDims[index]) {
                     try {
                         const base64Data = imagesBase64[index].split(',')[1];
@@ -819,7 +908,6 @@
                     } catch(e) { console.error("Image add error", e); }
                 }
                 
-                // Row 8
                 let r8 = ws.getRow(8);
                 r8.getCell(C).value = "DESCRIPTION";
                 r8.getCell(C+1).value = "Work Center";
@@ -834,7 +922,6 @@
                 });
                 r8.getCell(C+2).alignment = { horizontal: 'center' };
                 
-                // Row 9 
                 let r9 = ws.getRow(9);
                 r9.getCell(C+2).value = item.desc;
                 ws.mergeCells(9, C+2, 9, C+3);
@@ -850,7 +937,6 @@
                 r9.getCell(C).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
                 r9.getCell(C+1).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
                 
-                // Operations
                 let cr = 10;
                 item.ops.forEach(op => {
                     let row = ws.getRow(cr);
@@ -872,7 +958,6 @@
                 let partColLetter = getColLetter(C+2);
                 let smvColLetter = getColLetter(C+3);
 
-                // First Total
                 let rowTot1 = ws.getRow(cr);
                 rowTot1.getCell(C+3).value = { formula: `SUM(${smvColLetter}${formulaStartRow}:${smvColLetter}${formulaEndRow})` };
                 rowTot1.getCell(C+3).font = { bold: true };
@@ -882,7 +967,6 @@
                 let grandTotalRowIdx = cr;
                 cr++;
                 
-                // Parts (Live SUMIF Formulas)
                 partsOrder.forEach(p => {
                     let row = ws.getRow(cr);
                     row.getCell(C+2).value = p;
@@ -900,7 +984,6 @@
                     cr++;
                 });
                 
-                // Final Total
                 let rowTot2 = ws.getRow(cr);
                 rowTot2.getCell(C+3).value = { formula: `${smvColLetter}${grandTotalRowIdx}` };
                 rowTot2.getCell(C+3).font = { bold: true };
