@@ -57,10 +57,10 @@
             gap: 20px;
             flex-wrap: wrap;
         }
-        .table-panel { flex-direction: column; overflow: hidden; flex: 1; } 
+        .table-panel { flex-direction: column; overflow: hidden; flex: 1; }
 
         .input-group { display: flex; flex-direction: column; }
-        .input-group label { font-size: 0.8em; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px; font-weight: bold;}
+        .input-group label { font-size: 0.8em; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px; font-weight: bold; }
         .input-group input[type="text"] { background: #1e293b; border: 1px solid #475569; color: #fff; padding: 10px; border-radius: 6px; width: 100%; }
 
         /* Drag & Drop Styles */
@@ -98,25 +98,25 @@
             cursor: pointer;
         }
 
-        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; width: 100%; border-bottom: 2px solid #334155; padding-bottom: 15px;}
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; width: 100%; border-bottom: 2px solid #334155; padding-bottom: 15px; }
         .table-toolbar h3 { margin: 0; color: #f8fafc; }
         .empty-msg { text-align: center; padding: 20px; color: #64748b; display: block; font-weight: bold; width: 100%; }
 
         /* Unified Monolithic Table Preview Styles */
-        .excel-preview-container { 
-            overflow-x: auto; 
-            padding-bottom: 10px; 
+        .excel-preview-container {
+            overflow-x: auto;
+            padding-bottom: 10px;
             width: 100%;
-            background: #e2e8f0; 
-            padding: 20px; 
+            background: #e2e8f0;
+            padding: 20px;
             border-radius: 8px;
         }
         .excel-table-wrapper {
-            background: #fff; 
-            color: #000; 
-            padding: 10px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-            border: 1px solid #cbd5e1; 
+            background: #fff;
+            color: #000;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid #cbd5e1;
             width: max-content;
         }
         .excel-table { border-collapse: collapse; font-size: 13px; font-family: Calibri, sans-serif; white-space: nowrap; }
@@ -124,12 +124,12 @@
         .excel-header { background: #e7e6e6; font-weight: bold; }
         .red-text { color: red; }
         .red-text-bold { color: red; font-weight: bold; }
-        
+
         .desc-col { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .wc-col { width: 90px; text-align: left; }
         .part-col { width: 70px; text-align: center; }
         .smv-col { width: 80px; text-align: right; }
-        
+
         .green-divider-cell { background-color: #00b050; width: 16px; min-width: 16px; border: none !important; padding: 0 !important; }
 
         /* Light Mode */
@@ -139,7 +139,7 @@
         body.light-mode .input-group label { color: #475569; }
         body.light-mode .input-group input[type="text"] { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
         body.light-mode .table-toolbar h3 { color: #0f172a; }
-        
+
         body.light-mode .drop-zone { background: #f8fafc; border-color: #cbd5e1; }
         body.light-mode .drop-zone.dragover, body.light-mode .drop-zone:hover { background: #e2e8f0; border-color: #38bdf8; }
         body.light-mode .drop-zone-text { color: #475569; }
@@ -158,7 +158,7 @@
     </div>
 
     <div class="dashboard-container">
-        
+
         <div class="info-panel" style="display: flex; gap: 30px;">
             <div style="flex: 1; min-width: 250px;">
                 <h3 style="margin-top: 0; color: #38bdf8;">1. Database Settings</h3>
@@ -174,7 +174,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div style="flex: 2; min-width: 500px; border-left: 1px dashed #475569; padding-left: 30px;">
                 <h3 style="margin-top: 0; color: #10b981;">2. Upload Labour File</h3>
                 <div class="input-group">
@@ -209,7 +209,7 @@
     function setupDropZone(inputId, zoneId) {
         const input = document.getElementById(inputId);
         const zone = document.getElementById(zoneId);
-        
+
         input.addEventListener('dragover', () => zone.classList.add('dragover'));
         input.addEventListener('dragleave', () => zone.classList.remove('dragover'));
         input.addEventListener('drop', () => zone.classList.remove('dragover'));
@@ -406,6 +406,219 @@
         return rawImages;
     }
 
+    // Helper: safe Uint8Array -> base64 (avoids call-stack overflow on large images)
+    function uint8ToBase64(bytes) {
+        let binary = '';
+        const chunkSize = 8192;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+        }
+        return btoa(binary);
+    }
+
+    // Directly reads embedded images & 1-based column/row anchors from legacy .xls (BIFF8)
+    async function extractImagesFromLegacyXls(buffer) {
+        const rawImages = [];
+        try {
+            const CFB = (typeof XLSX !== 'undefined' && XLSX.CFB) || (typeof window !== 'undefined' && window.CFB);
+            if (!CFB) return rawImages;
+
+            const cfb = CFB.read(new Uint8Array(buffer), { type: 'array' });
+            let wbEntry = CFB.find(cfb, 'Workbook') || CFB.find(cfb, '/Workbook') || CFB.find(cfb, 'Book');
+            if (!wbEntry && cfb.FullPaths && cfb.FileIndex) {
+                const idx = cfb.FullPaths.findIndex(p => /(^|\/)(workbook|book)$/i.test(p));
+                if (idx !== -1) wbEntry = cfb.FileIndex[idx];
+            }
+            if (!wbEntry || !wbEntry.content) return rawImages;
+
+            const wb = wbEntry.content instanceof Uint8Array
+                ? wbEntry.content
+                : new Uint8Array(wbEntry.content);
+            const dv = new DataView(wb.buffer, wb.byteOffset, wb.byteLength);
+
+            // 1. Parse BIFF8 records
+            const records = [];
+            let pos = 0;
+            while (pos + 4 <= wb.length) {
+                const rid = dv.getUint16(pos, true);
+                const rlen = dv.getUint16(pos + 2, true);
+                if (pos + 4 + rlen > wb.length) break;
+                records.push({ id: rid, data: wb.subarray(pos + 4, pos + 4 + rlen) });
+                pos += 4 + rlen;
+            }
+
+            const concatChunks = (chunks) => {
+                const total = chunks.reduce((sum, c) => sum + c.length, 0);
+                const out = new Uint8Array(total);
+                let offset = 0;
+                for (const c of chunks) {
+                    out.set(c, offset);
+                    offset += c.length;
+                }
+                return out;
+            };
+
+            // 2. Collect MSODRAWINGGROUP (0x00EB + consecutive 0x00EB / 0x003C CONTINUE)
+            const dgChunks = [];
+            let inDg = false;
+            for (const rec of records) {
+                if (rec.id === 0x00EB) {
+                    dgChunks.push(rec.data);
+                    inDg = true;
+                } else if (inDg && rec.id === 0x003C) {
+                    dgChunks.push(rec.data);
+                } else if (inDg) {
+                    break;
+                }
+            }
+            if (dgChunks.length === 0) return rawImages;
+
+            const dgStream = concatChunks(dgChunks);
+            const dgView = new DataView(dgStream.buffer, dgStream.byteOffset, dgStream.byteLength);
+
+            // 3. Parse Escher FBSE (0xF007) records to get 1-based BLIP list
+            const blips = [];
+            function parseBlips(start, end) {
+                let p = start;
+                while (p + 8 <= end) {
+                    const verInst = dgView.getUint16(p, true);
+                    const recType = dgView.getUint16(p + 2, true);
+                    const recLen = dgView.getUint32(p + 4, true);
+                    const ver = verInst & 0x0F;
+                    const bodyStart = p + 8;
+                    const bodyEnd = Math.min(bodyStart + recLen, end);
+
+                    if (ver === 0x0F) {
+                        parseBlips(bodyStart, bodyEnd);
+                    } else if (recType === 0xF007 && bodyStart + 36 <= bodyEnd) {
+                        const cbName = dgStream[bodyStart + 33];
+                        const blipPos = bodyStart + 36 + cbName;
+                        let blipObj = null;
+                        if (blipPos + 8 <= bodyEnd) {
+                            const bVerInst = dgView.getUint16(blipPos, true);
+                            const bType = dgView.getUint16(blipPos + 2, true);
+                            const bLen = dgView.getUint32(blipPos + 4, true);
+                            const bInst = bVerInst >> 4;
+                            const bBody = blipPos + 8;
+                            const bEnd = Math.min(bBody + bLen, bodyEnd);
+
+                            let mime = null;
+                            let skip = 17;
+                            if (bType === 0xF01D || bType === 0xF02A) {
+                                mime = 'jpeg';
+                                skip = (bInst === 0x46B || bInst === 0x6E3) ? 33 : 17;
+                            } else if (bType === 0xF01E) {
+                                mime = 'png';
+                                skip = (bInst === 0x6E1) ? 33 : 17;
+                            }
+                            if (mime && bBody + skip < bEnd) {
+                                blipObj = { mime, bytes: dgStream.subarray(bBody + skip, bEnd) };
+                            }
+                        }
+                        blips.push(blipObj);
+                    }
+                    p = bodyStart + recLen;
+                }
+            }
+            parseBlips(0, dgStream.length);
+
+            // 4. Collect Sheet 1 MSODRAWING (0x00EC) + interleaved CONTINUE (0x003C, excluding TXO text continues)
+            let sheetIdx = -1;
+            let inDrawing = false;
+            let inTxo = false;
+            const s1Chunks = [];
+
+            for (const rec of records) {
+                if (rec.id === 0x0809 && rec.data.length >= 4) {
+                    const btype = rec.data[2] | (rec.data[3] << 8);
+                    if (btype === 0x0010) sheetIdx++;
+                    inDrawing = false;
+                    inTxo = false;
+                    continue;
+                }
+                if (sheetIdx !== 0) continue;
+
+                if (rec.id === 0x00EC) {
+                    inDrawing = true;
+                    inTxo = false;
+                    s1Chunks.push(rec.data);
+                } else if (inDrawing) {
+                    if (rec.id === 0x005D) { // OBJ
+                        inTxo = false;
+                    } else if (rec.id === 0x01B6) { // TXO
+                        inTxo = true;
+                    } else if (rec.id === 0x003C) {
+                        if (!inTxo) s1Chunks.push(rec.data);
+                    } else {
+                        inDrawing = false;
+                        inTxo = false;
+                    }
+                }
+            }
+            if (s1Chunks.length === 0) return rawImages;
+
+            const s1Stream = concatChunks(s1Chunks);
+            const s1View = new DataView(s1Stream.buffer, s1Stream.byteOffset, s1Stream.byteLength);
+
+            // 5. Parse SpContainer (0xF004) to match BLIP index (pib) with ClientAnchor (col, row)
+            const shapes = [];
+            function parseShapes(start, end, curShape) {
+                let p = start;
+                while (p + 8 <= end) {
+                    const verInst = s1View.getUint16(p, true);
+                    const recType = s1View.getUint16(p + 2, true);
+                    const recLen = s1View.getUint32(p + 4, true);
+                    const ver = verInst & 0x0F;
+                    const inst = verInst >> 4;
+                    const bodyStart = p + 8;
+                    const bodyEnd = Math.min(bodyStart + recLen, end);
+
+                    if (recType === 0xF004) {
+                        const sh = { pib: null, col: null, row: null };
+                        parseShapes(bodyStart, bodyEnd, sh);
+                        if (sh.pib !== null && sh.col !== null) shapes.push(sh);
+                    } else if (ver === 0x0F) {
+                        parseShapes(bodyStart, bodyEnd, curShape);
+                    } else if (curShape) {
+                        if (recType === 0xF00B || recType === 0xF122) {
+                            for (let k = 0; k < inst; k++) {
+                                const off = bodyStart + k * 6;
+                                if (off + 6 > bodyEnd) break;
+                                const pid = s1View.getUint16(off, true) & 0x3FFF;
+                                const pval = s1View.getUint32(off + 2, true);
+                                if (pid === 0x0104 || pid === 0x0186) {
+                                    curShape.pib = pval;
+                                }
+                            }
+                        } else if (recType === 0xF010 && bodyStart + 18 <= bodyEnd) {
+                            curShape.col = s1View.getUint16(bodyStart + 2, true) + 1; // 1-based col
+                            curShape.row = s1View.getUint16(bodyStart + 6, true) + 1; // 1-based row
+                        }
+                    }
+                    p = bodyStart + recLen;
+                }
+            }
+            parseShapes(0, s1Stream.length, null);
+
+            for (const sh of shapes) {
+                if (sh.col < 4) continue; // Ignore logos/buttons in cols A-C
+                const blip = blips[sh.pib - 1];
+                if (!blip) continue;
+                const b64 = uint8ToBase64(blip.bytes);
+                rawImages.push({
+                    col: sh.col,
+                    row: sh.row,
+                    src: `data:image/${blip.mime};base64,${b64}`
+                });
+            }
+
+            rawImages.sort((a, b) => (a.row - b.row) || (a.col - b.col));
+        } catch (err) {
+            console.warn("Legacy .xls image extraction skipped/partial:", err);
+        }
+        return rawImages;
+    }
+
     // Strips VBA macros/controls from an .xlsm buffer so ExcelJS can load an existing DB cleanly
     async function sanitizeExcelBufferForExcelJS(buffer) {
         try {
@@ -447,7 +660,7 @@
 
     document.getElementById('existingDbUpload').addEventListener('change', function(e) {
         const file = e.target.files[0];
-        if(!file) return;
+        if (!file) return;
         document.querySelector('#dbDropZone .drop-zone-text').innerHTML = `✅ Loaded: <span style="color:#10b981">${file.name}</span>`;
         const reader = new FileReader();
         reader.onload = (ev) => { existingDbBuffer = ev.target.result; };
@@ -456,11 +669,9 @@
 
     document.getElementById('ifsUpload').addEventListener('change', async function(e) {
         const file = e.target.files[0];
-        if(!file) return;
+        if (!file) return;
 
         document.getElementById('ifsDropText').innerHTML = `⏳ Extracting from: <span style="color:#f59e0b">${file.name}</span>`;
-
-        const isLegacyXls = file.name.toLowerCase().endsWith('.xls');
 
         const reader = new FileReader();
         reader.onload = async function(ev) {
@@ -578,8 +789,12 @@
                     }
                 }
 
-                // 4. Extract embedded images safely from .xlsx / .xlsm
-                const rawImages = isLegacyXls ? [] : await extractImagesFromOpenXml(buffer);
+                // 4. Extract embedded images safely from .xlsx / .xlsm OR legacy .xls
+                const head = new Uint8Array(buffer, 0, Math.min(4, buffer.byteLength));
+                const isZipOpenXml = head.length >= 2 && head[0] === 0x50 && head[1] === 0x4B; // PK..
+                const rawImages = isZipOpenXml
+                    ? await extractImagesFromOpenXml(buffer)
+                    : await extractImagesFromLegacyXls(buffer);
 
                 extractedItems = [];
                 detectedColPairs.forEach((pair, idx) => {
@@ -606,7 +821,7 @@
                         sampleNo: sNo || `Item ${idx + 1}`,
                         desc: desc || "",
                         ops: [],
-                        pMap: { 'CU':0, 'CI':0, 'CS':0, 'II':0, 'SS':0, 'UU':0, 'AA':0 },
+                        pMap: { 'CU': 0, 'CI': 0, 'CS': 0, 'II': 0, 'SS': 0, 'UU': 0, 'AA': 0 },
                         tot: 0
                     };
 
@@ -672,18 +887,14 @@
                     }
                 });
 
-                if (isLegacyXls) {
-                    document.getElementById('ifsDropText').innerHTML = `✅ Extracted (${extractedItems.length} item${extractedItems.length > 1 ? 's' : ''}) from <span style="color:#10b981">${file.name}</span> (Legacy .xls — save as .xlsx/.xlsm for photos)`;
-                } else {
-                    document.getElementById('ifsDropText').innerHTML = `✅ Successfully Extracted (${extractedItems.length} item${extractedItems.length > 1 ? 's' : ''}): <span style="color:#10b981">${file.name}</span>`;
-                }
+                document.getElementById('ifsDropText').innerHTML = `✅ Successfully Extracted (${extractedItems.length} item${extractedItems.length > 1 ? 's' : ''}): <span style="color:#10b981">${file.name}</span>`;
                 renderPreview();
             } catch (err) {
                 console.error(err);
                 alert("Error parsing the IFS file: " + err.message + "\n\nEnsure it matches the standard Labour template.");
                 document.getElementById('ifsDropText').innerHTML = `📥 Drag & Drop your IFS file (.xlsx, .xlsm, or .xls) here, or <span>Click to Browse</span>`;
             }
-            e.target.value = ""; 
+            e.target.value = "";
         };
         reader.readAsArrayBuffer(file);
     });
@@ -696,11 +907,11 @@
         }
 
         let html = '<div class="excel-table-wrapper"><table class="excel-table">';
-        
+
         html += '<tr>';
         extractedItems.forEach((item, idx) => {
-            let img = imagesBase64[idx] 
-                ? `<img src="${imagesBase64[idx]}" style="width: 100%; height: auto; max-height: 150px; object-fit: contain; display: block; margin: auto;">` 
+            let img = imagesBase64[idx]
+                ? `<img src="${imagesBase64[idx]}" style="width: 100%; height: auto; max-height: 150px; object-fit: contain; display: block; margin: auto;">`
                 : `<div style="height:150px; display:flex; align-items:center; justify-content:center; color:#94a3b8; background: #f1f5f9;">No Photo</div>`;
             html += `<td colspan="4" style="padding: 5px; border: 1px solid #000; vertical-align: middle; background: #fff;">${img}</td>`;
             if (idx < extractedItems.length - 1) html += `<td class="green-divider-cell"></td>`;
@@ -726,7 +937,7 @@
         html += '</tr>';
 
         let maxOps = Math.max(...extractedItems.map(i => i.ops.length));
-        for(let r=0; r<maxOps; r++) {
+        for (let r = 0; r < maxOps; r++) {
             html += '<tr>';
             extractedItems.forEach((item, idx) => {
                 let op = item.ops[r];
@@ -785,14 +996,14 @@
         return new Promise(resolve => {
             let img = new Image();
             img.onload = () => resolve({ w: img.width, h: img.height });
-            img.onerror = () => resolve({ w: 400, h: 200 }); 
+            img.onerror = () => resolve({ w: 400, h: 200 });
             img.src = base64;
         });
     }
 
     async function exportToDatabase() {
         if (extractedItems.length === 0) return alert("Please extract data from an IFS Labour file first.");
-        
+
         const btn = document.getElementById("btnExport");
         btn.innerText = "⏳ Appending to Database...";
         btn.disabled = true;
@@ -801,12 +1012,12 @@
             let catName = document.getElementById('categoryName').value || "Database";
             let wb = new ExcelJS.Workbook();
             let ws;
-            
+
             if (existingDbBuffer) {
                 const cleanDbBuffer = await sanitizeExcelBufferForExcelJS(existingDbBuffer);
                 await wb.xlsx.load(cleanDbBuffer);
                 ws = wb.worksheets[0];
-                catName = ws.name; 
+                catName = ws.name;
 
                 try {
                     const existingImages = ws.getImages();
@@ -822,14 +1033,14 @@
             } else {
                 ws = wb.addWorksheet(catName);
             }
-            
+
             let maxC = 0;
             ws.eachRow((row) => {
                 if (row.values && row.values.length > maxC) {
-                    maxC = row.values.length - 1; 
+                    maxC = row.values.length - 1;
                 }
             });
-            
+
             let startCol = maxC > 0 ? maxC + 2 : 1;
             const partsOrder = ['CU', 'CI', 'CS', 'II', 'SS', 'UU', 'AA'];
 
@@ -843,14 +1054,14 @@
                 return letter;
             }
 
-            let targetW_px = 435; 
-            let maxTargetH_px = 10; 
+            let targetW_px = 435;
+            let maxTargetH_px = 10;
             let imgDims = [];
 
             for (let b64 of imagesBase64) {
                 if (b64) {
                     let dim = await getImageDimensions(b64);
-                    let targetH = targetW_px / (dim.w / dim.h); 
+                    let targetH = targetW_px / (dim.w / dim.h);
                     imgDims.push({ w: targetW_px, h: targetH });
                     if (targetH > maxTargetH_px) {
                         maxTargetH_px = targetH;
@@ -860,33 +1071,33 @@
                 }
             }
 
-            let totalContainerHeightPx = maxTargetH_px + 20; 
-            let rowHeightPts = (totalContainerHeightPx * 0.75) / 6; 
-            
+            let totalContainerHeightPx = maxTargetH_px + 20;
+            let rowHeightPts = (totalContainerHeightPx * 0.75) / 6;
+
             for (let r = 1; r <= 6; r++) {
                 ws.getRow(r).height = rowHeightPts;
             }
             ws.getRow(7).height = 12;
 
             extractedItems.forEach((item, index) => {
-                let C = startCol + (index * 5); 
+                let C = startCol + (index * 5);
                 let maxRowNeeded = 10 + item.ops.length + 10;
-                
+
                 if (C > 1) {
                     let gapCol = C - 1;
                     ws.getColumn(gapCol).width = 2.5;
-                    for(let r=1; r <= maxRowNeeded; r++) {
+                    for (let r = 1; r <= maxRowNeeded; r++) {
                         let gCell = ws.getCell(r, gapCol);
                         gCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00B050' } };
                         gCell.border = undefined;
                     }
                 }
-                
+
                 ws.getColumn(C).width = 28;
-                ws.getColumn(C+1).width = 12;
-                ws.getColumn(C+2).width = 12;
-                ws.getColumn(C+3).width = 10;
-                
+                ws.getColumn(C + 1).width = 12;
+                ws.getColumn(C + 2).width = 12;
+                ws.getColumn(C + 3).width = 10;
+
                 if (imagesBase64[index] && imgDims[index]) {
                     try {
                         const base64Data = imagesBase64[index].split(',')[1];
@@ -895,111 +1106,111 @@
                             base64: base64Data,
                             extension: ext === 'jpeg' ? 'jpeg' : (ext === 'gif' ? 'gif' : 'png'),
                         });
-                        
+
                         let hPx = imgDims[index].h;
                         let leftoverPx = totalContainerHeightPx - hPx;
                         let topOffsetRows = (leftoverPx / 2) / (rowHeightPts / 0.75);
-                        
+
                         ws.addImage(imageId, {
-                            tl: { col: C - 1 + 0.05, row: topOffsetRows }, 
+                            tl: { col: C - 1 + 0.05, row: topOffsetRows },
                             ext: { width: targetW_px, height: Math.round(hPx) },
                             editAs: 'oneCell'
                         });
-                    } catch(e) { console.error("Image add error", e); }
+                    } catch (e) { console.error("Image add error", e); }
                 }
-                
+
                 let r8 = ws.getRow(8);
                 r8.getCell(C).value = "DESCRIPTION";
-                r8.getCell(C+1).value = "Work Center";
-                r8.getCell(C+2).value = item.sampleNo;
-                ws.mergeCells(8, C+2, 8, C+3);
-                
-                [C, C+1, C+2, C+3].forEach(colIdx => {
+                r8.getCell(C + 1).value = "Work Center";
+                r8.getCell(C + 2).value = item.sampleNo;
+                ws.mergeCells(8, C + 2, 8, C + 3);
+
+                [C, C + 1, C + 2, C + 3].forEach(colIdx => {
                     let cell = r8.getCell(colIdx);
                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE7E6E6' } };
                     cell.font = { bold: true };
-                    cell.border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
+                    cell.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
                 });
-                r8.getCell(C+2).alignment = { horizontal: 'center' };
-                
+                r8.getCell(C + 2).alignment = { horizontal: 'center' };
+
                 let r9 = ws.getRow(9);
-                r9.getCell(C+2).value = item.desc;
-                ws.mergeCells(9, C+2, 9, C+3);
-                
-                [C+2, C+3].forEach(colIdx => {
+                r9.getCell(C + 2).value = item.desc;
+                ws.mergeCells(9, C + 2, 9, C + 3);
+
+                [C + 2, C + 3].forEach(colIdx => {
                     let cell = r9.getCell(colIdx);
                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE7E6E6' } };
-                    cell.border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
+                    cell.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
                 });
-                r9.getCell(C+2).font = { bold: true };
-                r9.getCell(C+2).alignment = { horizontal: 'center' };
-                
-                r9.getCell(C).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                r9.getCell(C+1).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                
+                r9.getCell(C + 2).font = { bold: true };
+                r9.getCell(C + 2).alignment = { horizontal: 'center' };
+
+                r9.getCell(C).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+                r9.getCell(C + 1).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+
                 let cr = 10;
                 item.ops.forEach(op => {
                     let row = ws.getRow(cr);
                     row.getCell(C).value = op.opName;
-                    row.getCell(C+1).value = op.wc;
-                    row.getCell(C+2).value = op.part;
-                    row.getCell(C+3).value = op.smv;
-                    
-                    [C, C+1, C+2, C+3].forEach(colIdx => {
-                        row.getCell(colIdx).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
+                    row.getCell(C + 1).value = op.wc;
+                    row.getCell(C + 2).value = op.part;
+                    row.getCell(C + 3).value = op.smv;
+
+                    [C, C + 1, C + 2, C + 3].forEach(colIdx => {
+                        row.getCell(colIdx).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
                     });
-                    row.getCell(C+2).alignment = { horizontal: 'center' };
-                    row.getCell(C+3).numFmt = '0.00';
+                    row.getCell(C + 2).alignment = { horizontal: 'center' };
+                    row.getCell(C + 3).numFmt = '0.00';
                     cr++;
                 });
-                
+
                 let formulaStartRow = 10;
                 let formulaEndRow = cr - 1;
-                let partColLetter = getColLetter(C+2);
-                let smvColLetter = getColLetter(C+3);
+                let partColLetter = getColLetter(C + 2);
+                let smvColLetter = getColLetter(C + 3);
 
                 let rowTot1 = ws.getRow(cr);
-                rowTot1.getCell(C+3).value = { formula: `SUM(${smvColLetter}${formulaStartRow}:${smvColLetter}${formulaEndRow})` };
-                rowTot1.getCell(C+3).font = { bold: true };
-                rowTot1.getCell(C+3).numFmt = '0.000';
-                rowTot1.getCell(C+2).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                rowTot1.getCell(C+3).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
+                rowTot1.getCell(C + 3).value = { formula: `SUM(${smvColLetter}${formulaStartRow}:${smvColLetter}${formulaEndRow})` };
+                rowTot1.getCell(C + 3).font = { bold: true };
+                rowTot1.getCell(C + 3).numFmt = '0.000';
+                rowTot1.getCell(C + 2).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+                rowTot1.getCell(C + 3).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
                 let grandTotalRowIdx = cr;
                 cr++;
-                
+
                 partsOrder.forEach(p => {
                     let row = ws.getRow(cr);
-                    row.getCell(C+2).value = p;
-                    row.getCell(C+3).value = { 
-                        formula: `SUMIF(${partColLetter}${formulaStartRow}:${partColLetter}${formulaEndRow}, "${p}", ${smvColLetter}${formulaStartRow}:${smvColLetter}${formulaEndRow})` 
+                    row.getCell(C + 2).value = p;
+                    row.getCell(C + 3).value = {
+                        formula: `SUMIF(${partColLetter}${formulaStartRow}:${partColLetter}${formulaEndRow}, "${p}", ${smvColLetter}${formulaStartRow}:${smvColLetter}${formulaEndRow})`
                     };
-                    
-                    row.getCell(C+2).font = { bold: true, color: { argb: 'FFFF0000' } };
-                    row.getCell(C+3).font = { color: { argb: 'FFFF0000' } };
-                    row.getCell(C+2).alignment = { horizontal: 'center' };
-                    row.getCell(C+3).numFmt = '0.000';
-                    
-                    row.getCell(C+2).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                    row.getCell(C+3).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
+
+                    row.getCell(C + 2).font = { bold: true, color: { argb: 'FFFF0000' } };
+                    row.getCell(C + 3).font = { color: { argb: 'FFFF0000' } };
+                    row.getCell(C + 2).alignment = { horizontal: 'center' };
+                    row.getCell(C + 3).numFmt = '0.000';
+
+                    row.getCell(C + 2).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+                    row.getCell(C + 3).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
                     cr++;
                 });
-                
+
                 let rowTot2 = ws.getRow(cr);
-                rowTot2.getCell(C+3).value = { formula: `${smvColLetter}${grandTotalRowIdx}` };
-                rowTot2.getCell(C+3).font = { bold: true };
-                rowTot2.getCell(C+3).numFmt = '0.00'; 
-                rowTot2.getCell(C+2).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                rowTot2.getCell(C+3).border = { top: {style:'thin'}, bottom: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'} };
-                
+                rowTot2.getCell(C + 3).value = { formula: `${smvColLetter}${grandTotalRowIdx}` };
+                rowTot2.getCell(C + 3).font = { bold: true };
+                rowTot2.getCell(C + 3).numFmt = '0.00';
+                rowTot2.getCell(C + 2).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+                rowTot2.getCell(C + 3).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+
                 if (C > 1 && cr > maxRowNeeded) {
                     let gapCol = C - 1;
-                    for(let r = maxRowNeeded + 1; r <= cr; r++) {
+                    for (let r = maxRowNeeded + 1; r <= cr; r++) {
                         let gCell = ws.getCell(r, gapCol);
                         gCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00B050' } };
                     }
                 }
             });
-            
+
             const outBuffer = await wb.xlsx.writeBuffer();
             saveAs(new Blob([outBuffer], { type: "application/octet-stream" }), `${catName}_Database.xlsx`);
 
